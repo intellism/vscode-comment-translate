@@ -1,0 +1,84 @@
+{
+    "name": "comment-translate",
+    "displayName": "Comment Translate",
+    "description": "vscode comment translate.",
+    "version": "0.0.1",
+    "publisher": "intellsmi",
+    "author": {
+        "name": "Zheng MaoWei",
+        "email": "intellsmi@gmail.com"
+    },
+    "license": "SEE LICENSE IN LICENSE",
+    "homepage": "https://github.com/intellsmi/vscode-comment-translate/blob/master/README.md",
+    "bugs": {
+        "url": "https://github.com/eamodio/vscode-comment-translate/issues"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/eamodio/vscode-comment-translate.git"
+    },
+    "engines": {
+        "vscode": "^1.23.0"
+    },
+    "categories": [
+        "Other"
+    ],
+    "keywords": [
+        "comment",
+        "translate",
+        "hover",
+        "google translate"
+    ],
+    "activationEvents": [
+        "*"
+    ],
+    "icon": "doc/image/icon.png",
+    "main": "./client/out/extension",
+    "contributes": {
+        "configuration": [
+            {
+                "title": "Comment Translate Configuration",
+                "type": "Object",
+                "properties": {
+                    "commentTranslate.targetLanguage": {
+                        "type": "string",
+                        "enum": [
+                            "de",
+                            "es",
+                            "en",
+                            "fr",
+                            "it",
+                            "ja",
+                            "ko",
+                            "ru",
+                            "zh-CN",
+                            "zh-TW"
+                        ],
+                        "default": "zh-CN",
+                        "description": "Translation to target language"
+                    },
+                    "commentTranslate.multiLineMerge": {
+                        "type": "boolean",
+                        "default": false,
+                        "description": "Comment Multi-line merge"
+                    }
+                }
+            }
+        ]
+    },
+    "scripts": {
+        "vscode:prepublish": "cd client && npm run update-vscode && cd .. && npm run compile",
+        "compile:client": "tsc -p ./client/tsconfig.json",
+        "compile:server": "tsc -p ./server/tsconfig.json",
+        "watch:client": "tsc -w -p ./client/tsconfig.json",
+        "watch:server": "tsc -w -p ./server/tsconfig.json",
+        "compile": "npm run compile:client && npm run compile:server",
+        "postinstall": "cd client && npm install && cd ../server && npm install && cd ..",
+        "test": "sh ./scripts/e2e.sh"
+    },
+    "devDependencies": {
+        "@types/node": "^6.0.40",
+        "typescript": "^2.0.3",
+        "vscode": "^1.1.2"
+    }
+}
