@@ -2,7 +2,7 @@
     "name": "comment-translate",
     "displayName": "Comment Translate",
     "description": "vscode comment translate.",
-    "version": "0.0.2",
+    "version": "0.0.3",
     "publisher": "intellsmi",
     "author": {
         "name": "Zheng MaoWei",
