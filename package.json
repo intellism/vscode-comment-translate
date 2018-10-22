@@ -2,20 +2,20 @@
     "name": "comment-translate",
     "displayName": "Comment Translate",
     "description": "vscode comment translate.",
-    "version": "0.0.1",
+    "version": "0.0.2",
     "publisher": "intellsmi",
     "author": {
         "name": "Zheng MaoWei",
         "email": "intellsmi@gmail.com"
     },
     "license": "SEE LICENSE IN LICENSE",
-    "homepage": "https://github.com/intellsmi/vscode-comment-translate/blob/master/README.md",
+    "homepage": "https://github.com/intellism/vscode-comment-translate/blob/master/README.md",
     "bugs": {
-        "url": "https://github.com/eamodio/vscode-comment-translate/issues"
+        "url": "https://github.com/intellism/vscode-comment-translate/issues"
     },
     "repository": {
         "type": "git",
-        "url": "https://github.com/eamodio/vscode-comment-translate.git"
+        "url": "https://github.com/intellism/vscode-comment-translate.git"
     },
     "engines": {
         "vscode": "^1.23.0"
