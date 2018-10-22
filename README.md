@@ -6,8 +6,7 @@
 Many excellent projects have a lot of annotations, and users can quickly understand the code intent. However, if the user is not familiar with the annotated language, it will bring difficulties in understanding. This plugin uses the Google Translate API to translate comments for the VSCode programming language.
 
 ## Features
-Identify the comment portion of the code without interfering with reading. Support for different languages, single-line, multi-line comments.
-
+Identify the comment portion of the code without interfering with reading. Support for different languages, single-line, multi-line comments
 ![Introduction](./doc/image/cn/Introduction.gif)
 
 
