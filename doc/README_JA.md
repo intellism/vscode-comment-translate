@@ -14,6 +14,7 @@
 #### 多言語サポート
 
 ![Multi-language](./image/multi-language.gif)
+
 Display Language | Locale
 -----------------|-------
 English (US) | `en`

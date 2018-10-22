@@ -14,6 +14,7 @@ Identify the comment portion of the code without interfering with reading. Suppo
 #### Multi-language support
 
 ![Multi-language](./doc/image/multi-language.gif)
+
 Display Language | Locale
 -----------------|-------
 English (US) | `en`
