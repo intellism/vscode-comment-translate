@@ -1,8 +1,8 @@
 {
     "name": "comment-translate",
     "displayName": "Comment Translate",
-    "description": "vscode comment translate.",
-    "version": "0.0.3",
+    "description": "This plugin uses the Google Translate API to translate comments for the VSCode programming language.",
+    "version": "1.0.0",
     "publisher": "intellsmi",
     "author": {
         "name": "Zheng MaoWei",
@@ -27,7 +27,10 @@
         "comment",
         "translate",
         "hover",
-        "google translate"
+        "google translate",
+        "翻译",
+        "注释",
+        "翻訳"
     ],
     "activationEvents": [
         "*"
