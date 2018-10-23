@@ -1,6 +1,94 @@
-import { StackElement, IGrammar, Registry, IEmbeddedLanguagesMap as IEmbeddedLanguagesMap2, ITokenTypeMap, StandardTokenType, INITIAL, parseRawGrammar, IRawGrammar } from 'vscode-textmate';
 import * as path from 'path';
 import * as fs from 'fs';
+export interface ILocation {
+    readonly filename: string;
+    readonly line: number;
+    readonly char: number;
+}
+export interface ILocatable {
+    readonly $vscodeTextmateLocation?: ILocation;
+}
+
+export interface IRawCapturesMap {
+    [captureId: string]: IRawRule;
+}
+export declare type IRawCaptures = IRawCapturesMap & ILocatable;
+export interface IRawRule extends ILocatable {
+    id?: number;
+    readonly include?: string;
+    readonly name?: string;
+    readonly contentName?: string;
+    readonly match?: string;
+    readonly captures?: IRawCaptures;
+    readonly begin?: string;
+    readonly beginCaptures?: IRawCaptures;
+    readonly end?: string;
+    readonly endCaptures?: IRawCaptures;
+    readonly while?: string;
+    readonly whileCaptures?: IRawCaptures;
+    readonly patterns?: IRawRule[];
+    readonly repository?: IRawRepository;
+    readonly applyEndPatternLast?: boolean;
+}
+export interface IRawRepositoryMap {
+    [name: string]: IRawRule;
+    $self: IRawRule;
+    $base: IRawRule;
+}
+export declare type IRawRepository = IRawRepositoryMap & ILocatable;
+
+export interface IRawGrammar extends ILocatable {
+    repository: IRawRepository;
+    readonly scopeName: string;
+    readonly patterns: IRawRule[];
+    readonly injections?: {
+        [expression: string]: IRawRule;
+    };
+    readonly injectionSelector?: string;
+    readonly fileTypes?: string[];
+    readonly name?: string;
+    readonly firstLineMatch?: string;
+}
+
+export declare const enum StandardTokenType {
+    Other = 0,
+    Comment = 1,
+    String = 2,
+    RegEx = 4,
+}
+export interface ITokenTypeMap {
+    [selector: string]: StandardTokenType;
+}
+export interface IEmbeddedLanguagesMap2 {
+    [scopeName: string]: number;
+}
+export interface IToken {
+    startIndex: number;
+    readonly endIndex: number;
+    readonly scopes: string[];
+}
+
+export interface ITokenizeLineResult2 {
+    readonly tokens: Uint32Array;
+    readonly ruleStack: StackElement;
+}
+
+export interface ITokenizeLineResult {
+    readonly tokens: IToken[];
+    readonly ruleStack: StackElement;
+}
+
+export interface IGrammar {
+    tokenizeLine(lineText: string, prevState: StackElement): ITokenizeLineResult;
+    tokenizeLine2(lineText: string, prevState: StackElement): ITokenizeLineResult2;
+}
+
+export interface StackElement {
+    _stackElementBrand: void;
+    readonly depth: number;
+    clone(): StackElement;
+    equals(other: StackElement): boolean;
+}
 
 export interface TokenTypesContribution {
     [scopeName: string]: string;
@@ -135,16 +223,18 @@ export interface IGrammarExtensions {
 export class TextMateService implements ITextMateService {
     public _serviceBrand: any;
 
-    private _grammarRegistry: Promise<[Registry, StackElement]>;
+    private _grammarRegistry: Promise<[any, StackElement]>;
     // private _modeService: IModeService;
     private _scopeRegistry: TMScopeRegistry;
     private _injections: { [scopeName: string]: string[]; };
     private _injectedEmbeddedLanguages: { [scopeName: string]: IEmbeddedLanguagesMap[]; };
     private _languages: Map<string, number>;
     private _languageToScope: Map<string, string>;
+    public tm: any;
 
     constructor(
         extensions: IGrammarExtensions[],
+        tmPath: string
     ) {
         this._scopeRegistry = new TMScopeRegistry();
         this._injections = {};
@@ -153,6 +243,7 @@ export class TextMateService implements ITextMateService {
         this._languages = new Map<string, number>();
 
         this._grammarRegistry = null;
+        this.tm = require(tmPath);
         this._parseExtensions(extensions);
     }
 
@@ -170,9 +261,9 @@ export class TextMateService implements ITextMateService {
         }
     }
 
-    private async _getOrCreateGrammarRegistry(): Promise<[Registry, StackElement]> {
+    private async _getOrCreateGrammarRegistry(): Promise<[any, StackElement]> {
         if (!this._grammarRegistry) {
-            const grammarRegistry = new Registry({
+            const grammarRegistry = new this.tm.Registry({
                 loadGrammar: (scopeName: string) => {
                     const location = this._scopeRegistry.getGrammarLocation(scopeName);
                     if (!location) {
@@ -185,7 +276,7 @@ export class TextMateService implements ITextMateService {
                                 console.error(`Unable to load and parse grammar for scope ${scopeName} from ${location}`, e);
                                 e(null);
                             } else {
-                                var rawGrammar = parseRawGrammar(content.toString(), location);
+                                var rawGrammar = this.tm.parseRawGrammar(content.toString(), location);
                                 c(rawGrammar);
                             }
                         });
@@ -195,7 +286,7 @@ export class TextMateService implements ITextMateService {
                     return this._injections[scopeName];
                 }
             });
-            this._grammarRegistry = Promise.resolve(<[Registry, StackElement]>[grammarRegistry, INITIAL]);
+            this._grammarRegistry = Promise.resolve(<[any, StackElement]>[grammarRegistry, this.tm.INITIAL]);
         }
 
         return this._grammarRegistry;

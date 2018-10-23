@@ -1,6 +1,5 @@
-import { IToken, INITIAL } from 'vscode-textmate';
 import { Range, TextDocument, TextDocumentPositionParams, Position } from 'vscode-languageserver';
-import { TextMateService, IGrammarExtensions } from './TextMateService';
+import { TextMateService, IGrammarExtensions, IToken } from './TextMateService';
 import { isUpperCase, hasEndMark, isLowerCase } from '../util/string';
 
 interface ICommentLine {
@@ -17,14 +16,20 @@ interface ICommentBlock {
 
 type AstToken = IToken[][];
 
+export interface ICommentOption {
+    vscodeTextMatePath: string;
+    grammarExtensions: IGrammarExtensions[];
+}
+
 export class TMGrammar {
     private _textMateService: TextMateService;
     private _commentBlockCaches: Map<string, ICommentBlock[]> = new Map();
     private _multiLineMerge: boolean = false;
     private _commentCache: Map<string, { commentLines: ICommentLine[], lines: string[] }> = new Map();
-
-    constructor(extensions: IGrammarExtensions[]) {
-        this._textMateService = new TextMateService(extensions);
+    public tm: any;
+    constructor(option: ICommentOption) {
+        this.tm = require(option.vscodeTextMatePath);
+        this._textMateService = new TextMateService(option.grammarExtensions, option.vscodeTextMatePath);
     }
 
     set multiLineMerge(newState: boolean) {
@@ -53,7 +58,7 @@ export class TMGrammar {
     private async _parseLineComment(textDocument: TextDocument) {
         let lines = textDocument.getText().split('\n');
         let grammar = await this._textMateService.createGrammar(textDocument.languageId);
-        let ruleStack = INITIAL;
+        let ruleStack = this.tm.INITIAL;
 
         let ast: AstToken = [];
         lines.forEach(line => {

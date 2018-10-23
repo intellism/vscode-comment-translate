@@ -1,7 +1,6 @@
 import { TextDocumentPositionParams, Hover, Event, TextDocument } from "vscode-languageserver";
 import { BaseTranslate } from "./translate/translate";
-import { TMGrammar } from "./syntax/CommentGrammar";
-import { IGrammarExtensions } from "./syntax/TextMateService";
+import { TMGrammar, ICommentOption } from "./syntax/CommentGrammar";
 import { GoogleTranslate } from "./translate/GoogleTranslate";
 
 export interface ICommentTranslateSettings {
@@ -16,7 +15,7 @@ export class Comment {
     private _setting: ICommentTranslateSettings = { multiLineMerge: false, targetLanguage: 'zh_CN' };
     public onTranslate: Event<string>;
 
-    constructor(extensions: IGrammarExtensions[]) {
+    constructor(extensions: ICommentOption) {
         this._grammar = new TMGrammar(extensions);
         this._translator = new GoogleTranslate();
 

@@ -29,7 +29,15 @@ let comment: Comment;
 
 connection.onInitialize((params: InitializeParams) => {
 	let capabilities = params.capabilities;
-	comment = new Comment(params.initializationOptions.grammarExtensions);
+	comment = new Comment(params.initializationOptions);
+	connection.console.log(params.initializationOptions.vscodeTextMatePath);
+	try {
+		let tm = require(params.initializationOptions.vscodeTextMatePath);
+		connection.console.log(JSON.stringify(tm));
+	} catch (e) {
+		connection.console.error(JSON.stringify(e));
+	}
+
 	comment.onTranslate((string) => {
 		connection.console.log(string);
 	});

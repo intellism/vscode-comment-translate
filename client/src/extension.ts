@@ -86,7 +86,9 @@ export async function activate(context: ExtensionContext) {
     // Options to control the language client
     let clientOptions: LanguageClientOptions = {
         // Register the server for plain text documents
-        initializationOptions: { grammarExtensions },
+        initializationOptions: {
+            grammarExtensions, vscodeTextMatePath: path.join(require.main.filename, '../../node_modules.asar/vscode-textmate/release/main.js')
+        },
         documentSelector: canLanguages.filter(v => v).filter((v) => BlackLanguage.indexOf(v) < 0),
         synchronize: {
             // Notify the server about file changes to '.clientrc files contained in the workspace
