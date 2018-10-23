@@ -1,5 +1,6 @@
 import * as path from 'path';
 import * as fs from 'fs';
+import { getNodeModule } from '../util/patch-asar-require';
 export interface ILocation {
     readonly filename: string;
     readonly line: number;
@@ -243,7 +244,7 @@ export class TextMateService implements ITextMateService {
         this._languages = new Map<string, number>();
 
         this._grammarRegistry = null;
-        this.tm = require(tmPath);
+        this.tm = getNodeModule(tmPath, 'vscode-textmate')
         this._parseExtensions(extensions);
     }
 

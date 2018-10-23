@@ -13,6 +13,7 @@ import {
 } from 'vscode-languageserver';
 
 import { Comment } from './Comment';
+import { patchAsarRequire } from './util/patch-asar-require';
 
 // Create a connection for the server. The connection uses Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
@@ -30,14 +31,7 @@ let comment: Comment;
 connection.onInitialize((params: InitializeParams) => {
 	let capabilities = params.capabilities;
 	comment = new Comment(params.initializationOptions);
-	connection.console.log(params.initializationOptions.vscodeTextMatePath);
-	try {
-		let tm = require(params.initializationOptions.vscodeTextMatePath);
-		connection.console.log(JSON.stringify(tm));
-	} catch (e) {
-		connection.console.error(JSON.stringify(e));
-	}
-
+	patchAsarRequire(params.initializationOptions.appRoot);
 	comment.onTranslate((string) => {
 		connection.console.log(string);
 	});

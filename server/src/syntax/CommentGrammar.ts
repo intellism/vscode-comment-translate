@@ -1,6 +1,7 @@
 import { Range, TextDocument, TextDocumentPositionParams, Position } from 'vscode-languageserver';
 import { TextMateService, IGrammarExtensions, IToken } from './TextMateService';
 import { isUpperCase, hasEndMark, isLowerCase } from '../util/string';
+import { getNodeModule } from '../util/patch-asar-require';
 
 interface ICommentLine {
     line: number;
@@ -17,7 +18,7 @@ interface ICommentBlock {
 type AstToken = IToken[][];
 
 export interface ICommentOption {
-    vscodeTextMatePath: string;
+    appRoot: string;
     grammarExtensions: IGrammarExtensions[];
 }
 
@@ -28,8 +29,8 @@ export class TMGrammar {
     private _commentCache: Map<string, { commentLines: ICommentLine[], lines: string[] }> = new Map();
     public tm: any;
     constructor(option: ICommentOption) {
-        this.tm = require(option.vscodeTextMatePath);
-        this._textMateService = new TextMateService(option.grammarExtensions, option.vscodeTextMatePath);
+        this.tm = getNodeModule(option.appRoot, 'vscode-textmate')
+        this._textMateService = new TextMateService(option.grammarExtensions, option.appRoot);
     }
 
     set multiLineMerge(newState: boolean) {

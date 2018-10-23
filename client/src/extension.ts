@@ -5,7 +5,7 @@
 'use strict';
 
 import * as path from 'path';
-import { ExtensionContext, extensions } from 'vscode';
+import { ExtensionContext, extensions, env } from 'vscode';
 
 import {
     LanguageClient,
@@ -87,7 +87,7 @@ export async function activate(context: ExtensionContext) {
     let clientOptions: LanguageClientOptions = {
         // Register the server for plain text documents
         initializationOptions: {
-            grammarExtensions, vscodeTextMatePath: path.join(require.main.filename, '../../node_modules.asar/vscode-textmate/release/main.js')
+            grammarExtensions, appRoot: env.appRoot
         },
         documentSelector: canLanguages.filter(v => v).filter((v) => BlackLanguage.indexOf(v) < 0),
         synchronize: {
