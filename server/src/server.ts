@@ -80,7 +80,7 @@ connection.onDidChangeConfiguration(async () => {
 // The content of a text document has changed. This event is emitted
 // when the text document first opened or when its content has changed.
 documents.onDidChangeContent(async change => {
-	// connection.console.log(`[change] lang:${change.document.languageId} version: ${change.document.version} uri: ${change.document.uri}`);
+	connection.console.log(`[change] lang:${change.document.languageId} version: ${change.document.version} uri: ${change.document.uri}`);
 	if (comment) {
 		await comment.parseDocument(change.document);
 	}

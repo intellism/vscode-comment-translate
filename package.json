@@ -57,6 +57,7 @@
                             "zh-CN",
                             "zh-TW"
                         ],
+                        "enumDescriptions": [],
                         "default": "zh-CN",
                         "description": "Translation to target language"
                     },
