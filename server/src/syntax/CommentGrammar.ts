@@ -20,6 +20,7 @@ type AstToken = IToken[][];
 export interface ICommentOption {
     appRoot: string;
     grammarExtensions: IGrammarExtensions[];
+    userLanguage: string;
 }
 
 export class TMGrammar {

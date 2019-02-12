@@ -83,14 +83,13 @@ export async function activate(context: ExtensionContext) {
         canLanguages = canLanguages.concat(extension.packageJSON.contributes.grammars.map((g: any) => g.language));
     });
     let BlackLanguage: string[] = ['log', 'Log'];
-    let x = env.language;
-    console.log(x);
+    let userLanguage = env.language;
 
     // Options to control the language client
     let clientOptions: LanguageClientOptions = {
         // Register the server for plain text documents
         initializationOptions: {
-            grammarExtensions, appRoot: env.appRoot
+            grammarExtensions, appRoot: env.appRoot, userLanguage
         },
         documentSelector: canLanguages.filter(v => v).filter((v) => BlackLanguage.indexOf(v) < 0),
         synchronize: {

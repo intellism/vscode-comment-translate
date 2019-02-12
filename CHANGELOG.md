@@ -16,16 +16,21 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
     * 支持驼峰拆分
     * 支持生词本记录
 
-### Fixed
- * google服务器失败（流量异常）
-    * 提示错误，保留Google 翻译快捷链接
-    * 连续失败2次以上，5分钟内，不再发起请求
 
 ### Changed
  * hover 展示显示对应的 languageId
  * 仅仅翻译有效文本，保留格式符号:``` // * # <!-- --> ```
  * add 配置描述 enumDescriptions
+
+## [1.1.0] - 2019-2-14
+
+### fixed
+* google服务器失败（流量异常）
+    * 提示错误，保留Google 翻译快捷链接
+    * 网络请求失败后，5分钟内，不再发起请求
+### Changed
  * 自动识别VSCode显示语言，作为默认 targetLanguage
+
  
 ## [1.0.0] - 2018-10-23
 ### Added 

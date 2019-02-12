@@ -12,10 +12,11 @@ export class Comment {
 
     private _translator: BaseTranslate;
     private _grammar: TMGrammar;
-    private _setting: ICommentTranslateSettings = { multiLineMerge: false, targetLanguage: 'zh_CN' };
+    private _setting: ICommentTranslateSettings;
     public onTranslate: Event<string>;
 
     constructor(extensions: ICommentOption) {
+        this._setting = { multiLineMerge: false, targetLanguage: extensions.userLanguage };
         this._grammar = new TMGrammar(extensions);
         this._translator = new GoogleTranslate();
 
@@ -23,7 +24,7 @@ export class Comment {
     }
 
     setSetting(newSetting: ICommentTranslateSettings) {
-        this._setting = newSetting;
+        this._setting = Object.assign(this._setting, newSetting);
         this._grammar.multiLineMerge = newSetting.multiLineMerge;
     }
 
