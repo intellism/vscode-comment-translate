@@ -22,5 +22,10 @@ export abstract class BaseTranslate {
         return await action;
     }
 
+    link(content: string, opts: { from?: string, to?: string }): string {
+        if (content || opts) { }
+        return '';
+    }
+
     abstract async _translate(content: string, opts: { from?: string, to?: string }): Promise<string>;
 }

@@ -24,6 +24,9 @@ export class Comment {
     }
 
     setSetting(newSetting: ICommentTranslateSettings) {
+        if (!newSetting.targetLanguage) {
+            newSetting.targetLanguage = this._setting.targetLanguage;
+        }
         this._setting = Object.assign(this._setting, newSetting);
         this._grammar.multiLineMerge = newSetting.multiLineMerge;
     }
@@ -39,7 +42,7 @@ export class Comment {
         let targetLanguageComment = await this._translator.translate(block.comment, { to: this._setting.targetLanguage });
 
         return {
-            contents: [`[Comment Translate] [Google](https://translate.google.cn/#auto/${this._setting.targetLanguage}/${encodeURIComponent(encodeURIComponent(block.comment))})`, "\r```typescript \n" + targetLanguageComment + " \n```"], range: block.range
+            contents: [`[Comment Translate] ${this._translator.link(block.comment, { to: this._setting.targetLanguage })}`, "\r```typescript \n" + targetLanguageComment + " \n```"], range: block.range
         };
     }
 }

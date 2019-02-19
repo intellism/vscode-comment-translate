@@ -15,6 +15,15 @@ export class GoogleTranslate extends BaseTranslate {
         return result;
     }
 
+    link(content: string, { to = 'auto' }: { from?: string, to?: string }): string {
+        let [first, last] = to.split('-');
+        if (last) {
+            last = last.toLocaleUpperCase();
+            to = `${first}-${last}`;
+        }
+        return `[Google](https://translate.google.cn/#view=home&op=translate&sl=auto&tl=${to}&text=${encodeURIComponent(encodeURIComponent(content))})`;
+    }
+
     async _translate(content: string, { from = 'auto', to = 'auto' }: { from?: string, to?: string }): Promise<string> {
         let result = '';
         if (Date.now() - this._timer <= 5 * 60 * 1000) {

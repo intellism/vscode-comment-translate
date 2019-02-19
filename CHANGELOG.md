@@ -15,6 +15,8 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
     * 分析变量和文本单词翻译
     * 支持驼峰拆分
     * 支持生词本记录
+ * 选择内容替换翻译
+    * 支持多区域翻译
 
 
 ### Changed
