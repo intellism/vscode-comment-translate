@@ -24,7 +24,7 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
  * 仅仅翻译有效文本，保留格式符号:``` // * # <!-- --> ```
  * add 配置描述 enumDescriptions
 
-## [1.1.0] - 2019-2-14
+## [1.1.0] - 2019-4-4
 
 ### fixed
 * google服务器失败（流量异常）
