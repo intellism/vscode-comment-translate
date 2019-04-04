@@ -1,33 +1,56 @@
 import { BaseTranslate, ITranslateOptions } from './translate';
 import request from '../util/request-promise';
+const querystring = require('querystring');
+const GoogleToken: IGetToken = require('@vitalets/google-translate-token');
+interface IGetToken {
+    get(text: string, opts: {
+        tld?: string
+    }): Promise<{
+        name: string,
+        value: string
+    }>;
+}
+
 //免费API https://github.com/Selection-Translator/translation.js/tree/master/src
 export class GoogleTranslate extends BaseTranslate {
     private _requestErrorTime: number = 0;
-
-    async _request(
-        content: string,
-        { from = 'auto', to = 'auto' }: ITranslateOptions
-    ): Promise<string> {
-        let url = `https://translate.google.cn/translate_a/single?client=gtx&dt=t&dj=1&ie=UTF-8&sl=${from}&tl=${to}&q=${encodeURIComponent(
-            content
-        )}`;
+    async _request(content: string, { from = 'auto', to = 'auto' }: ITranslateOptions): Promise<string> {
+        let tld = 'cn';
+        let token = await GoogleToken.get(content, { tld });
+        let url = 'https://translate.google.' + tld + '/translate_a/single';
+        let data: any = {
+            client: 't',
+            sl: from,
+            tl: to,
+            hl: to,
+            dt: ['at', 'bd', 'ex', 'ld', 'md', 'qca', 'rw', 'rm', 'ss', 't'],
+            ie: 'UTF-8',
+            oe: 'UTF-8',
+            otf: 1,
+            ssel: 0,
+            tsel: 0,
+            kc: 7,
+            q: content
+        };
+        data[token.name] = token.value;
+        url = url + '?' + querystring.stringify(data);
         let res = await request(url, { json: true, timeout: 10000 });
-        if (!res.sentences || !(res.sentences instanceof Array)) {
+
+        let sentences = res[0];
+        if (!sentences || !(sentences instanceof Array)) {
             return '';
         }
-        let result = res.sentences
-            .map((sentence: any) =>
-                sentence.trans.replace(/((\/|\*|-) )/g, '$2')
-            )
+        let result = sentences
+            .map(([trans]) => {
+                if (trans) {
+                    return trans.replace(/((\/|\*|-) )/g, '$2');
+                }
+            })
             .join('');
         return result;
     }
 
-    link(
-        content: string,
-        { to = 'auto' }: ITranslateOptions
-    ): string {
-
+    link(content: string, { to = 'auto' }: ITranslateOptions): string {
         // [fix] 参数变化zh-cn -> zh-CN。
         let [first, last] = to.split('-');
         if (last) {
@@ -39,17 +62,14 @@ export class GoogleTranslate extends BaseTranslate {
         )})`;
     }
 
-    async _translate(
-        content: string,
-        { from = 'auto', to = 'auto' }: ITranslateOptions
-    ): Promise<string> {
+    async _translate(content: string, opts: ITranslateOptions): Promise<string> {
         let result = '';
         // 上一次失败的时间间隔小于5分钟，直接返回空
         if (Date.now() - this._requestErrorTime <= 5 * 60 * 1000) {
             return result;
         }
         try {
-            result = await this._request(content, { from, to });
+            result = await this._request(content, opts);
             this._onTranslate.fire(
                 `[Google Translate]:\n${content}\n[<============================>]:\n${result}\n`
             );

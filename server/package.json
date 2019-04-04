@@ -8,6 +8,7 @@
   },
   "author": "",
   "dependencies": {
+    "@vitalets/google-translate-token": "^1.1.0",
     "request": "^2.88.0",
     "vscode-languageserver": "^4.1.3"
   },

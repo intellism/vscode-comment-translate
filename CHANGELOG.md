@@ -29,6 +29,7 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 ### fixed
 * google服务器失败（流量异常）
     * 提示错误，保留Google 翻译快捷链接
+    * 使用token版翻译方法
     * 网络请求失败后，5分钟内，不再发起请求
 ### Changed
  * 自动识别VSCode显示语言，作为默认 targetLanguage
