@@ -133,11 +133,11 @@ export class TMScopeRegistry {
         if (this._scopeNameToLanguageRegistration[scopeName]) {
             const existingRegistration = this._scopeNameToLanguageRegistration[scopeName];
             if (!(existingRegistration.grammarLocation === grammarLocation)) {
-                console.warn(
-                    `Overwriting grammar scope name to file mapping for scope ${scopeName}.\n` +
-                    `Old grammar file: ${existingRegistration.grammarLocation.toString()}.\n` +
-                    `New grammar file: ${grammarLocation.toString()}`
-                );
+                // console.warn(
+                //     `Overwriting grammar scope name to file mapping for scope ${scopeName}.\n` +
+                //     `Old grammar file: ${existingRegistration.grammarLocation.toString()}.\n` +
+                //     `New grammar file: ${grammarLocation.toString()}`
+                // );
             }
         }
         this._scopeNameToLanguageRegistration[scopeName] = new TMLanguageRegistration(scopeName, grammarLocation, embeddedLanguages, tokenTypes);

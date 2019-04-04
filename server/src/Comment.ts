@@ -13,6 +13,7 @@ export class Comment {
     private _translator: BaseTranslate;
     private _grammar: TMGrammar;
     private _setting: ICommentTranslateSettings;
+    // private _docmentsMap: Map<string, TextDocument> = new Map<string, TextDocument>();
     public onTranslate: Event<string>;
 
     constructor(extensions: ICommentOption) {
