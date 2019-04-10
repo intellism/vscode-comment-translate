@@ -2,6 +2,7 @@ import { TextDocumentPositionParams, Hover, Event, TextDocument } from "vscode-l
 import { BaseTranslate } from "./translate/translate";
 import { TMGrammar, ICommentOption } from "./syntax/CommentGrammar";
 import { GoogleTranslate } from "./translate/GoogleTranslate";
+const humanizeString = require('humanize-string');
 
 export interface ICommentTranslateSettings {
     multiLineMerge: boolean;
@@ -36,14 +37,29 @@ export class Comment {
         return this._grammar.parseDocument(textDocument);
     }
 
+    async translate(text: string) {
+        return await this._translator.translate(text, { to: this._setting.targetLanguage });
+    }
 
     async getPositionTranslatedComment(textDocumentPosition: TextDocumentPositionParams): Promise<Hover> {
         let block = await this._grammar.getComment(textDocumentPosition);
-        if (!block) return null;
-        let targetLanguageComment = await this._translator.translate(block.comment, { to: this._setting.targetLanguage });
+        if (block) {
+            let targetLanguageComment = await this.translate(block.comment);
 
-        return {
-            contents: [`[Comment Translate] ${this._translator.link(block.comment, { to: this._setting.targetLanguage })}`, "\r```typescript \n" + targetLanguageComment + " \n```"], range: block.range
-        };
+            return {
+                contents: [`[Comment Translate] ${this._translator.link(block.comment, { to: this._setting.targetLanguage })}`, "\r```typescript \n" + targetLanguageComment + " \n```"], range: block.range
+            };
+        }
+
+        block = await this._grammar.getTokenText(textDocumentPosition);
+        if (block) {
+            //转换为可以自然语言分割
+            let humanize = humanizeString(block.comment);
+            let targetLanguageComment = await this.translate(humanize);
+            return {
+                contents: [`[Comment Translate] ${this._translator.link(humanize, { to: this._setting.targetLanguage })}`, '\r \n' + humanize + ' => ' + targetLanguageComment], range: block.range
+            };
+        }
+        return null;
     }
 }

@@ -2,6 +2,7 @@ import { Range, TextDocument, TextDocumentPositionParams, Position } from 'vscod
 import { TextMateService, IGrammarExtensions, IToken } from './TextMateService';
 import { isUpperCase, hasEndMark, isLowerCase } from '../util/string';
 import { getNodeModule } from '../util/patch-asar-require';
+import { Grammar } from './Grammar';
 
 interface ICommentLine {
     line: number;
@@ -28,6 +29,7 @@ export class TMGrammar {
     private _commentBlockCaches: Map<string, ICommentBlock[]> = new Map();
     private _multiLineMerge: boolean = false;
     private _commentCache: Map<string, { commentLines: ICommentLine[], lines: string[] }> = new Map();
+    private _textDocumentCache: Map<string, TextDocument> = new Map();
     public tm: any;
     constructor(option: ICommentOption) {
         this.tm = getNodeModule(option.appRoot, 'vscode-textmate')
@@ -44,16 +46,19 @@ export class TMGrammar {
     deleteComment(uri: string) {
         this._commentBlockCaches.delete(uri);
         this._commentCache.delete(uri);
+        this._textDocumentCache.delete(uri);
     }
 
     clearComment() {
         this._commentBlockCaches.clear();
         this._commentCache.clear();
+        this._textDocumentCache.clear();
     }
 
     async parseDocument(textDocument: TextDocument): Promise<ICommentBlock[]> {
         let { commentLines, lines } = await this._parseLineComment(textDocument);
         let commentBlocks = this._parseComment(textDocument.uri, commentLines, lines);
+        this._textDocumentCache.set(textDocument.uri, textDocument);
         return commentBlocks;
     }
 
@@ -176,5 +181,42 @@ export class TMGrammar {
         });
 
         return block;
+    }
+
+    async getTokenText(position: TextDocumentPositionParams): Promise<ICommentBlock | null> {
+        let textDocument = this._textDocumentCache.get(position.textDocument.uri);
+        if (!textDocument) return null;
+        let grammar = await this._textMateService.createGrammar(textDocument.languageId);
+        let g = new Grammar(textDocument);
+        let res = g.compute(grammar, position.position);
+
+        let range = Range.create({
+            line: position.position.line,
+            character: res.tokenStartIndex
+        }, {
+                line: position.position.line,
+                character: res.tokenEndIndex
+            });
+        function isNeedTranslate(scope: string) {
+            let arr = [
+                'string.quoted',
+                'entity',
+                'variable',
+                'support'
+            ];
+
+            return arr.some(item => {
+                return scope.indexOf(item) === 0;
+            });
+        }
+
+        if (res.scopes && isNeedTranslate(res.scopes[0])) {
+            return {
+                comment: res.tokenText,
+                range: range
+            }
+        }
+
+        return null;
     }
 }
