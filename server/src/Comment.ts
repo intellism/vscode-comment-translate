@@ -2,7 +2,7 @@ import { TextDocumentPositionParams, Hover, Event, TextDocument } from "vscode-l
 import { BaseTranslate } from "./translate/translate";
 import { TMGrammar, ICommentOption } from "./syntax/CommentGrammar";
 import { GoogleTranslate } from "./translate/GoogleTranslate";
-const humanizeString = require('humanize-string');
+import * as humanizeString from 'humanize-string';
 
 export interface ICommentTranslateSettings {
     multiLineMerge: boolean;

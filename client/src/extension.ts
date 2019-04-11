@@ -88,6 +88,7 @@ export async function activate(context: ExtensionContext) {
     // Options to control the language client
     let clientOptions: LanguageClientOptions = {
         // Register the server for plain text documents
+        revealOutputChannelOn: 4,
         initializationOptions: {
             grammarExtensions, appRoot: env.appRoot, userLanguage
         },

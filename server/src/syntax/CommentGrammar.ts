@@ -202,7 +202,9 @@ export class TMGrammar {
                 'string.quoted',
                 'entity',
                 'variable',
-                'support'
+                'support',
+                // Object表达式支持
+                'meta.object-literal.key'
             ];
 
             return arr.some(item => {
