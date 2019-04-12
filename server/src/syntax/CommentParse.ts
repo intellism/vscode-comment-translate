@@ -27,6 +27,7 @@ export class CommentParse {
         this._model = textDocument.getText().split('\n');
     }
 
+    //跨行元素合并
     private _mergeComment(oldComment: string, newLine: string): string {
         if (this._multiLineMerge) {
             let lastLine = oldComment.substring(oldComment.lastIndexOf('\n') + 1);
@@ -82,7 +83,7 @@ export class CommentParse {
         }
     }
 
-    public multiScope({ positionLine, dataTokens1, token1Index }: { dataTokens1: IToken[], token1Index: number, positionLine: number }, isCommentTranslate: Function, maxLine: number, minLine: number) {
+    public multiScope({ positionLine, dataTokens1, token1Index }: { dataTokens1: IToken[], token1Index: number, positionLine: number }, checkContentHandle: Function, maxLine: number, minLine: number, skipContentHandle?: (scope: string) => boolean) {
 
         let { tokenStartIndex, tokenEndIndex, tokenText } = this._parseScopesText(dataTokens1, positionLine, token1Index);
 
@@ -93,7 +94,10 @@ export class CommentParse {
             let index;
             for (index = tokenIndex - 1; index >= 0; index -= 1) {
                 let res = this._parseScopesText(tokens1, line, index);
-                if (isCommentTranslate(res.scopes[0])) {
+                if (skipContentHandle && skipContentHandle(res.scopes[0])) {
+                    continue;
+                }
+                if (checkContentHandle(res.scopes[0])) {
                     tokenText = res.tokenText + tokenText;
                     tokenStartIndex = res.tokenStartIndex;
                     startLine = line;
@@ -117,7 +121,10 @@ export class CommentParse {
             let index;
             for (index = tokenIndex + 1; index < tokens1.length; index += 1) {
                 let res = this._parseScopesText(tokens1, line, index);
-                if (isCommentTranslate(res.scopes[0])) {
+                if (skipContentHandle && skipContentHandle(res.scopes[0])) {
+                    continue;
+                }
+                if (checkContentHandle(res.scopes[0])) {
                     tokenText = tokenText + res.tokenText;
                     tokenEndIndex = res.tokenEndIndex;
                     endLine = line;
@@ -161,7 +168,6 @@ export class CommentParse {
             //评论的token标记
             let arr = [
                 'punctuation.definition.comment',
-                'punctuation.whitespace.comment',
                 'comment.block',
                 'comment.line'
             ];
@@ -169,6 +175,10 @@ export class CommentParse {
             return arr.some(item => {
                 return scope.indexOf(item) === 0;
             });
+        }
+
+        function skipCommentTranslate(scope: string) {
+            return scope.indexOf('punctuation.whitespace.comment') === 0;
         }
 
         function isStringTranslate(scope: string) {
@@ -241,7 +251,7 @@ export class CommentParse {
                 positionLine: position.line,
                 dataTokens1: data.tokens1,
                 token1Index
-            }, isCommentTranslate, this._model.length - 1, 0);
+            }, isCommentTranslate, this._model.length - 1, 0, skipCommentTranslate);
         }
         return null;
     }
