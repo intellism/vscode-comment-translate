@@ -1,8 +1,9 @@
-import { TextDocumentPositionParams, Hover, Event, TextDocument } from "vscode-languageserver";
+import { TextDocumentPositionParams, Hover, Event, TextDocuments } from "vscode-languageserver";
 import { BaseTranslate } from "./translate/translate";
-import { TMGrammar, ICommentOption } from "./syntax/CommentGrammar";
 import { GoogleTranslate } from "./translate/GoogleTranslate";
 import * as humanizeString from 'humanize-string';
+import { CommentParse, ICommentOption } from "./syntax/CommentParse";
+import { TextMateService } from "./syntax/TextMateService";
 
 export interface ICommentTranslateSettings {
     multiLineMerge: boolean;
@@ -12,17 +13,15 @@ export interface ICommentTranslateSettings {
 export class Comment {
 
     private _translator: BaseTranslate;
-    private _grammar: TMGrammar;
+    private _textMateService: TextMateService;
     private _setting: ICommentTranslateSettings;
-    // private _docmentsMap: Map<string, TextDocument> = new Map<string, TextDocument>();
     public onTranslate: Event<string>;
 
-    constructor(extensions: ICommentOption) {
+    constructor(extensions: ICommentOption, private _documents: TextDocuments) {
         this._setting = { multiLineMerge: false, targetLanguage: extensions.userLanguage };
-        this._grammar = new TMGrammar(extensions);
         this._translator = new GoogleTranslate();
-
         this.onTranslate = this._translator.onTranslate;
+        this._textMateService = new TextMateService(extensions.grammarExtensions, extensions.appRoot);
     }
 
     setSetting(newSetting: ICommentTranslateSettings) {
@@ -30,35 +29,38 @@ export class Comment {
             newSetting.targetLanguage = this._setting.targetLanguage;
         }
         this._setting = Object.assign(this._setting, newSetting);
-        this._grammar.multiLineMerge = newSetting.multiLineMerge;
     }
 
-    async parseDocument(textDocument: TextDocument) {
-        return this._grammar.parseDocument(textDocument);
-    }
-
-    async translate(text: string) {
+    async _translate(text: string) {
         return await this._translator.translate(text, { to: this._setting.targetLanguage });
     }
 
-    async getPositionTranslatedComment(textDocumentPosition: TextDocumentPositionParams): Promise<Hover> {
-        let block = await this._grammar.getComment(textDocumentPosition);
-        if (block) {
-            let targetLanguageComment = await this.translate(block.comment);
+    _link(text: string) {
+        return this._translator.link(text, { to: this._setting.targetLanguage });
+    }
 
-            return {
-                contents: [`[Comment Translate] ${this._translator.link(block.comment, { to: this._setting.targetLanguage })}`, "\r```typescript \n" + targetLanguageComment + " \n```"], range: block.range
-            };
-        }
-
-        block = await this._grammar.getTokenText(textDocumentPosition);
+    async getComment(textDocumentPosition: TextDocumentPositionParams): Promise<Hover> {
+        let textDocument = this._documents.get(textDocumentPosition.textDocument.uri);
+        if (!textDocument) return null;
+        let grammar = await this._textMateService.createGrammar(textDocument.languageId);
+        let parse: CommentParse = new CommentParse(textDocument, grammar, this._setting.multiLineMerge);
+        let block = await parse.computeText(textDocumentPosition.position);
         if (block) {
-            //转换为可以自然语言分割
-            let humanize = humanizeString(block.comment);
-            let targetLanguageComment = await this.translate(humanize);
-            return {
-                contents: [`[Comment Translate] ${this._translator.link(humanize, { to: this._setting.targetLanguage })}`, '\r \n' + humanize + ' => ' + targetLanguageComment], range: block.range
-            };
+            if (block.humanize) {
+                //转换为可以自然语言分割
+                let humanize = humanizeString(block.comment);
+                let targetLanguageComment = await this._translate(humanize);
+                return {
+                    contents: [`[Comment Translate] ${this._link(humanize)}`, '\r \n' + humanize + ' => ' + targetLanguageComment], range: block.range
+                };
+            } else {
+                let targetLanguageComment = await this._translate(block.comment);
+                return {
+                    contents: [`[Comment Translate] ${this._link(block.comment)}`, "\r```typescript \n" + targetLanguageComment + " \n```"],
+                    range: block.range
+                };
+            }
+
         }
         return null;
     }

@@ -30,7 +30,7 @@ let comment: Comment;
 
 connection.onInitialize((params: InitializeParams) => {
 	let capabilities = params.capabilities;
-	comment = new Comment(params.initializationOptions);
+	comment = new Comment(params.initializationOptions, documents);
 	patchAsarRequire(params.initializationOptions.appRoot);
 	comment.onTranslate((string) => {
 		connection.console.log(string);
@@ -79,16 +79,9 @@ connection.onDidChangeConfiguration(async () => {
 
 // The content of a text document has changed. This event is emitted
 // when the text document first opened or when its content has changed.
-documents.onDidChangeContent(async change => {
-	connection.console.log(`[change] lang:${change.document.languageId} version: ${change.document.version} uri: ${change.document.uri}`);
-	if (comment) {
-		await comment.parseDocument(change.document);
-	}
-});
-
 connection.onHover(async (textDocumentPosition) => {
 	if (!comment) return null;
-	return comment.getPositionTranslatedComment(textDocumentPosition);
+	return comment.getComment(textDocumentPosition);
 });
 
 /*

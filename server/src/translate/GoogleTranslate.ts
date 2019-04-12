@@ -57,9 +57,9 @@ export class GoogleTranslate extends BaseTranslate {
             last = last.toLocaleUpperCase();
             to = `${first}-${last}`;
         }
-        return `[Google](https://translate.google.cn/#view=home&op=translate&sl=auto&tl=${to}&text=${encodeURIComponent(
-            encodeURIComponent(content)
-        )})`;
+        let str = `https://translate.google.cn/#view=home&op=translate&sl=auto&tl=${to}&text=${encodeURIComponent(content)}`;
+        return `[Google](${encodeURI(str)})`;
+        // return `<a href="${encodeURI(str)}">Google</a>`;
     }
 
     async _translate(content: string, opts: ITranslateOptions): Promise<string> {
