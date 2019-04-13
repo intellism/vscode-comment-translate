@@ -5,7 +5,7 @@
 'use strict';
 
 import * as path from 'path';
-import { ExtensionContext, extensions, env } from 'vscode';
+import { ExtensionContext, extensions, env, commands, window, Selection, Position, Hover } from 'vscode';
 
 import {
     LanguageClient,
@@ -109,6 +109,22 @@ export async function activate(context: ExtensionContext) {
     // client.registerProposedFeatures();
     // Start the client. This will also launch the server
     client.start();
+
+    context.subscriptions.push(commands.registerCommand('commentTranslate.select', async () => {
+        let editor = window.activeTextEditor;
+        if (editor) {
+            let hover = await client.sendRequest<Hover>('lastHover', { uri: editor.document.uri.toString() });
+            if (!hover) return;
+            editor.revealRange(hover.range);
+            editor.selections = [new Selection(new Position(hover.range.start.line, hover.range.start.character), new Position(hover.range.end.line, hover.range.end.character)), ...editor.selections];
+        }
+    }));
+
+    // TODO 支持选择区域翻译并替换
+    // context.subscriptions.push(commands.registerCommand('commentTranslate.replaceSelections', () => {
+
+    // }));
+
 }
 
 export function deactivate(): Thenable<void> {

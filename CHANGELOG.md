@@ -11,19 +11,34 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
     * mackdown plaintext翻译
         * 按段落分割
         * 行分割
- * 选择内容替换翻译
-    * 支持多区域翻译
+ * 变量命名
+    * 中文翻译到驼峰的变量命名
+ * 新增翻译并替换选择内容
+    * ``` json
+            {
+                "command": "commentTranslate.replaceSelections",
+                "title": "Translate and replace selections",
+                "category": "Comment Translate"
+            }
+      ```
 
 
 ### Changed
- * 重构 comment 翻译，使用与变量相同翻译方法
- * 变量翻译优化
-    * 支持配置翻译类型
-    * 新增快速选中最后一次翻译区域命令 (ctrl + shift + s) 
-    * 新增翻译并替换选择内容 (ctrl+shift +t)
+ * 支持配置翻译类型
  * hover 展示显示对应的 languageId
  * 仅仅翻译有效文本，保留格式符号:``` // * # <!-- --> ```
  * add 配置描述 enumDescriptions
+
+## [1.2.1] - 2019-4-13
+### Changed
+ * 重构 comment 翻译，使用与变量相同翻译方法
+ * 变量翻译优化
+    * 新增快速选中最后一次翻译区域命令
+        * 默认命令 ctrl + shift + s
+### Fixed
+ * 修复字符串中包含转义符的 \n \' \"
+ * server异常时，反复弹出日志
+ * Object表达式支持
 
 ## [1.2.0] - 2019-4-10
 ### Added

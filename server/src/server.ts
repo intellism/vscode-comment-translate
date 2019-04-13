@@ -10,6 +10,7 @@ import {
 	ProposedFeatures,
 	InitializeParams,
 	DidChangeConfigurationNotification,
+	Hover,
 } from 'vscode-languageserver';
 
 import { Comment } from './Comment';
@@ -79,9 +80,16 @@ connection.onDidChangeConfiguration(async () => {
 
 // The content of a text document has changed. This event is emitted
 // when the text document first opened or when its content has changed.
+let last: Map<string, Hover> = new Map();
 connection.onHover(async (textDocumentPosition) => {
 	if (!comment) return null;
-	return comment.getComment(textDocumentPosition);
+	let hover = await comment.getComment(textDocumentPosition);
+	hover && last.set(textDocumentPosition.textDocument.uri, hover);
+	return hover;
+});
+
+connection.onRequest('lastHover', ({ uri }) => {
+	return last.get(uri);
 });
 
 /*

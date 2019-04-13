@@ -38,6 +38,19 @@
     "icon": "doc/image/icon.png",
     "main": "./client/out/extension",
     "contributes": {
+        "commands": [
+            {
+                "command": "commentTranslate.select",
+                "title": "Quickly select the last translation area",
+                "category": "Comment Translate"
+            }
+        ],
+        "keybindings": [
+            {
+                "command": "commentTranslate.select",
+                "key": "ctrl+shift+s"
+            }
+        ],
         "configuration": [
             {
                 "title": "Comment Translate Configuration",
