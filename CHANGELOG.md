@@ -30,6 +30,8 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
  * 仅仅翻译有效文本，保留格式符号:``` // * # <!-- --> ```
  * add 配置描述 enumDescriptions
 
+### fixed
+ * 注释中包含markdown其他类型时，不可以连续翻译
 
 ## [1.3.1] - 2019-4-14
 ### Add
