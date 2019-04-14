@@ -15,6 +15,7 @@ import {
     TextDocumentPositionParams,
     Range
 } from 'vscode-languageclient';
+import { changeTargetLanguage } from './configuration';
 
 let client: LanguageClient;
 
@@ -127,6 +128,8 @@ export async function activate(context: ExtensionContext) {
 
     // }));
 
+    // 注册更改目标语言命令
+    context.subscriptions.push(commands.registerCommand('commentTranslate.changeTargetLanguage', changeTargetLanguage));
     //client准备就绪后再其他服务
     await client.onReady();
     interface ICommentBlock {

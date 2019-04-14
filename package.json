@@ -43,6 +43,11 @@
                 "command": "commentTranslate.select",
                 "title": "Quickly select the last translation area",
                 "category": "Comment Translate"
+            },
+            {
+                "command": "commentTranslate.changeTargetLanguage",
+                "title": "Change translate target language",
+                "category": "Comment Translate"
             }
         ],
         "keybindings": [

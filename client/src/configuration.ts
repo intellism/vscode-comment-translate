@@ -1,0 +1,25 @@
+
+import { workspace, window } from 'vscode';
+
+// TODO 临时仅支持这部分语言
+const language: [string, string][] = [
+    ['de', 'German'],
+    ['es', 'Spanish'],
+    ['en', 'English'],
+    ['fr', 'French'],
+    ['it', 'Italian'],
+    ['ja', 'Japanese'],
+    ['ko', 'Korean'],
+    ['ru', 'Russian'],
+    ['zh-CN', 'Chinese (Simplified)'],
+    ['zh-TW', 'Chinese (Traditional)']
+];
+
+export async function changeTargetLanguage() {
+    let configuration = workspace.getConfiguration('commentTranslate');
+    let res: string = await window.showQuickPick(language.map(item => item[1]), {
+        placeHolder: 'Select target language'
+    });
+    let target = language.find(item => item[1] === res);
+    await configuration.update('targetLanguage', target[0]);
+}
