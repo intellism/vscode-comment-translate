@@ -34,8 +34,8 @@ export async function showTargetLanguageStatusBarItem(userLanguage: string) {
 
     let setLanguageText = async () => {
         let configuration = workspace.getConfiguration('commentTranslate');
-        let currentLanguage = await configuration.get('targetLanguage') || userLanguage;
-        let current = language.find(item => item[0] === currentLanguage);
+        let currentLanguage: string = (await configuration.get<string>('targetLanguage')) || userLanguage;
+        let current = language.find(item => item[0].toLowerCase() === currentLanguage.toLowerCase());
         if (current) {
             targetBar.text = '$(globe) ' + current[1];
         }
