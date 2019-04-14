@@ -20,8 +20,8 @@ Many excellent projects have a lot of annotations, and users can quickly underst
 
 ## Settings Options
 #### Multi-language support
-
-![Multi-language](./image/multi-language.gif)
+Status bar to quickly configure the target language
+![Multi-language](./image/cn/status-bar.gif)
 
 | Display Language    | Locale  |
 | ------------------- | ------- |

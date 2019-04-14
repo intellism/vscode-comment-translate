@@ -20,8 +20,8 @@
 
 ## 配置项
 #### 多国语言支持
-
-![Multi-language](./doc/image/multi-language.gif)
+状态栏快速配置目标语言
+![Multi-language](./doc/image/cn/status-bar.gif)
 
 | Display Language    | Locale  |
 | ------------------- | ------- |

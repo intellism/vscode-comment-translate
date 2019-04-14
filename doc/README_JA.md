@@ -20,8 +20,8 @@
 
 ## 设置选项
 #### 多言語サポート
-
-![Multi-language](./image/multi-language.gif)
+ターゲット言語をすばやく設定するためのステータスバー
+![Multi-language](./image/cn/status-bar.gif)
 
 | Display Language    | Locale  |
 | ------------------- | ------- |
