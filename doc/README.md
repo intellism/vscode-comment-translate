@@ -15,28 +15,30 @@ Many excellent projects have a lot of annotations, and users can quickly underst
 3. Select the last translation area
 ![Introduction](./image/cn/select.gif)
 
+4. Selection range translation
+![Introduction](./image/cn/selection.gif)
 
 ## Settings Options
 #### Multi-language support
 
 ![Multi-language](./image/multi-language.gif)
 
-Display Language | Locale
------------------|-------
-English (US) | `en`
-Simplified Chinese | `zh-CN`
-Traditional Chinese | `zh-TW`
-French | `fr`
-German | `de`
-Italian | `it`
-Spanish | `es`
-Japanese | `ja`
-Korean | `ko`
-Russian | `ru`
-Bulgarian | `bg`
-Hungarian | `hu`
-Portuguese (Brazil) | `pt-br`
-Turkish | `tr`
+| Display Language    | Locale  |
+| ------------------- | ------- |
+| English (US)        | `en`    |
+| Simplified Chinese  | `zh-CN` |
+| Traditional Chinese | `zh-TW` |
+| French              | `fr`    |
+| German              | `de`    |
+| Italian             | `it`    |
+| Spanish             | `es`    |
+| Japanese            | `ja`    |
+| Korean              | `ko`    |
+| Russian             | `ru`    |
+| Bulgarian           | `bg`    |
+| Hungarian           | `hu`    |
+| Portuguese (Brazil) | `pt-br` |
+| Turkish             | `tr`    |
 
 
 #### Merge multiple lines of comments (source language only supports English)

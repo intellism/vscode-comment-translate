@@ -15,27 +15,30 @@
 3. 选中最后一次翻译区域命令
 ![Introduction](./doc/image/cn/select.gif)
 
+4. 选择区域翻译
+![Introduction](./doc/image/cn/selection.gif)
+
 ## 配置项
 #### 多国语言支持
 
 ![Multi-language](./doc/image/multi-language.gif)
 
-Display Language | Locale
------------------|-------
-English (US) | `en`
-Simplified Chinese | `zh-CN`
-Traditional Chinese | `zh-TW`
-French | `fr`
-German | `de`
-Italian | `it`
-Spanish | `es`
-Japanese | `ja`
-Korean | `ko`
-Russian | `ru`
-Bulgarian | `bg`
-Hungarian | `hu`
-Portuguese (Brazil) | `pt-br`
-Turkish | `tr`
+| Display Language    | Locale  |
+| ------------------- | ------- |
+| English (US)        | `en`    |
+| Simplified Chinese  | `zh-CN` |
+| Traditional Chinese | `zh-TW` |
+| French              | `fr`    |
+| German              | `de`    |
+| Italian             | `it`    |
+| Spanish             | `es`    |
+| Japanese            | `ja`    |
+| Korean              | `ko`    |
+| Russian             | `ru`    |
+| Bulgarian           | `bg`    |
+| Hungarian           | `hu`    |
+| Portuguese (Brazil) | `pt-br` |
+| Turkish             | `tr`    |
 
 
 #### 合并多行注释 （源语言只支持英语）

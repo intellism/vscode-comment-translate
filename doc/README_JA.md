@@ -15,27 +15,30 @@
 3. 最後の翻訳エリアを選択
 ![Introduction](./image/cn/select.gif)
 
+4. 選択範囲翻訳
+![Introduction](./image/cn/selection.gif)
+
 ## 设置选项
 #### 多言語サポート
 
 ![Multi-language](./image/multi-language.gif)
 
-Display Language | Locale
------------------|-------
-English (US) | `en`
-Simplified Chinese | `zh-CN`
-Traditional Chinese | `zh-TW`
-French | `fr`
-German | `de`
-Italian | `it`
-Spanish | `es`
-Japanese | `ja`
-Korean | `ko`
-Russian | `ru`
-Bulgarian | `bg`
-Hungarian | `hu`
-Portuguese (Brazil) | `pt-br`
-Turkish | `tr`
+| Display Language    | Locale  |
+| ------------------- | ------- |
+| English (US)        | `en`    |
+| Simplified Chinese  | `zh-CN` |
+| Traditional Chinese | `zh-TW` |
+| French              | `fr`    |
+| German              | `de`    |
+| Italian             | `it`    |
+| Spanish             | `es`    |
+| Japanese            | `ja`    |
+| Korean              | `ko`    |
+| Russian             | `ru`    |
+| Bulgarian           | `bg`    |
+| Hungarian           | `hu`    |
+| Portuguese (Brazil) | `pt-br` |
+| Turkish             | `tr`    |
 
 
 #### 複数行のコメントをマージする（ソース言語は英語のみサポート）
