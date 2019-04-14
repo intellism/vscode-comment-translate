@@ -11,7 +11,9 @@ import {
     LanguageClient,
     LanguageClientOptions,
     ServerOptions,
-    TransportKind
+    TransportKind,
+    TextDocumentPositionParams,
+    Range
 } from 'vscode-languageclient';
 
 let client: LanguageClient;
@@ -125,6 +127,34 @@ export async function activate(context: ExtensionContext) {
 
     // }));
 
+    //client准备就绪后再其他服务
+    await client.onReady();
+    interface ICommentBlock {
+        humanize?: boolean;
+        range: Range;
+        comment: string;
+    }
+    //提供选择检查服务
+    client.onRequest<ICommentBlock, TextDocumentPositionParams>('selectionContains', (textDocumentPosition: TextDocumentPositionParams) => {
+        let editor = window.activeTextEditor;
+        //有活动editor，并且打开文档与请求文档一致时处理请求
+        if (editor && editor.document.uri.toString() === textDocumentPosition.textDocument.uri) {
+            //类型转换
+            let position = new Position(textDocumentPosition.position.line, textDocumentPosition.position.character);
+            let selection = editor.selections.find((selection) => {
+                return selection.contains(position);
+            });
+
+            if (selection) {
+                return {
+                    range: selection,
+                    comment: editor.document.getText(selection)
+                };
+            }
+        }
+
+        return null;
+    });
 }
 
 export function deactivate(): Thenable<void> {

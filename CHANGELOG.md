@@ -14,7 +14,6 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
  * 变量命名
     * 中文翻译到驼峰的变量命名
  * 选择区域翻译
-    * hover到选择区域时，翻译该区域内容
     * 翻译并替换选择内容
         * ``` json
             {
@@ -26,9 +25,16 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ### Changed
  * 支持配置翻译类型
+    * statusBar支持快速切换目标语言配置
  * hover 展示显示对应的 languageId
  * 仅仅翻译有效文本，保留格式符号:``` // * # <!-- --> ```
  * add 配置描述 enumDescriptions
+
+
+## [1.3.1] - 2019-4-14
+### Add
+ * 选择区域翻译
+   * hover到选择区域时，翻译该区域内容
 
 ## [1.3.0] - 2019-4-14
 ### Changed
