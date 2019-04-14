@@ -55,8 +55,8 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
         * 变量、函数、interface等名称翻译
         * support 语言默认支持lib翻译 
     * 支持驼峰拆分
-## [1.1.0] - 2019-4-4
 
+## [1.1.0] - 2019-4-4
 ### fixed
 * google服务器失败（流量异常）
     * 提示错误，保留Google 翻译快捷链接
