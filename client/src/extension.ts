@@ -149,7 +149,7 @@ export async function activate(context: ExtensionContext) {
             //类型转换
             let position = new Position(textDocumentPosition.position.line, textDocumentPosition.position.character);
             let selection = editor.selections.find((selection) => {
-                return selection.contains(position);
+                return !selection.isEmpty && selection.contains(position);
             });
 
             if (selection) {
