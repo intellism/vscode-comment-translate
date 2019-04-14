@@ -29,7 +29,7 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
  * 仅仅翻译有效文本，保留格式符号:``` // * # <!-- --> ```
  * add 配置描述 enumDescriptions
 
-## [1.2.1] - 2019-4-13
+## [1.3.0] - 2019-4-14
 ### Changed
  * 重构 comment 翻译，使用与变量相同翻译方法
  * 变量翻译优化

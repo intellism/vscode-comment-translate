@@ -1,7 +1,7 @@
 # VSCode 注釈翻訳
 
 ## 前書き
-[【English】](../README.md) [【中文文档】](./README_ZH-CN.md)
+[【English】](./README.md) [【中文文档】](../README.md)
 
 多くの優れたプロジェクトには多くのアノテーションがあり、ユーザーはコードの意図をすばやく理解することができます。 しかし、ユーザが注釈付き言語に精通していないと、理解が困難になります。 このプラグインは、Google Translate APIを使用してVSCodeプログラミング言語のコメントを翻訳します。
 
@@ -11,6 +11,9 @@
 
 2. ハンプ分割をサポートするためのユーザー文字列と変数変換のサポート
 ![Introduction](./image/cn/variable.gif)
+
+3. 最後の翻訳エリアを選択
+![Introduction](./image/cn/select.gif)
 
 ## 设置选项
 #### 多言語サポート
