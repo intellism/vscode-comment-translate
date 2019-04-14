@@ -7,10 +7,6 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
  * 多翻译源支持
     * 支持有道API
     * 分离google API CN, google API COM
- * 文本翻译
-    * mackdown plaintext翻译
-        * 按段落分割
-        * 行分割
  * 变量命名
     * 中文翻译到驼峰的变量命名
  * 选择区域翻译
@@ -24,14 +20,20 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
         ```
 
 ### Changed
- * 支持配置翻译类型
-    * statusBar支持快速切换目标语言配置
  * hover 展示显示对应的 languageId
  * 仅仅翻译有效文本，保留格式符号:``` // * # <!-- --> ```
  * add 配置描述 enumDescriptions
 
-### fixed
+## [1.3.2] - 2019-4-14
+### Add
+ * 支持配置翻译类型
+    * statusBar支持快速切换目标语言配置
+
+### Fixed
  * 注释中包含markdown其他类型时，不可以连续翻译
+
+### Removed
+ * 文本翻译, mackdown plaintext翻译 - 已支持选中内容翻译，改需求取消
 
 ## [1.3.1] - 2019-4-14
 ### Add
