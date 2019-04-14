@@ -24,7 +24,7 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
  * 仅仅翻译有效文本，保留格式符号:``` // * # <!-- --> ```
  * add 配置描述 enumDescriptions
 
-## [1.3.4] - 2019-4-15
+## [1.3.5] - 2019-4-14
 ### Fixed
  * 修复未选择语言错误
 
