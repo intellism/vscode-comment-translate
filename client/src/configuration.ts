@@ -21,20 +21,24 @@ export async function changeTargetLanguage() {
         placeHolder: 'Select target language'
     });
     let target = language.find(item => item[1] === res);
-    await configuration.update('targetLanguage', target[0]);
+    if (target) {
+        await configuration.update('targetLanguage', target[0]);
+    }
 }
 
 
-export async function showTargetLanguageStatusBarItem() {
+export async function showTargetLanguageStatusBarItem(userLanguage: string) {
     let targetBar = window.createStatusBarItem();
     targetBar.command = 'commentTranslate.changeTargetLanguage';
     targetBar.tooltip = 'Comment translate target language. click to change';
 
     let setLanguageText = async () => {
         let configuration = workspace.getConfiguration('commentTranslate');
-        let currentLanguage = await configuration.get('targetLanguage');
+        let currentLanguage = await configuration.get('targetLanguage') || userLanguage;
         let current = language.find(item => item[0] === currentLanguage);
-        targetBar.text = '$(globe) ' + current[1];
+        if (current) {
+            targetBar.text = '$(globe) ' + current[1];
+        }
     }
     await setLanguageText();
     targetBar.show();
