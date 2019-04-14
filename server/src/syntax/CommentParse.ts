@@ -19,6 +19,8 @@ export interface ICommentBlock {
     comment: string;
 }
 
+export type checkScopeFunction = (scopes: string[]) => boolean;
+
 export class CommentParse {
     private _model: string[];
     private _lines: ITokenState[] = [];
@@ -83,7 +85,7 @@ export class CommentParse {
         }
     }
 
-    public multiScope({ positionLine, dataTokens1, token1Index }: { dataTokens1: IToken[], token1Index: number, positionLine: number }, checkContentHandle: Function, maxLine: number, minLine: number, skipContentHandle?: (scope: string) => boolean) {
+    public multiScope({ positionLine, dataTokens1, token1Index }: { dataTokens1: IToken[], token1Index: number, positionLine: number }, checkContentHandle: checkScopeFunction, maxLine: number, minLine: number, skipContentHandle?: (scope: string) => boolean) {
 
         let { tokenStartIndex, tokenEndIndex, tokenText } = this._parseScopesText(dataTokens1, positionLine, token1Index);
 
@@ -97,7 +99,7 @@ export class CommentParse {
                 if (skipContentHandle && skipContentHandle(res.scopes[0])) {
                     continue;
                 }
-                if (checkContentHandle(res.scopes[0])) {
+                if (checkContentHandle(res.scopes)) {
                     tokenText = res.tokenText + tokenText;
                     tokenStartIndex = res.tokenStartIndex;
                     startLine = line;
@@ -124,7 +126,7 @@ export class CommentParse {
                 if (skipContentHandle && skipContentHandle(res.scopes[0])) {
                     continue;
                 }
-                if (checkContentHandle(res.scopes[0])) {
+                if (checkContentHandle(res.scopes)) {
                     tokenText = tokenText + res.tokenText;
                     tokenEndIndex = res.tokenEndIndex;
                     endLine = line;
@@ -164,7 +166,7 @@ export class CommentParse {
     }
 
     public computeText(position: Position): ICommentBlock | null {
-        function isCommentTranslate(scope: string) {
+        function isCommentTranslate(scopes: string[]) {
             //评论的token标记
             let arr = [
                 'punctuation.definition.comment',
@@ -172,16 +174,19 @@ export class CommentParse {
                 'comment.line'
             ];
 
-            return arr.some(item => {
-                return scope.indexOf(item) === 0;
-            });
+            return scopes.some(scope => {
+                return arr.some(item => {
+                    return scope.indexOf(item) === 0;
+                });
+            })
         }
 
         function skipCommentTranslate(scope: string) {
             return scope.indexOf('punctuation.whitespace.comment') === 0;
         }
 
-        function isStringTranslate(scope: string) {
+        function isStringTranslate(scopes: string[]) {
+            let scope = scopes[0];
             //字符串和转义字符的token标记
             let arr = [
                 'string.quoted',
@@ -193,7 +198,8 @@ export class CommentParse {
             });
         }
 
-        function isBaseTranslate(scope: string) {
+        function isBaseTranslate(scopes: string[]) {
+            let scope = scopes[0];
             let arr = [
                 'entity',
                 'variable',
@@ -220,7 +226,7 @@ export class CommentParse {
 
         let { tokenStartIndex, tokenEndIndex, tokenText, scopes } = this._parseScopesText(data.tokens1, position.line, token1Index);
         //基础变量，只需要1个token
-        if (scopes && isBaseTranslate(scopes[0])) {
+        if (scopes && isBaseTranslate(scopes)) {
             let range = Range.create({
                 line: position.line,
                 character: tokenStartIndex
@@ -237,7 +243,7 @@ export class CommentParse {
         }
 
         //字符串中包含 \n 等， 需要在当前行，合并连续token
-        if (scopes && isStringTranslate(scopes[0])) {
+        if (scopes && isStringTranslate(scopes)) {
             return this.multiScope({
                 positionLine: position.line,
                 dataTokens1: data.tokens1,
@@ -246,7 +252,7 @@ export class CommentParse {
         }
 
         //评论会跨越多行，需要在多行中合并连续评论token
-        if (scopes && isCommentTranslate(scopes[0])) {
+        if (scopes && isCommentTranslate(scopes)) {
             return this.multiScope({
                 positionLine: position.line,
                 dataTokens1: data.tokens1,
