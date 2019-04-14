@@ -13,15 +13,16 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
         * 行分割
  * 变量命名
     * 中文翻译到驼峰的变量命名
- * 新增翻译并替换选择内容
-    * ``` json
+ * 选择区域翻译
+    * hover到选择区域时，翻译该区域内容
+    * 翻译并替换选择内容
+        * ``` json
             {
                 "command": "commentTranslate.replaceSelections",
                 "title": "Translate and replace selections",
                 "category": "Comment Translate"
             }
-      ```
-
+        ```
 
 ### Changed
  * 支持配置翻译类型
