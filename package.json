@@ -2,7 +2,7 @@
     "name": "comment-translate",
     "displayName": "Comment Translate",
     "description": "This plugin uses the Google Translate API to translate comments for the VSCode programming language.",
-    "version": "1.3.5",
+    "version": "1.3.6",
     "publisher": "intellsmi",
     "author": {
         "name": "Zheng MaoWei",
