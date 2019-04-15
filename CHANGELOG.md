@@ -23,7 +23,6 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
  * hover 展示显示对应的 languageId
  * 仅仅翻译有效文本，保留格式符号:``` // * # <!-- --> ```
  * add 配置描述 enumDescriptions
- * 性能优化，缓存解析对象减少重复计算，关闭文档时移除相关缓存减少内存占用
 
 ## [1.3.6]
 ### Changed
