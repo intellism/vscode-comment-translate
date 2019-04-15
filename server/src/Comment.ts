@@ -1,4 +1,4 @@
-import { TextDocumentPositionParams, Hover, Event, TextDocuments, Connection } from "vscode-languageserver";
+import { TextDocumentPositionParams, Hover, Event, TextDocuments, Connection, TextDocument } from "vscode-languageserver";
 import { BaseTranslate } from "./translate/translate";
 import { GoogleTranslate } from "./translate/GoogleTranslate";
 import * as humanizeString from 'humanize-string';
@@ -15,13 +15,15 @@ export class Comment {
     private _translator: BaseTranslate;
     private _textMateService: TextMateService;
     private _setting: ICommentTranslateSettings;
+    private _commentParseCache: Map<string, CommentParse> = new Map();
     public onTranslate: Event<string>;
-
     constructor(extensions: ICommentOption, private _documents: TextDocuments, private _connection: Connection) {
         this._setting = { multiLineMerge: false, targetLanguage: extensions.userLanguage };
         this._translator = new GoogleTranslate();
         this.onTranslate = this._translator.onTranslate;
         this._textMateService = new TextMateService(extensions.grammarExtensions, extensions.appRoot);
+        //关闭文档，移除缓存
+        _documents.onDidClose(e => this._removeCommentParse(e.document));
     }
 
     setSetting(newSetting: ICommentTranslateSettings) {
@@ -44,12 +46,27 @@ export class Comment {
         return block;
     }
 
+    _removeCommentParse(textDocument: TextDocument) {
+        let key = `${textDocument.languageId}-${textDocument.uri}`;
+        this._commentParseCache.delete(key);
+    }
+
+    //缓存已匹配部分，加快hover运行时间
+    async _getCommentParse(textDocument: TextDocument) {
+        let key = `${textDocument.languageId}-${textDocument.uri}`;
+        if (this._commentParseCache.has(key)) {
+            return this._commentParseCache.get(key);
+        }
+        let grammar = await this._textMateService.createGrammar(textDocument.languageId);
+        let parse: CommentParse = new CommentParse(textDocument, grammar, this._setting.multiLineMerge);
+        this._commentParseCache.set(key, parse);
+        return parse;
+    }
+
     async getComment(textDocumentPosition: TextDocumentPositionParams): Promise<Hover> {
         let textDocument = this._documents.get(textDocumentPosition.textDocument.uri);
         if (!textDocument) return null;
-        let grammar = await this._textMateService.createGrammar(textDocument.languageId);
-        let parse: CommentParse = new CommentParse(textDocument, grammar, this._setting.multiLineMerge);
-
+        let parse = await this._getCommentParse(textDocument);
         //优先判断是hover坐标是否为选中区域。 优先翻译选择区域
         let block = await this._getSelectionContainPosition(textDocumentPosition);
         if (!block) {
