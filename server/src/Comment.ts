@@ -22,8 +22,9 @@ export class Comment {
         this._translator = new GoogleTranslate();
         this.onTranslate = this._translator.onTranslate;
         this._textMateService = new TextMateService(extensions.grammarExtensions, extensions.appRoot);
-        //关闭文档，移除缓存
+        //关闭文档或内容变更，移除缓存
         _documents.onDidClose(e => this._removeCommentParse(e.document));
+        _documents.onDidChangeContent(e => this._removeCommentParse(e.document))
     }
 
     setSetting(newSetting: ICommentTranslateSettings) {

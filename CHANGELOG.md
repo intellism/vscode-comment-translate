@@ -24,7 +24,15 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
  * 仅仅翻译有效文本，保留格式符号:``` // * # <!-- --> ```
  * add 配置描述 enumDescriptions
 
-## [1.3.6]
+## [1.3.7] - 2019-4-20
+
+### Changed
+ * 添加语目标言配置枚举描述
+
+### Fixed
+ * 文档变更后，缓存没有淘汰
+
+## [1.3.6] - 2019-4-15
 ### Changed
  * 性能优化，缓存解析对象减少重复计算，关闭文档时移除相关缓存减少内存占用
 

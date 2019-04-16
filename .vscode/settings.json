@@ -11,5 +11,6 @@
         "**/client",
         "**/server"
     ],
-    "npm.enableScriptExplorer": true
+    "npm.enableScriptExplorer": true,
+    "commentTranslate.targetLanguage": "zh-CN"
 }
