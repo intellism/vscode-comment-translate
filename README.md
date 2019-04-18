@@ -12,11 +12,11 @@
 2. 支持用户字符串与变量翻译,支持驼峰拆分
 ![Introduction](./doc/image/cn/variable.gif)
 
-3. 选中最后一次翻译区域命令
-![Introduction](./doc/image/cn/select.gif)
-
-4. 选择区域翻译
+3. 选择区域翻译 - 划词翻译
 ![Introduction](./doc/image/cn/selection.gif)
+
+4. 选中最后一次翻译区域命令
+![Introduction](./doc/image/cn/select.gif)
 
 ## 配置项
 #### 多国语言支持
