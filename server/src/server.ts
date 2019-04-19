@@ -92,6 +92,11 @@ connection.onRequest('lastHover', ({ uri }) => {
 	return last.get(uri);
 });
 
+connection.onRequest('translate', (text: string) => {
+	if (!comment) return null;
+	return comment.translate(text);
+});
+
 /*
 connection.onDidOpenTextDocument((params) => {
 	// A text document got opened in VSCode.

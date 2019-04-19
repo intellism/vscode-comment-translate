@@ -123,10 +123,36 @@ export async function activate(context: ExtensionContext) {
         }
     }));
 
-    // TODO 支持选择区域翻译并替换
-    // context.subscriptions.push(commands.registerCommand('commentTranslate.replaceSelections', () => {
 
-    // }));
+    async function translateSelection(text: string, selection: Selection) {
+        let translation = await client.sendRequest<string>('translate', text);
+        return { translation, selection };
+    }
+
+    //翻译选择区域并替换
+    context.subscriptions.push(commands.registerCommand('commentTranslate.replaceSelections', async () => {
+        let editor = window.activeTextEditor;
+        if (!(editor && editor.document &&
+            editor.selections.some(selection => !selection.isEmpty))) {
+            return client.outputChannel.append(`No selection！\n`);
+        }
+        let translates = editor.selections
+            .filter(selection => !selection.isEmpty)
+            .map(selection => {
+                let text = editor.document.getText(selection);
+                return translateSelection(text, selection);
+            });
+        try {
+            let results = await Promise.all(translates);
+            editor.edit(builder => {
+                results.forEach(item => {
+                    item.translation && builder.replace(item.selection, item.translation);
+                });
+            });
+        } catch (e) {
+            client.outputChannel.append(e);
+        }
+    }));
 
     // 注册更改目标语言命令
     context.subscriptions.push(commands.registerCommand('commentTranslate.changeTargetLanguage', changeTargetLanguage));
