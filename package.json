@@ -48,6 +48,11 @@
                 "command": "commentTranslate.changeTargetLanguage",
                 "title": "Change translate target language",
                 "category": "Comment Translate"
+            },
+            {
+                "command": "commentTranslate.replaceSelections",
+                "title": "Translate and replace selections",
+                "category": "Comment Translate"
             }
         ],
         "keybindings": [

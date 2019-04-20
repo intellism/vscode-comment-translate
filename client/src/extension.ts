@@ -142,14 +142,27 @@ export async function activate(context: ExtensionContext) {
                 let text = editor.document.getText(selection);
                 return translateSelection(text, selection);
             });
+
+        //添加装饰，提醒用户正在翻译中。 部分内容会原样返回，避免用户等待
+        let decoration = window.createTextEditorDecorationType({
+            color: '#FF2D00',
+            backgroundColor: "transparent"
+        });
+        editor.setDecorations(decoration, editor.selections);
+        let beginTime = Date.now();
         try {
             let results = await Promise.all(translates);
+            //最少提示1秒钟
+            setTimeout(() => {
+                decoration.dispose();
+            }, 1000 - (Date.now() - beginTime));
             editor.edit(builder => {
                 results.forEach(item => {
                     item.translation && builder.replace(item.selection, item.translation);
                 });
             });
         } catch (e) {
+            decoration.dispose();
             client.outputChannel.append(e);
         }
     }));
