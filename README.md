@@ -15,7 +15,10 @@
 3. 选择区域翻译 - 划词翻译
 ![Introduction](./doc/image/cn/selection.gif)
 
-4. 选中最后一次翻译区域命令
+4. 翻译并替换选择内容
+![Introduction](./doc/image/translate-selections.gif)
+
+5. 选中最后一次翻译区域命令
 ![Introduction](./doc/image/cn/select.gif)
 
 ## 配置项

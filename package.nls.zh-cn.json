@@ -1,0 +1,7 @@
+{
+    "commentTranslate.command.select": "快速选择最后一个翻译区域",
+    "commentTranslate.command.changeTargetLanguage": "更改翻译目标语言",
+    "commentTranslate.command.replaceSelections": "翻译并替换选区",
+    "commentTranslate.configuration.targetLanguage": "翻译成目标语言",
+    "commentTranslate.configuration.MultilineMerge": "多行注释合并"
+}

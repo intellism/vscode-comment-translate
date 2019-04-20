@@ -15,7 +15,10 @@ Many excellent projects have a lot of annotations, and users can quickly underst
 3. Select the last translation area
 ![Introduction](./image/cn/select.gif)
 
-4. Selection range translation
+4. Translate and replace selections
+![Introduction](./image/translate-selections.gif)
+
+5. Selection range translation
 ![Introduction](./image/cn/selection.gif)
 
 ## Settings Options

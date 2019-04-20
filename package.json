@@ -41,17 +41,17 @@
         "commands": [
             {
                 "command": "commentTranslate.select",
-                "title": "Quickly select the last translation area",
+                "title": "%commentTranslate.command.select%",
                 "category": "Comment Translate"
             },
             {
                 "command": "commentTranslate.changeTargetLanguage",
-                "title": "Change translate target language",
+                "title": "%commentTranslate.command.changeTargetLanguage%",
                 "category": "Comment Translate"
             },
             {
                 "command": "commentTranslate.replaceSelections",
-                "title": "Translate and replace selections",
+                "title": "%commentTranslate.command.replaceSelections%",
                 "category": "Comment Translate"
             }
         ],
@@ -92,12 +92,12 @@
                             "Chinese (Simplified)",
                             "Chinese (Traditional)"
                         ],
-                        "description": "Translation to target language"
+                        "description": "%commentTranslate.configuration.targetLanguage%"
                     },
                     "commentTranslate.multiLineMerge": {
                         "type": "boolean",
                         "default": false,
-                        "description": "Comment Multi-line merge"
+                        "description": "%commentTranslate.configuration.MultilineMerge%"
                     }
                 }
             }

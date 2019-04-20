@@ -15,7 +15,10 @@
 3. 最後の翻訳エリアを選択
 ![Introduction](./image/cn/select.gif)
 
-4. 選択範囲翻訳
+4. 選択の翻訳と置換
+![Introduction](./image/translate-selections.gif)
+
+5. 選択範囲翻訳
 ![Introduction](./image/cn/selection.gif)
 
 ## 设置选项
