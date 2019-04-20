@@ -9,25 +9,18 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
     * 分离google API CN, google API COM
  * 变量命名
     * 中文翻译到驼峰的变量命名
- * 选择区域翻译
-    * 翻译并替换选择内容
-        * ``` json
-            {
-                "command": "commentTranslate.replaceSelections",
-                "title": "Translate and replace selections",
-                "category": "Comment Translate"
-            }
-        ```
+ * 命令&配置多语言支持
+    * 支持中文&日语
 
 ### Changed
  * hover 展示显示对应的 languageId
  * 仅仅翻译有效文本，保留格式符号:``` // * # <!-- --> ```
- * add 配置描述 enumDescriptions
 
 ## [1.3.7] - 2019-4-20
 
 ### Changed
  * 添加语目标言配置枚举描述
+ * 翻译并替换选择内容
 
 ### Fixed
  * 文档变更后，缓存没有淘汰
