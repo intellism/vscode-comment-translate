@@ -19,7 +19,7 @@ export class GoogleTranslate extends BaseTranslate {
         let token = await GoogleToken.get(content, { tld });
         let url = 'https://translate.google.' + tld + '/translate_a/single';
         let data: any = {
-            client: 't',
+            client: 'gtx',
             sl: from,
             tl: to,
             hl: to,
@@ -34,7 +34,11 @@ export class GoogleTranslate extends BaseTranslate {
         };
         data[token.name] = token.value;
         url = url + '?' + querystring.stringify(data);
-        let res = await request(url, { json: true, timeout: 10000 });
+        let res = await request(url, {
+            json: true, timeout: 10000, headers: {
+                'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.102 Safari/537.36'
+            }
+        });
 
         let sentences = res[0];
         if (!sentences || !(sentences instanceof Array)) {
@@ -76,7 +80,7 @@ export class GoogleTranslate extends BaseTranslate {
         } catch (e) {
             this._requestErrorTime = Date.now();
             this._onTranslate.fire(
-                `[Google Translate]: request error\n ${JSON.stringify(e)}`
+                `[Google Translate]: request error\n ${JSON.stringify(e)} \n Try again in 5 minutes.`
             );
         }
         return result;

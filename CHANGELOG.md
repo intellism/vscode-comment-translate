@@ -9,12 +9,18 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
     * 分离google API CN, google API COM
  * 变量命名
     * 中文翻译到驼峰的变量命名
- * 命令&配置多语言支持
-    * 支持中文&日语
 
 ### Changed
  * hover 展示显示对应的 languageId
  * 仅仅翻译有效文本，保留格式符号:``` // * # <!-- --> ```
+
+## [1.4.1] - 2019-4-24
+
+### Fixed
+ * 请求错误后，Sever服务中断。
+   * google api切换client t到gtx
+   * 接口返回状态错误，直接抛出异常，5分钟后重试
+   * 局域网同一IP请求量过多，还有拒绝服务风险，继续跟进
 
 ## [1.4.0] - 2019-4-20
 
