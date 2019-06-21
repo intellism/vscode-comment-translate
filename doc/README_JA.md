@@ -21,7 +21,7 @@
 5. 選択範囲翻訳
 ![Introduction](./image/cn/selection.gif)
 
-## 设置选项
+## 設定オプション
 #### 多言語サポート
 ターゲット言語をすばやく設定するためのステータスバー
 ![Multi-language](./image/cn/status-bar.gif)
