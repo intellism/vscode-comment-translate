@@ -1,0 +1,5 @@
+server/src/
+server/out/**/*.map
+client/src/
+client/out/**/*.map
+node_modules/
