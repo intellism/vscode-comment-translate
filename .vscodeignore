@@ -1,0 +1,4 @@
+client/src
+server/src
+client/out/**/*.map
+server/out/**/*.map
