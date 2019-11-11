@@ -4,7 +4,7 @@
     "commentTranslate.command.select": "Quickly select the last translation area",
     "commentTranslate.command.changeTargetLanguage": "Change translate target language",
     "commentTranslate.command.replaceSelections": "Translate and replace selections",
-    "commentTranslate.configuration.targetLanguage": "Translaztion to target language",
     "commentTranslate.configuration.concise": "Concise mode",
+    "commentTranslate.configuration.targetLanguage": "Translation to target language",
     "commentTranslate.configuration.MultilineMerge": "Comment Multi-line merge"
 }
