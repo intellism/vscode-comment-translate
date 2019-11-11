@@ -11,6 +11,8 @@
     "@vitalets/google-translate-token": "^1.1.0",
     "humanize-string": "^2.1.0",
     "request": "^2.88.0",
+    "onigasm": "^2.2.2",
+    "vscode-textmate": "^4.3.0",
     "vscode-languageserver": "^4.1.3"
   },
   "license": "ISC",

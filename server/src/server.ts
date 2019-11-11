@@ -11,10 +11,12 @@ import {
 	InitializeParams,
 	DidChangeConfigurationNotification,
 	Hover,
+	TextDocumentPositionParams,
 } from 'vscode-languageserver';
 
 import { Comment } from './Comment';
 import { patchAsarRequire } from './util/patch-asar-require';
+import { ShortLive } from './util/short-live';
 
 // Create a connection for the server. The connection uses Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
@@ -28,6 +30,7 @@ let documents: TextDocuments = new TextDocuments();
 let hasConfigurationCapability: boolean = false;
 let hasWorkspaceFolderCapability: boolean = false;
 let comment: Comment;
+let concise = false;
 
 connection.onInitialize((params: InitializeParams) => {
 	let capabilities = params.capabilities;
@@ -46,6 +49,7 @@ connection.onInitialize((params: InitializeParams) => {
 	return {
 		capabilities: {
 			hoverProvider: true,
+			definitionProvider: true,
 			textDocumentSync: documents.syncKind,
 		}
 	};
@@ -66,11 +70,13 @@ connection.onInitialized(async () => {
 	}
 
 	let setting = await connection.workspace.getConfiguration('commentTranslate');
+	concise = setting.concise;
 	comment.setSetting(setting);
 });
 // The example settings
 connection.onDidChangeConfiguration(async () => {
 	let setting = await connection.workspace.getConfiguration('commentTranslate');
+	concise = setting.concise;
 	comment.setSetting(setting);
 });
 // Only keep settings for open documents
@@ -78,14 +84,27 @@ connection.onDidChangeConfiguration(async () => {
 // 	documentSettings.delete(e.document.uri);
 // });
 
+let shortLive = new ShortLive((item: TextDocumentPositionParams, data: TextDocumentPositionParams) => {
+	if (item.textDocument.uri === data.textDocument.uri) {
+		return true;
+	}
+	return false;
+});
 // The content of a text document has changed. This event is emitted
 // when the text document first opened or when its content has changed.
 let last: Map<string, Hover> = new Map();
 connection.onHover(async (textDocumentPosition) => {
 	if (!comment) return null;
+	if (concise && !shortLive.isLive(textDocumentPosition)) return null;
 	let hover = await comment.getComment(textDocumentPosition);
 	hover && last.set(textDocumentPosition.textDocument.uri, hover);
 	return hover;
+});
+
+connection.onDefinition(async (definitionParams) => {
+	shortLive.add(definitionParams);
+
+	return null;
 });
 
 connection.onRequest('lastHover', ({ uri }) => {

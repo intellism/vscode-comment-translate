@@ -6,14 +6,14 @@
 	"version": "0.0.1",
 	"publisher": "intellsmi",
 	"engines": {
-		"vscode": "^1.23.0"
+		"vscode": "^1.40.0"
 	},
 	"scripts": {
 		"update-vscode": "vscode-install",
 		"postinstall": "vscode-install"
 	},
 	"dependencies": {
-		"vscode": "^1.1.33",
+		"vscode": "^1.1.36",
 		"vscode-languageclient": "^4.1.4"
 	}
 }

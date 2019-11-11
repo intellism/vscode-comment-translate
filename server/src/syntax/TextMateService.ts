@@ -1,6 +1,8 @@
 import * as path from 'path';
 import * as fs from 'fs';
-import { getNodeModule } from '../util/patch-asar-require';
+import * as onigasm from 'onigasm';
+import { Registry, IOnigLib,parseRawGrammar,INITIAL } from 'vscode-textmate';
+// import { getNodeModule } from '../util/patch-asar-require';
 export interface ILocation {
     readonly filename: string;
     readonly line: number;
@@ -221,6 +223,27 @@ export interface IGrammarExtensions {
     languages: ITMLanguageExtensionPoint[];
 }
 
+async function doLoadOnigasm(): Promise<IOnigLib> {
+    const [wasmBytes] = await Promise.all([
+        loadOnigasmWASM()
+    ]);
+    
+    // debugger;
+
+	await onigasm.loadWASM(wasmBytes);
+	return {
+		createOnigScanner(patterns: string[]) { return new onigasm.OnigScanner(patterns); },
+		createOnigString(s: string) { return new onigasm.OnigString(s); }
+	};
+}
+
+async function loadOnigasmWASM(): Promise<ArrayBuffer> {
+    let indexPath:string = require.resolve('onigasm');
+    const wasmPath = path.join(indexPath, '../onigasm.wasm');
+	const bytes = await fs.promises.readFile(wasmPath);
+	return bytes.buffer;
+}
+
 export class TextMateService implements ITextMateService {
     public _serviceBrand: any;
 
@@ -231,7 +254,6 @@ export class TextMateService implements ITextMateService {
     private _injectedEmbeddedLanguages: { [scopeName: string]: IEmbeddedLanguagesMap[]; };
     private _languages: Map<string, number>;
     private _languageToScope: Map<string, string>;
-    public tm: any;
 
     constructor(
         extensions: IGrammarExtensions[],
@@ -242,9 +264,8 @@ export class TextMateService implements ITextMateService {
         this._injectedEmbeddedLanguages = {};
         this._languageToScope = new Map<string, string>();
         this._languages = new Map<string, number>();
-
+        console.log(tmPath);
         this._grammarRegistry = null;
-        this.tm = getNodeModule(tmPath, 'vscode-textmate')
         this._parseExtensions(extensions);
     }
 
@@ -264,7 +285,8 @@ export class TextMateService implements ITextMateService {
 
     private async _getOrCreateGrammarRegistry(): Promise<[any, StackElement]> {
         if (!this._grammarRegistry) {
-            const grammarRegistry = new this.tm.Registry({
+            const grammarRegistry = new Registry({
+                getOnigLib: doLoadOnigasm,
                 loadGrammar: (scopeName: string) => {
                     const location = this._scopeRegistry.getGrammarLocation(scopeName);
                     if (!location) {
@@ -277,7 +299,7 @@ export class TextMateService implements ITextMateService {
                                 console.error(`Unable to load and parse grammar for scope ${scopeName} from ${location}`, e);
                                 e(null);
                             } else {
-                                var rawGrammar = this.tm.parseRawGrammar(content.toString(), location);
+                                var rawGrammar = parseRawGrammar(content.toString(), location);
                                 c(rawGrammar);
                             }
                         });
@@ -287,7 +309,7 @@ export class TextMateService implements ITextMateService {
                     return this._injections[scopeName];
                 }
             });
-            this._grammarRegistry = Promise.resolve(<[any, StackElement]>[grammarRegistry, this.tm.INITIAL]);
+            this._grammarRegistry = Promise.resolve(<[any, StackElement]>[grammarRegistry, INITIAL]);
         }
 
         return this._grammarRegistry;

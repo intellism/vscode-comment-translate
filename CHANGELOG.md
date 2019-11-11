@@ -9,10 +9,31 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
     * 分离google API CN, google API COM
  * 变量命名
     * 中文翻译到驼峰的变量命名
+ * 翻译源添加
+   * 添加百度&有道&yandex翻译源
+   * 添加google收费API配置
 
 ### Changed
  * hover 展示显示对应的 languageId
  * 仅仅翻译有效文本，保留格式符号:``` // * # <!-- --> ```
+* 合并注释更合理支持
+   * block 注释多行合并。 
+   * line注释，提前 标识符，支持非 // 行注释
+* 跳转到google translate服务器，markdown链接改为command,修复换行丢失
+
+### Fixed
+ * 请求错误后，5分钟禁止访问结果被错误cache
+
+## [1.4.2] - 2019-11-11
+### Fixed
+ * 修复vscode-textmate引入问题
+   * webAssembly 模式
+   * https://github.com/intellism/vscode-comment-translate/issues/30
+   * https://github.com/intellism/vscode-comment-translate/issues/10
+
+### Changed
+   * 新增 简洁模式
+     * 启动配置后，hover默认不翻译，仅按下Ctrl or Command才启动翻译。 翻译替换除外
 
 ## [1.4.1] - 2019-4-24
 

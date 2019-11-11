@@ -165,7 +165,7 @@ export class CommentParse {
 
     }
 
-    public computeText(position: Position): ICommentBlock | null {
+    public computeText(position: Position, fullToken = false): ICommentBlock | null {
         function isCommentTranslate(scopes: string[]) {
             //评论的token标记
             let arr = [
@@ -225,23 +225,6 @@ export class CommentParse {
         }
 
         let { tokenStartIndex, tokenEndIndex, tokenText, scopes } = this._parseScopesText(data.tokens1, position.line, token1Index);
-        //基础变量，只需要1个token
-        if (scopes && isBaseTranslate(scopes)) {
-            let range = Range.create({
-                line: position.line,
-                character: tokenStartIndex
-            }, {
-                    line: position.line,
-                    character: tokenEndIndex
-                });
-
-            return {
-                humanize: true,
-                comment: tokenText,
-                range: range
-            }
-        }
-
         //字符串中包含 \n 等， 需要在当前行，合并连续token
         if (scopes && isStringTranslate(scopes)) {
             return this.multiScope({
@@ -259,6 +242,24 @@ export class CommentParse {
                 token1Index
             }, isCommentTranslate, this._model.length - 1, 0, skipCommentTranslate);
         }
+
+        //基础变量，只需要1个token
+        if (scopes && (fullToken || isBaseTranslate(scopes))) {
+            let range = Range.create({
+                line: position.line,
+                character: tokenStartIndex
+            }, {
+                    line: position.line,
+                    character: tokenEndIndex
+                });
+
+            return {
+                humanize: true,
+                comment: tokenText,
+                range: range
+            }
+        }
+
         return null;
     }
 }

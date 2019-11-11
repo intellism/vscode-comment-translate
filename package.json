@@ -2,7 +2,7 @@
     "name": "comment-translate",
     "displayName": "%commentTranslate.displayName%",
     "description": "%commentTranslate.description%",
-    "version": "1.4.1",
+    "version": "1.4.2",
     "publisher": "intellsmi",
     "author": {
         "name": "Zheng MaoWei",
@@ -18,7 +18,7 @@
         "url": "https://github.com/intellism/vscode-comment-translate.git"
     },
     "engines": {
-        "vscode": "^1.23.0"
+        "vscode": "^1.40.0"
     },
     "categories": [
         "Other"
@@ -98,6 +98,11 @@
                         "type": "boolean",
                         "default": false,
                         "description": "%commentTranslate.configuration.MultilineMerge%"
+                    },
+                    "commentTranslate.concise": {
+                        "type": "boolean",
+                        "default": false,
+                        "description": "%commentTranslate.configuration.concise%"
                     }
                 }
             }

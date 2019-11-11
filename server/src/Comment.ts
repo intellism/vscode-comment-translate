@@ -7,6 +7,7 @@ import { TextMateService } from "./syntax/TextMateService";
 
 export interface ICommentTranslateSettings {
     multiLineMerge: boolean;
+    concise: boolean;
     targetLanguage: string;
 }
 
@@ -18,7 +19,7 @@ export class Comment {
     private _commentParseCache: Map<string, CommentParse> = new Map();
     public onTranslate: Event<string>;
     constructor(extensions: ICommentOption, private _documents: TextDocuments, private _connection: Connection) {
-        this._setting = { multiLineMerge: false, targetLanguage: extensions.userLanguage };
+        this._setting = { multiLineMerge: false, targetLanguage: extensions.userLanguage,concise: false };
         this._translator = new GoogleTranslate();
         this.onTranslate = this._translator.onTranslate;
         this._textMateService = new TextMateService(extensions.grammarExtensions, extensions.appRoot);
@@ -71,7 +72,7 @@ export class Comment {
         //优先判断是hover坐标是否为选中区域。 优先翻译选择区域
         let block = await this._getSelectionContainPosition(textDocumentPosition);
         if (!block) {
-            block = await parse.computeText(textDocumentPosition.position);
+            block = await parse.computeText(textDocumentPosition.position, this._setting.concise);
         }
         if (block) {
             if (block.humanize) {
