@@ -4,7 +4,7 @@
 [【English】](./doc/README.md) [【日本語の文書】](./doc/README_JA.md)
 
 许多优秀的项目，都有丰富的注释，使用者可以快速理解代码意图。但是如果使用者并不熟习注释的语言，会带来理解困难。本插件使用 Google Translate API 翻译 VSCode 的编程语言的注释。
-
+sss
 ## 功能
 1. 识别代码中注释部分，不干扰阅读。支持不同语言，单行、多行注释
 ![Introduction](./doc/image/cn/Introduction.gif)
