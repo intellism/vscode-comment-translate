@@ -21,6 +21,9 @@
 5. 选中最后一次翻译区域命令
 ![Introduction](./doc/image/cn/select.gif)
 
+6. 翻译选择的文本 (可在 WSL 环境下使用)
+![Introduction](./doc/image/cn/translate_selected.gif)
+
 ## 配置项
 #### 多国语言支持
 状态栏快速配置目标语言

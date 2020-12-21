@@ -1,5 +1,5 @@
 import { TextDocumentPositionParams, Hover, Event, TextDocuments, Connection, TextDocument } from "vscode-languageserver";
-import { BaseTranslate } from "./translate/translate";
+import { BaseTranslate } from "./translate/Translate";
 import { GoogleTranslate } from "./translate/GoogleTranslate";
 import * as humanizeString from 'humanize-string';
 import { CommentParse, ICommentOption, ICommentBlock } from "./syntax/CommentParse";

@@ -2,6 +2,7 @@
     "commentTranslate.displayName": "Comment Translate",
     "commentTranslate.description": "This plugin uses the Google Translate API to translate comments for the VSCode programming language.",
     "commentTranslate.command.select": "Quickly select the last translation area",
+    "commentTranslate.command.selectTranslate": "Translate selected text",
     "commentTranslate.command.changeTargetLanguage": "Change translate target language",
     "commentTranslate.command.replaceSelections": "Translate and replace selections",
     "commentTranslate.configuration.concise": "Concise mode",

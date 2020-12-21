@@ -21,6 +21,10 @@ Many excellent projects have a lot of annotations, and users can quickly underst
 5. Selection range translation
 ![Introduction](./image/cn/selection.gif)
 
+6. translate selected text (can work with WSL environment)
+![Introduction](./image/cn/translate_selected.gif)
+
+
 ## Settings Options
 #### Multi-language support
 Status bar to quickly configure the target language

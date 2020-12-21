@@ -3,6 +3,7 @@
     "commentTranslate.configuration.concise": "簡潔なモード",
     "commentTranslate.description": "このプラグインは、Google Translate APIを使用してVSCodeプログラミング言語のコメントを翻訳します。 ",
     "commentTranslate.command.select": "最後の翻訳領域を素早く選択",
+    "commentTranslate.command.selectTranslate": "選択したテキストを翻訳する",
     "commentTranslate.command.changeTargetLanguage": "翻訳対象言語の変更",
     "commentTranslate.command.replaceSelections": "選択の翻訳と置換",
     "commentTranslate.configuration.targetLanguage": "ターゲット言語への翻訳",

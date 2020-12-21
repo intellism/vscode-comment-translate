@@ -21,6 +21,9 @@
 5. 選択範囲翻訳
 ![Introduction](./image/cn/selection.gif)
 
+6. 選択したテキストを翻訳する (WSL 環境でも使用できます)
+![Introduction](./image/cn/translate_selected.gif)
+
 ## 設定オプション
 #### 多言語サポート
 ターゲット言語をすばやく設定するためのステータスバー

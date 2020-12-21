@@ -45,6 +45,11 @@
                 "category": "Comment Translate"
             },
             {
+                "command": "commentTranslate.selectTranslate",
+                "title": "%commentTranslate.command.selectTranslate%",
+                "category": "Comment Translate"
+            },
+            {
                 "command": "commentTranslate.changeTargetLanguage",
                 "title": "%commentTranslate.command.changeTargetLanguage%",
                 "category": "Comment Translate"
@@ -61,6 +66,15 @@
                 "key": "ctrl+shift+s"
             }
         ],
+        "menus": {
+            "editor/context": [
+              {
+                "when": "editorHasSelection",
+                "command": "commentTranslate.selectTranslate",
+                "group": "3_preview"
+              }
+            ]
+        },
         "configuration": [
             {
                 "title": "Comment Translate Configuration",
@@ -119,7 +133,7 @@
         "test": "sh ./scripts/e2e.sh"
     },
     "devDependencies": {
-        "@types/node": "^6.0.40",
+        "@types/node": "^6.14.0",
         "typescript": "^2.0.3"
     }
 }

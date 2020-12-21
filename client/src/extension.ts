@@ -167,6 +167,50 @@ export async function activate(context: ExtensionContext) {
         }
     }));
 
+
+    // 注册选择翻译命令
+    context.subscriptions.push(commands.registerCommand('commentTranslate.selectTranslate', async () => {
+        let editor = window.activeTextEditor;
+        if (!(editor && editor.document &&
+            editor.selections.some(selection => !selection.isEmpty))) {
+            return client.outputChannel.append(`No selection！\n`);
+        }
+        let translates = editor.selections
+            .filter(selection => !selection.isEmpty)
+            .map(selection => {
+                let text = editor.document.getText(selection);
+                return translateSelection(text, selection);
+            });
+
+        // 添加装饰，提醒用户正在翻译中。 部分内容会原样返回，避免用户等待
+        let decoration = window.createTextEditorDecorationType({
+            color: '#FF2D00',
+            backgroundColor: "transparent"
+        });
+        editor.setDecorations(decoration, editor.selections);
+        let beginTime = Date.now();
+        try {
+            let results = await Promise.all(translates);
+            // 最少提示1秒钟
+            setTimeout(() => {
+                decoration.dispose();
+            }, 1000 - (Date.now() - beginTime));
+
+            let message = '';
+            results.forEach(item => {
+                message += item.translation;
+                message += '\r\n';
+            });
+
+            // Display a message box to the user
+            window.showInformationMessage(message);
+        } catch (e) {
+            decoration.dispose();
+            client.outputChannel.append(e);
+        }
+    }));
+
+
     // 注册更改目标语言命令
     context.subscriptions.push(commands.registerCommand('commentTranslate.changeTargetLanguage', changeTargetLanguage));
     // 注册状态图标
