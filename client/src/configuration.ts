@@ -11,6 +11,7 @@ const language: [string, string][] = [
     ['ja', 'Japanese'],
     ['ko', 'Korean'],
     ['ru', 'Russian'],
+    ['pl', 'Polish'],
     ['zh-CN', 'Chinese (Simplified)'],
     ['zh-TW', 'Chinese (Traditional)']
 ];
