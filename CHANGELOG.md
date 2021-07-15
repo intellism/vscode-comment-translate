@@ -24,6 +24,10 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 ### Fixed
  * 请求错误后，5分钟禁止访问结果被错误cache
 
+## [1.5.0]
+### Changed
+* “翻译替换”，选择翻译目标语言
+
 ## [1.4.2] - 2019-11-11
 ### Fixed
  * 修复vscode-textmate引入问题

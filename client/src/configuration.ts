@@ -1,5 +1,5 @@
 
-import { workspace, window } from 'vscode';
+import { workspace, window, QuickPickItem } from 'vscode';
 
 // TODO 临时仅支持这部分语言
 const language: [string, string][] = [
@@ -15,16 +15,32 @@ const language: [string, string][] = [
     ['zh-CN', 'Chinese (Simplified)'],
     ['zh-TW', 'Chinese (Traditional)']
 ];
+let defualtLanguage:string;
+export async function selectTargetLanguage(placeHolder:string = 'Select target language') {
 
-export async function changeTargetLanguage() {
-    let configuration = workspace.getConfiguration('commentTranslate');
-    let res: string = await window.showQuickPick(language.map(item => item[1]), {
-        placeHolder: 'Select target language'
+    let items:QuickPickItem[] = language.map(item=>{
+        return {
+            label: item[1],
+            description:item[0],
+        };
     });
-    let target = language.find(item => item[1] === res);
-    if (target) {
-        await configuration.update('targetLanguage', target[0]);
+
+    if(!defualtLanguage) {
+        defualtLanguage = await workspace.getConfiguration('commentTranslate').get<string>('targetLanguage');
     }
+    let defaultTarget = language.find(item => item[0] === defualtLanguage);
+    defaultTarget&&items.unshift({
+        label:defaultTarget[1],
+        description:defaultTarget[0],
+        detail: 'Default select'
+    });
+    let res: QuickPickItem = await window.showQuickPick(items, {
+        placeHolder
+    });
+    let target = language.find(item => item[1] === res.label);
+    
+    defualtLanguage = target[0];
+    return target[0];
 }
 
 

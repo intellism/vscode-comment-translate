@@ -5,7 +5,7 @@
 'use strict';
 
 import * as path from 'path';
-import { ExtensionContext, extensions, env, commands, window, Selection, Position, Hover } from 'vscode';
+import { workspace, ExtensionContext, extensions, env, commands, window, Selection, Position, Hover } from 'vscode';
 
 import {
     LanguageClient,
@@ -15,7 +15,7 @@ import {
     TextDocumentPositionParams,
     Range
 } from 'vscode-languageclient';
-import { changeTargetLanguage, showTargetLanguageStatusBarItem } from './configuration';
+import { selectTargetLanguage, showTargetLanguageStatusBarItem } from './configuration';
 
 let client: LanguageClient;
 
@@ -124,8 +124,8 @@ export async function activate(context: ExtensionContext) {
     }));
 
 
-    async function translateSelection(text: string, selection: Selection) {
-        let translation = await client.sendRequest<string>('translate', text);
+    async function translateSelection(text: string, selection: Selection, targetLanguage:string) {
+        let translation = await client.sendRequest<string>('translate', {text,targetLanguage});
         return { translation, selection };
     }
 
@@ -136,11 +136,12 @@ export async function activate(context: ExtensionContext) {
             editor.selections.some(selection => !selection.isEmpty))) {
             return client.outputChannel.append(`No selection！\n`);
         }
+        let targetLanguage = await selectTargetLanguage();
         let translates = editor.selections
             .filter(selection => !selection.isEmpty)
             .map(selection => {
                 let text = editor.document.getText(selection);
-                return translateSelection(text, selection);
+                return translateSelection(text, selection, targetLanguage);
             });
 
         //添加装饰，提醒用户正在翻译中。 部分内容会原样返回，避免用户等待
@@ -168,7 +169,13 @@ export async function activate(context: ExtensionContext) {
     }));
 
     // 注册更改目标语言命令
-    context.subscriptions.push(commands.registerCommand('commentTranslate.changeTargetLanguage', changeTargetLanguage));
+    context.subscriptions.push(commands.registerCommand('commentTranslate.changeTargetLanguage', async function () {
+        let configuration = workspace.getConfiguration('commentTranslate');
+        let target = await selectTargetLanguage();
+        if (target) {
+            await configuration.update('targetLanguage', target);
+        }
+    }));
     // 注册状态图标
     let targetBar = await showTargetLanguageStatusBarItem(userLanguage);
     context.subscriptions.push(targetBar);

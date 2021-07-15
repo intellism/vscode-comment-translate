@@ -111,9 +111,9 @@ connection.onRequest('lastHover', ({ uri }) => {
 	return last.get(uri);
 });
 
-connection.onRequest('translate', (text: string) => {
+connection.onRequest('translate', ({text,targetLanguage}:{text:string,targetLanguage:string}) => {
 	if (!comment) return null;
-	return comment.translate(text);
+	return comment.translate(text,{to:targetLanguage});
 });
 
 /*

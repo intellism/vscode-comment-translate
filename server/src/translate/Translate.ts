@@ -32,5 +32,5 @@ export abstract class BaseTranslate {
         return '';
     }
 
-    abstract async _translate(content: string, opts: { from?: string, to?: string }): Promise<string>;
+    abstract _translate(content: string, opts: { from?: string, to?: string }): Promise<string>;
 }

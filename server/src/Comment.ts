@@ -1,5 +1,5 @@
 import { TextDocumentPositionParams, Hover, Event, TextDocuments, Connection, TextDocument } from "vscode-languageserver";
-import { BaseTranslate } from "./translate/translate";
+import { BaseTranslate, ITranslateOptions } from "./translate/translate";
 import { GoogleTranslate } from "./translate/GoogleTranslate";
 import * as humanizeString from 'humanize-string';
 import { CommentParse, ICommentOption, ICommentBlock } from "./syntax/CommentParse";
@@ -35,8 +35,8 @@ export class Comment {
         this._setting = Object.assign(this._setting, newSetting);
     }
 
-    async translate(text: string) {
-        return await this._translator.translate(text, { to: this._setting.targetLanguage });
+    async translate(text: string,opts?:ITranslateOptions) {
+        return await this._translator.translate(text, opts||{ to: this._setting.targetLanguage });
     }
 
     link(text: string) {
