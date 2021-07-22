@@ -106,6 +106,13 @@
                     }
                 }
             }
+        ],
+        "grammars": [
+            {
+                "language": "go",
+                "scopeName": "source.go",
+                "path": "./syntaxes/go.tmLanguage.json"
+            }
         ]
     },
     "scripts": {
