@@ -59,6 +59,10 @@
             {
                 "command": "commentTranslate.select",
                 "key": "ctrl+shift+s"
+            },
+            {
+                "command": "commentTranslate.replaceSelections",
+                "key": "ctrl+shift+t"
             }
         ],
         "configuration": [
@@ -66,6 +70,7 @@
                 "title": "Comment Translate Configuration",
                 "type": "Object",
                 "properties": {
+                    
                     "commentTranslate.targetLanguage": {
                         "type": "string",
                         "enum": [
@@ -103,6 +108,14 @@
                         "type": "boolean",
                         "default": false,
                         "description": "%commentTranslate.configuration.concise%"
+                    },
+                    "commentTranslate.source": {
+                        "type": "string",
+                        "enum": [
+                            "Googel",
+                            "Bing"
+                        ],
+                        "description": "%commentTranslate.configuration.source%"
                     }
                 }
             }

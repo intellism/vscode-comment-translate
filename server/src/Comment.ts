@@ -1,6 +1,7 @@
-import { TextDocumentPositionParams, Hover, Event, TextDocuments, Connection, TextDocument } from "vscode-languageserver";
+import { TextDocumentPositionParams, Hover, Event, TextDocuments, Connection, TextDocument,Emitter } from "vscode-languageserver";
 import { BaseTranslate, ITranslateOptions } from "./translate/translate";
 import { GoogleTranslate } from "./translate/GoogleTranslate";
+import { BingTranslate } from "./translate/BingTranslate";
 import * as humanizeString from 'humanize-string';
 import { CommentParse, ICommentOption, ICommentBlock } from "./syntax/CommentParse";
 import { TextMateService } from "./syntax/TextMateService";
@@ -9,6 +10,7 @@ export interface ICommentTranslateSettings {
     multiLineMerge: boolean;
     concise: boolean;
     targetLanguage: string;
+    source:string;
 }
 
 export class Comment {
@@ -17,15 +19,31 @@ export class Comment {
     private _textMateService: TextMateService;
     private _setting: ICommentTranslateSettings;
     private _commentParseCache: Map<string, CommentParse> = new Map();
-    public onTranslate: Event<string>;
+    protected _onTranslate = new Emitter<string>();
     constructor(extensions: ICommentOption, private _documents: TextDocuments, private _connection: Connection) {
-        this._setting = { multiLineMerge: false, targetLanguage: extensions.userLanguage,concise: false };
-        this._translator = new GoogleTranslate();
-        this.onTranslate = this._translator.onTranslate;
+        this._setting = { multiLineMerge: false, targetLanguage: extensions.userLanguage,concise: false,source:'Google' };
+        this._createTranslator();
         this._textMateService = new TextMateService(extensions.grammarExtensions, extensions.appRoot);
         //关闭文档或内容变更，移除缓存
         _documents.onDidClose(e => this._removeCommentParse(e.document));
         _documents.onDidChangeContent(e => this._removeCommentParse(e.document))
+    }
+
+    get onTranslate() {
+        return this._onTranslate.event;
+    }
+
+    _createTranslator() {
+        switch(this._setting.source) {
+            case 'Bing':
+                this._translator = new BingTranslate();
+                break;
+            
+            default:
+                this._translator = new GoogleTranslate();
+                break;
+        }
+        this._translator.onTranslate((str)=>this._onTranslate.fire(str));
     }
 
     setSetting(newSetting: ICommentTranslateSettings) {
@@ -33,6 +51,7 @@ export class Comment {
             newSetting.targetLanguage = this._setting.targetLanguage;
         }
         this._setting = Object.assign(this._setting, newSetting);
+        this._createTranslator();
     }
 
     async translate(text: string,opts?:ITranslateOptions) {
