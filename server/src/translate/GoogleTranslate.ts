@@ -62,7 +62,7 @@ export class GoogleTranslate extends BaseTranslate {
             to = `${first}-${last}`;
         }
         let str = `https://translate.google.cn/#view=home&op=translate&sl=auto&tl=${to}&text=${encodeURIComponent(content)}`;
-        return `[Google](${encodeURI(str)})`;
+        return `[Google](${str})`;
         // return `<a href="${encodeURI(str)}">Google</a>`;
     }
 

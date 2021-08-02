@@ -9,6 +9,7 @@
   "author": "",
   "dependencies": {
     "@vitalets/google-translate-token": "^1.1.0",
+    "baidu-translate-api-temp": "^0.4.3",
     "bing-translate-api": "^2.2.0",
     "humanize-string": "^2.1.0",
     "onigasm": "^2.2.2",

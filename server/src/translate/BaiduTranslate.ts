@@ -1,26 +1,40 @@
 import { BaseTranslate, ITranslateOptions } from './translate';
-const { translate } = require('bing-translate-api');
+const translate = require('baidu-translate-api-temp');
 
-
-//免费API https://github.com/Selection-Translator/translation.js/tree/master/src
-export class BingTranslate extends BaseTranslate {
+export class BaiduTranslate extends BaseTranslate {
     private _requestErrorTime: number = 0;
     async _request(content: string, { from = 'auto', to = 'auto' }: ITranslateOptions): Promise<string> {
-        let res = await translate(content, this._langMap(from), this._langMap(to));
-        console.log(res);
-        return res.translation;
+        let res = await translate(content, {
+            from:this._langMap(from), 
+            to:this._langMap(to)
+        });
+        // console.log(res);
+        return res.trans_result.dst;
     }
 
     _langMap( src:string ){
         let langMaps:Map<string,string> = new Map([
-            ['auto','auto-detect'],
-            ['zh-CN','zh-Hans'],
-            ['zh-TW','zh-Hant'],
+            ['zh-CN','zh'],
+            ['zh-TW','cht'],
+            ['ko','kor'],
+            ['fr','fra'],
+            ['fr','fra'],
+            ['es','spa'],
+            ['es','ara'],
+            ['bg','bul'],
+            ['et','est'],
+            ['da','dan'],
+            ['fi','fin'],
+            ['ro','rom'],
+            ['sl','slo'],
+            ['sv','swe'],
+            ['vi','vie'],
         ]);
 
         if(langMaps.has(src)) {
             return langMaps.get(src);
         }
+
         return src;
     }
 
@@ -32,9 +46,10 @@ export class BingTranslate extends BaseTranslate {
             to = `${first}-${last}`;
         }
 
-        // https://cn.bing.com/translator/?ref=TThis&text=good&from=en&to=es
-        let str = `https://cn.bing.com/translator/?text=${encodeURIComponent(content)}&from=auto-detect&to=${this._langMap(to)}`;
-        return `[Bing](${str})`;
+        // https://fanyi.baidu.com/#auto/en/%E4%B8%AD%E5%9B%BD
+        let str = `https://fanyi.baidu.com/#auto/${this._langMap(to)}/${encodeURIComponent(content)}`;
+        return `[Baidu](${str})`;
+        // return `<a href="${encodeURI(str)}">Google</a>`;
     }
 
     async _translate(content: string, opts: ITranslateOptions): Promise<string> {
@@ -46,12 +61,12 @@ export class BingTranslate extends BaseTranslate {
         try {
             result = await this._request(content, opts);
             this._onTranslate.fire(
-                `[Bing Translate]:\n${content}\n[<============================>]:\n${result}\n`
+                `[Baidu Translate]:\n${content}\n[<============================>]:\n${result}\n`
             );
         } catch (e) {
             this._requestErrorTime = Date.now();
             this._onTranslate.fire(
-                `[Bing Translate]: request error\n ${JSON.stringify(e)} \n`
+                `[Baidu Translate]: request error\n ${JSON.stringify(e)} \n`
             );
         }
         return result;

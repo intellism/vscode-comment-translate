@@ -4,13 +4,9 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ## [Unreleased]
 ### Added
- * 多翻译源支持
-    * 支持有道API
-    * 分离google API CN, google API COM
  * 变量命名
     * 中文翻译到驼峰的变量命名
  * 翻译源添加
-   * 添加百度&有道&yandex翻译源
    * 添加google收费API配置
 
 ### Changed
@@ -24,9 +20,12 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 ### Fixed
  * 请求错误后，5分钟禁止访问结果被错误cache
 
-## [1.5.0]
-### Changed
-* “翻译替换”，选择翻译目标语言
+## [1.5.0] 2021-8-2
+### Added
+* 增加baidu、bing翻译源. 同ip翻译过多google会限制访问，可以临时切换其他翻译源
+* 增加翻译目标语言选项 [Google Language support](https://cloud.google.com/translate/docs/languages)
+* “翻译替换”，选择翻译目标语言，并增加快捷键 control + shift + t
+
 
 ## [1.4.2] - 2019-11-11
 ### Fixed

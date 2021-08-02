@@ -88,6 +88,15 @@ export async function activate(context: ExtensionContext) {
     let BlackLanguage: string[] = ['log', 'Log'];
     let userLanguage = env.language;
 
+    let langMaps:Map<string,string> = new Map([
+        ['zh-cn','zh-CN'],
+        ['zh-tw','zh-TW'],
+    ]);
+    // 修复语言代码不一致
+    if(langMaps.has(userLanguage)) {
+        userLanguage = langMaps.get(userLanguage);
+    }
+
     // Options to control the language client
     let clientOptions: LanguageClientOptions = {
         // Register the server for plain text documents

@@ -1,10 +1,11 @@
-import { TextDocumentPositionParams, Hover, Event, TextDocuments, Connection, TextDocument,Emitter } from "vscode-languageserver";
+import { TextDocumentPositionParams, Hover, TextDocuments, Connection, TextDocument,Emitter } from "vscode-languageserver";
 import { BaseTranslate, ITranslateOptions } from "./translate/translate";
 import { GoogleTranslate } from "./translate/GoogleTranslate";
 import { BingTranslate } from "./translate/BingTranslate";
 import * as humanizeString from 'humanize-string';
 import { CommentParse, ICommentOption, ICommentBlock } from "./syntax/CommentParse";
 import { TextMateService } from "./syntax/TextMateService";
+import { BaiduTranslate } from "./translate/BaiduTranslate";
 
 export interface ICommentTranslateSettings {
     multiLineMerge: boolean;
@@ -36,12 +37,19 @@ export class Comment {
     _createTranslator() {
         switch(this._setting.source) {
             case 'Bing':
-                this._translator = new BingTranslate();
-                break;
+
+            this._translator = new BingTranslate();
+            break;
+
+            case 'Baidu':
+
+            this._translator = new BaiduTranslate();
+            break;
             
             default:
-                this._translator = new GoogleTranslate();
-                break;
+            
+            this._translator = new GoogleTranslate();
+            break;
         }
         this._translator.onTranslate((str)=>this._onTranslate.fire(str));
     }
