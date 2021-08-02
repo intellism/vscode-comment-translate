@@ -29,9 +29,8 @@
 
 ## 配置项
 #### 多国语言支持
-状态栏快速配置目标语言
+状态栏快速配置目标语言 [Google Language support](https://cloud.google.com/translate/docs/languages)
 ![Multi-language](./doc/image/cn/status-bar.gif)
-[Google Language support](https://cloud.google.com/translate/docs/languages)
 
 #### 合并多行注释 （源语言只支持英语）
 ![Multi-line-merge](./doc/image/multi-line-merge.gif)
