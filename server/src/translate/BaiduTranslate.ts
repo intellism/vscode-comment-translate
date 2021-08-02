@@ -17,6 +17,7 @@ export class BaiduTranslate extends BaseTranslate {
             ['zh-CN','zh'],
             ['zh-TW','cht'],
             ['ko','kor'],
+            ['ja','jp'],
             ['fr','fra'],
             ['fr','fra'],
             ['es','spa'],

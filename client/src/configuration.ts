@@ -19,33 +19,34 @@ import { LANGS } from './lang';
 
 let languages = new Map(LANGS);
 
-let defualtLanguage:string;
-export async function selectTargetLanguage(placeHolder:string = 'Select target language') {
+let defualtLanguage: string;
+export async function selectTargetLanguage(placeHolder: string = 'Select target language') {
 
-    let items:QuickPickItem[] = LANGS.map(item=>{
+    let items: QuickPickItem[] = LANGS.map(item => {
         return {
             label: item[1],
-            description:item[0],
+            description: item[0],
         };
     });
 
-    if(!defualtLanguage) {
+    if (!defualtLanguage) {
         defualtLanguage = await workspace.getConfiguration('commentTranslate').get<string>('targetLanguage');
     }
     let defaultTarget = languages.get(defualtLanguage);
-    defaultTarget&&items.unshift({
-        label:defaultTarget,
-        description:defualtLanguage,
+    defaultTarget && items.unshift({
+        label: defaultTarget,
+        description: defualtLanguage,
         detail: 'Default select'
     });
     let res: QuickPickItem = await window.showQuickPick(items, {
         placeHolder
     });
-    
-    defualtLanguage = res.description;
-    return res.description;
+    if (res) {
+        defualtLanguage = res.description;
+        return res.description;
+    }
+    return null;
 }
-
 
 export async function showTargetLanguageStatusBarItem(userLanguage: string) {
     let targetBar = window.createStatusBarItem();

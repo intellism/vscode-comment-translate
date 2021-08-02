@@ -9,10 +9,14 @@ import {
 	TextDocuments,
 	ProposedFeatures,
 	InitializeParams,
+	TextDocumentSyncKind,
 	DidChangeConfigurationNotification,
 	Hover,
 	TextDocumentPositionParams,
-} from 'vscode-languageserver';
+} from 'vscode-languageserver/node';
+import {
+	TextDocument
+} from 'vscode-languageserver-textdocument';
 
 import { Comment } from './Comment';
 import { patchAsarRequire } from './util/patch-asar-require';
@@ -25,7 +29,8 @@ let connection = createConnection(ProposedFeatures.all);
 
 // Create a simple text document manager. The text document manager
 // supports full document sync only
-let documents: TextDocuments = new TextDocuments();
+const documents: TextDocuments<TextDocument> = new TextDocuments(TextDocument);
+
 
 let hasConfigurationCapability: boolean = false;
 let hasWorkspaceFolderCapability: boolean = false;
@@ -41,16 +46,18 @@ connection.onInitialize((params: InitializeParams) => {
 	});
 	// Does the client support the `workspace/configuration` request?
 	// If not, we will fall back using global settings
-	hasConfigurationCapability =
-		capabilities.workspace && !!capabilities.workspace.configuration;
-	hasWorkspaceFolderCapability =
-		capabilities.workspace && !!capabilities.workspace.workspaceFolders;
+	hasConfigurationCapability = !!(
+		capabilities.workspace && !!capabilities.workspace.configuration
+	);
+	hasWorkspaceFolderCapability = !!(
+		capabilities.workspace && !!capabilities.workspace.workspaceFolders
+	);
 
 	return {
 		capabilities: {
 			hoverProvider: true,
 			definitionProvider: true,
-			textDocumentSync: documents.syncKind,
+			textDocumentSync: TextDocumentSyncKind.Incremental,
 		}
 	};
 });

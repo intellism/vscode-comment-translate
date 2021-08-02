@@ -12,13 +12,15 @@
     "baidu-translate-api-temp": "^0.4.3",
     "bing-translate-api": "^2.2.0",
     "humanize-string": "^2.1.0",
-    "onigasm": "^2.2.2",
+    "onigasm": "^2.2.5",
     "request": "^2.88.0",
-    "vscode-languageserver": "^4.1.3",
+    "vscode-languageserver": "^7.0.0",
+    "vscode-languageserver-textdocument":"^1.0.1",
     "vscode-textmate": "^4.3.0"
   },
   "license": "ISC",
   "devDependencies": {
     "@types/request": "^2.47.1"
   }
+ 
 }

@@ -14,7 +14,7 @@ import {
     TransportKind,
     TextDocumentPositionParams,
     Range
-} from 'vscode-languageclient';
+} from 'vscode-languageclient/node';
 import { selectTargetLanguage, showTargetLanguageStatusBarItem } from './configuration';
 
 let client: LanguageClient;
@@ -146,6 +146,7 @@ export async function activate(context: ExtensionContext) {
             return client.outputChannel.append(`No selection！\n`);
         }
         let targetLanguage = await selectTargetLanguage();
+        if(!targetLanguage) return;
         let translates = editor.selections
             .filter(selection => !selection.isEmpty)
             .map(selection => {

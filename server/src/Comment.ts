@@ -1,4 +1,4 @@
-import { TextDocumentPositionParams, Hover, TextDocuments, Connection, TextDocument,Emitter } from "vscode-languageserver";
+import { TextDocumentPositionParams, Hover, TextDocuments, Connection,Emitter } from "vscode-languageserver/node";
 import { BaseTranslate, ITranslateOptions } from "./translate/translate";
 import { GoogleTranslate } from "./translate/GoogleTranslate";
 import { BingTranslate } from "./translate/BingTranslate";
@@ -6,6 +6,10 @@ import * as humanizeString from 'humanize-string';
 import { CommentParse, ICommentOption, ICommentBlock } from "./syntax/CommentParse";
 import { TextMateService } from "./syntax/TextMateService";
 import { BaiduTranslate } from "./translate/BaiduTranslate";
+
+import {
+	TextDocument
+} from 'vscode-languageserver-textdocument';
 
 export interface ICommentTranslateSettings {
     multiLineMerge: boolean;
@@ -16,12 +20,12 @@ export interface ICommentTranslateSettings {
 
 export class Comment {
 
-    private _translator: BaseTranslate;
+    private _translator: BaseTranslate = new GoogleTranslate();
     private _textMateService: TextMateService;
     private _setting: ICommentTranslateSettings;
     private _commentParseCache: Map<string, CommentParse> = new Map();
     protected _onTranslate = new Emitter<string>();
-    constructor(extensions: ICommentOption, private _documents: TextDocuments, private _connection: Connection) {
+    constructor(extensions: ICommentOption, private _documents: TextDocuments<TextDocument>, private _connection: Connection) {
         this._setting = { multiLineMerge: false, targetLanguage: extensions.userLanguage,concise: false,source:'Google' };
         this._createTranslator();
         this._textMateService = new TextMateService(extensions.grammarExtensions, extensions.appRoot);
@@ -92,13 +96,13 @@ export class Comment {
         return parse;
     }
 
-    async getComment(textDocumentPosition: TextDocumentPositionParams): Promise<Hover> {
+    async getComment(textDocumentPosition: TextDocumentPositionParams): Promise<Hover|null> {
         let textDocument = this._documents.get(textDocumentPosition.textDocument.uri);
         if (!textDocument) return null;
         let parse = await this._getCommentParse(textDocument);
         //优先判断是hover坐标是否为选中区域。 优先翻译选择区域
-        let block = await this._getSelectionContainPosition(textDocumentPosition);
-        if (!block) {
+        let block:ICommentBlock|null = await this._getSelectionContainPosition(textDocumentPosition);
+        if (!block && parse) {
             block = await parse.computeText(textDocumentPosition.position, this._setting.concise);
         }
         if (block) {

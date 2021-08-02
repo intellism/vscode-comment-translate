@@ -82,8 +82,8 @@ export interface ITokenizeLineResult {
 }
 
 export interface IGrammar {
-    tokenizeLine(lineText: string, prevState: StackElement): ITokenizeLineResult;
-    tokenizeLine2(lineText: string, prevState: StackElement): ITokenizeLineResult2;
+    tokenizeLine(lineText: string, prevState: StackElement|null): ITokenizeLineResult;
+    tokenizeLine2(lineText: string, prevState: StackElement|null): ITokenizeLineResult2;
 }
 
 export interface StackElement {
@@ -131,7 +131,7 @@ export class TMScopeRegistry {
         this._scopeNameToLanguageRegistration = Object.create(null);
     }
 
-    public register(scopeName: string, grammarLocation: string, embeddedLanguages?: IEmbeddedLanguagesMap, tokenTypes?: TokenTypesContribution): void {
+    public register(scopeName: string, grammarLocation: string, embeddedLanguages: IEmbeddedLanguagesMap, tokenTypes?: TokenTypesContribution): void {
         if (this._scopeNameToLanguageRegistration[scopeName]) {
             const existingRegistration = this._scopeNameToLanguageRegistration[scopeName];
             if (!(existingRegistration.grammarLocation === grammarLocation)) {
@@ -151,7 +151,7 @@ export class TMScopeRegistry {
 
     public getGrammarLocation(scopeName: string): string {
         let data = this.getLanguageRegistration(scopeName);
-        return data ? data.grammarLocation : null;
+        return data ? data.grammarLocation : '';
     }
 
 }
@@ -247,7 +247,7 @@ async function loadOnigasmWASM(): Promise<ArrayBuffer> {
 export class TextMateService implements ITextMateService {
     public _serviceBrand: any;
 
-    private _grammarRegistry: Promise<[any, StackElement]>;
+    private _grammarRegistry: Promise<[any, StackElement]> | null;
     // private _modeService: IModeService;
     private _scopeRegistry: TMScopeRegistry;
     private _injections: { [scopeName: string]: string[]; };
@@ -291,7 +291,7 @@ export class TextMateService implements ITextMateService {
                     const location = this._scopeRegistry.getGrammarLocation(scopeName);
                     if (!location) {
                         console.log(`No grammar found for scope ${scopeName}`);
-                        return null;
+                        return Promise.resolve(null);
                     }
                     return new Promise<IRawGrammar>((c, e) => {
                         fs.readFile(location, { encoding: 'utf8' }, (error, content) => {
@@ -370,7 +370,7 @@ export class TextMateService implements ITextMateService {
     }
 
     private async _createGrammar(modeId: string): Promise<ICreateGrammarResult> {
-        let scopeName = this._languageToScope.get(modeId);
+        let scopeName = this._languageToScope.get(modeId) || '';
         let languageRegistration = this._scopeRegistry.getLanguageRegistration(scopeName);
         if (!languageRegistration) {
             // No TM grammar defined
@@ -387,7 +387,7 @@ export class TextMateService implements ITextMateService {
             }
         }
 
-        let languageId = this._languages.get(modeId);
+        let languageId = this._languages.get(modeId) || LanguageId.PlainText;
         let containsEmbeddedLanguages = (Object.keys(embeddedLanguages).length > 0);
         let _res = await this._getOrCreateGrammarRegistry();
         const [grammarRegistry, initialState] = _res;

@@ -20,7 +20,9 @@ export abstract class BaseTranslate {
         let key = `from[${from}]to[${to}]-${content}`;
         if (this._inRequest.has(key)) {
             let action = this._inRequest.get(key);
-            return await action;
+            if(action){
+                return  await action;
+            }
         }
         let action = this._translate(content, { from, to });
         this._inRequest.set(key, action);
