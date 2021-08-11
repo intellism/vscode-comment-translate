@@ -62,6 +62,7 @@
             },
             {
                 "command": "commentTranslate.replaceSelections",
+                "when": "editorHasSelection",
                 "key": "ctrl+shift+t"
             }
         ],

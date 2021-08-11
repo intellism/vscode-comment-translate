@@ -16,6 +16,7 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
    * block 注释多行合并。 
    * line注释，提前 标识符，支持非 // 行注释
 * 跳转到google translate服务器，markdown链接改为command,修复换行丢失
+* 快捷键添加when条件，减少用户影响
 
 ### Fixed
  * 请求错误后，5分钟禁止访问结果被错误cache
