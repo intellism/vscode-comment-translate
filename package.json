@@ -58,11 +58,13 @@
         "keybindings": [
             {
                 "command": "commentTranslate.select",
-                "key": "alt+shift+s"
+                "key": "alt+shift+s",
+                "when": "editorHasSelection"
             },
             {
                 "command": "commentTranslate.replaceSelections",
-                "key": "alt+shift+t"
+                "key": "alt+shift+t",
+                "when": "editorHasSelection"
             }
         ],
         "configuration": [
