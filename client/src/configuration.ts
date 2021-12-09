@@ -19,7 +19,7 @@ import { LANGS } from './lang';
 
 let languages = new Map(LANGS);
 
-let defualtLanguage: string;
+let defaultLanguage: string;
 export async function selectTargetLanguage(placeHolder: string = 'Select target language') {
 
     let items: QuickPickItem[] = LANGS.map(item => {
@@ -29,20 +29,20 @@ export async function selectTargetLanguage(placeHolder: string = 'Select target 
         };
     });
 
-    if (!defualtLanguage) {
-        defualtLanguage = await workspace.getConfiguration('commentTranslate').get<string>('targetLanguage');
+    if (!defaultLanguage) {
+        defaultLanguage = await workspace.getConfiguration('commentTranslate').get<string>('targetLanguage');
     }
-    let defaultTarget = languages.get(defualtLanguage);
+    let defaultTarget = languages.get(defaultLanguage);
     defaultTarget && items.unshift({
         label: defaultTarget,
-        description: defualtLanguage,
+        description: defaultLanguage,
         detail: 'Default select'
     });
     let res: QuickPickItem = await window.showQuickPick(items, {
         placeHolder
     });
     if (res) {
-        defualtLanguage = res.description;
+        defaultLanguage = res.description;
         return res.description;
     }
     return null;

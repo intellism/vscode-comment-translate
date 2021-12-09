@@ -13,7 +13,7 @@
             "outFiles": [
                 "${workspaceRoot}/client/out/**/*.js"
             ],
-            "preLaunchTask": "npm: watch:client"
+            "preLaunchTask": "${defaultBuildTask}"
         },
         {
             "type": "node",

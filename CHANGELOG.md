@@ -8,7 +8,10 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
     * 中文翻译到驼峰的变量命名
  * 翻译源添加
    * 添加google收费API配置
-
+   * DeepL、Baidu、Yandex等收费API
+ * hover框，添加场景命令。select、replace、config
+ * 优化翻译逻辑，支持正则忽略
+   * 内置场景注释忽略逻辑
 ### Changed
  * hover 展示显示对应的 languageId
  * 仅仅翻译有效文本，保留格式符号:``` // * # <!-- --> ```
@@ -17,6 +20,13 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
    * line注释，提前 标识符，支持非 // 行注释
 * 跳转到google translate服务器，markdown链接改为command,修复换行丢失
 * 快捷键添加when条件，减少用户影响
+* 配置调整
+   * 关闭翻译，切换翻译源快捷入口。 目标语言切换更一级
+   * 细化配置调整项目。默认关闭，变量名-字符串的翻译(引导-划词翻译)。
+* 优化：静默模式下，划词翻译，直接显示结果. (增加划词翻译快捷开关)
+* 重构
+   * hover逻辑切换到client
+   * 翻译源剥离、支持外部插件扩展翻译源
 
 ### Fixed
  * 请求错误后，5分钟禁止访问结果被错误cache
@@ -76,7 +86,7 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
  * 注释中包含markdown其他类型时，不可以连续翻译
 
 ### Removed
- * 文本翻译, mackdown plaintext翻译 - 已支持选中内容翻译，改需求取消
+ * 文本翻译, markdown plaintext翻译 - 已支持选中内容翻译，改需求取消
 
 ## [1.3.1] - 2019-4-14
 ### Add
@@ -122,4 +132,4 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
  * 支持英文多行合并翻译
 
 ### Fixed
- * window、linux 依赖vscode-text错误，切换到vsocde自带版本 
+ * window、linux 依赖vscode-text错误，切换到vscode自带版本 

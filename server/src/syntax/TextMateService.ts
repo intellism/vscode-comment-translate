@@ -157,7 +157,6 @@ export class TMScopeRegistry {
 }
 
 export class TMLanguageRegistration {
-    _topLevelScopeNameDataBrand: void;
 
     readonly scopeName: string;
     readonly grammarLocation: string;

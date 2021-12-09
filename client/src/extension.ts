@@ -5,7 +5,7 @@
 'use strict';
 
 import * as path from 'path';
-import { workspace, ExtensionContext, extensions, env, commands, window, Selection, Position, Hover } from 'vscode';
+import { workspace, ExtensionContext, extensions, env, commands, window, Selection, Position, Hover, TextEditorSelectionChangeKind, languages, MarkdownString, Range } from 'vscode';
 
 import {
     LanguageClient,
@@ -13,11 +13,14 @@ import {
     ServerOptions,
     TransportKind,
     TextDocumentPositionParams,
-    Range
+    Range as RangeL
 } from 'vscode-languageclient/node';
+import { registerCommands } from './command/command';
 import { selectTargetLanguage, showTargetLanguageStatusBarItem } from './configuration';
+import { registerHover } from './languageFeature/hover';
 
-let client: LanguageClient;
+export let client: LanguageClient;
+let canLanguages: string[] = [];
 
 export interface TokenTypesContribution {
     [scopeName: string]: string;
@@ -68,7 +71,7 @@ export async function activate(context: ExtensionContext) {
     let extAll = extensions.all;
     let languageId = 2;
     let grammarExtensions: IGrammarExtensions[] = [];
-    let canLanguages: string[] = [];
+    
     extAll.forEach(extension => {
         if (!(extension.packageJSON.contributes && extension.packageJSON.contributes.grammars)) return;
         let languages: ITMLanguageExtensionPoint[] = [];
@@ -86,6 +89,7 @@ export async function activate(context: ExtensionContext) {
         canLanguages = canLanguages.concat(extension.packageJSON.contributes.grammars.map((g: any) => g.language));
     });
     let BlackLanguage: string[] = ['log', 'Log'];
+    canLanguages = canLanguages.filter(v => v).filter((v) => BlackLanguage.indexOf(v) < 0);
     let userLanguage = env.language;
 
     let langMaps:Map<string,string> = new Map([
@@ -104,7 +108,7 @@ export async function activate(context: ExtensionContext) {
         initializationOptions: {
             grammarExtensions, appRoot: env.appRoot, userLanguage
         },
-        documentSelector: canLanguages.filter(v => v).filter((v) => BlackLanguage.indexOf(v) < 0),
+        documentSelector: canLanguages,
         synchronize: {
             // Notify the server about file changes to '.clientrc files contained in the workspace
             // fileEvents: workspace.createFileSystemWatcher('**/.clientrc')
@@ -122,70 +126,9 @@ export async function activate(context: ExtensionContext) {
     // Start the client. This will also launch the server
     client.start();
 
-    context.subscriptions.push(commands.registerCommand('commentTranslate.select', async () => {
-        let editor = window.activeTextEditor;
-        if (editor) {
-            let hover = await client.sendRequest<Hover>('lastHover', { uri: editor.document.uri.toString() });
-            if (!hover) return;
-            editor.revealRange(hover.range);
-            editor.selections = [new Selection(new Position(hover.range.start.line, hover.range.start.character), new Position(hover.range.end.line, hover.range.end.character)), ...editor.selections];
-        }
-    }));
+    registerCommands(context);
+    registerHover(canLanguages);
 
-
-    async function translateSelection(text: string, selection: Selection, targetLanguage:string) {
-        let translation = await client.sendRequest<string>('translate', {text,targetLanguage});
-        return { translation, selection };
-    }
-
-    //翻译选择区域并替换
-    context.subscriptions.push(commands.registerCommand('commentTranslate.replaceSelections', async () => {
-        let editor = window.activeTextEditor;
-        if (!(editor && editor.document &&
-            editor.selections.some(selection => !selection.isEmpty))) {
-            return client.outputChannel.append(`No selection！\n`);
-        }
-        let targetLanguage = await selectTargetLanguage();
-        if(!targetLanguage) return;
-        let translates = editor.selections
-            .filter(selection => !selection.isEmpty)
-            .map(selection => {
-                let text = editor.document.getText(selection);
-                return translateSelection(text, selection, targetLanguage);
-            });
-
-        //添加装饰，提醒用户正在翻译中。 部分内容会原样返回，避免用户等待
-        let decoration = window.createTextEditorDecorationType({
-            color: '#FF2D00',
-            backgroundColor: "transparent"
-        });
-        editor.setDecorations(decoration, editor.selections);
-        let beginTime = Date.now();
-        try {
-            let results = await Promise.all(translates);
-            //最少提示1秒钟
-            setTimeout(() => {
-                decoration.dispose();
-            }, 1000 - (Date.now() - beginTime));
-            editor.edit(builder => {
-                results.forEach(item => {
-                    item.translation && builder.replace(item.selection, item.translation);
-                });
-            });
-        } catch (e) {
-            decoration.dispose();
-            client.outputChannel.append(e);
-        }
-    }));
-
-    // 注册更改目标语言命令
-    context.subscriptions.push(commands.registerCommand('commentTranslate.changeTargetLanguage', async function () {
-        let configuration = workspace.getConfiguration('commentTranslate');
-        let target = await selectTargetLanguage();
-        if (target) {
-            await configuration.update('targetLanguage', target);
-        }
-    }));
     // 注册状态图标
     let targetBar = await showTargetLanguageStatusBarItem(userLanguage);
     context.subscriptions.push(targetBar);
@@ -194,7 +137,7 @@ export async function activate(context: ExtensionContext) {
     await client.onReady();
     interface ICommentBlock {
         humanize?: boolean;
-        range: Range;
+        range: RangeL;
         comment: string;
     }
     //提供选择检查服务
@@ -218,6 +161,23 @@ export async function activate(context: ExtensionContext) {
 
         return null;
     });
+    let lastShowHover: number;
+    let showHoverTimer:NodeJS.Timeout;
+    context.subscriptions.push(window.onDidChangeTextEditorSelection((e)=>{
+        // 只支持划词翻译
+        if(e.kind !== TextEditorSelectionChangeKind.Mouse) return;
+        if(e.selections.filter(selection => !selection.isEmpty).length === 0) return;
+        let laterTime = 300;
+        if(lastShowHover) {
+            let gap = (new Date()).getTime() - lastShowHover;
+            laterTime = Math.max(600-gap, 300);
+        }
+        clearTimeout(showHoverTimer);
+        showHoverTimer = setTimeout(()=>{
+            commands.executeCommand('editor.action.showHover');
+            lastShowHover = (new Date()).getTime();
+        },laterTime);
+    }));
 }
 
 export function deactivate(): Thenable<void> {

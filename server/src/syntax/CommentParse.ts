@@ -17,9 +17,62 @@ export interface ICommentBlock {
     humanize?: boolean;
     range: Range;
     comment: string;
+    childBlock?: ICommentBlock[];
 }
 
 export type checkScopeFunction = (scopes: string[]) => boolean;
+
+
+function isCommentTranslate(scopes: string[]) {
+    //评论的token标记
+    let arr = [
+        'punctuation.definition.comment',
+        'comment.block',
+        'comment.line'
+    ];
+
+    return scopes.some(scope => {
+        return arr.some(item => {
+            return scope.indexOf(item) === 0;
+        });
+    })
+}
+
+function skipCommentTranslate(scope: string) {
+    return scope.indexOf('punctuation.whitespace.comment') === 0;
+}
+
+function ignoreCommentTranslate(scope:string) {
+    return scope.indexOf('punctuation.definition.comment') === 0;
+}
+
+function isStringTranslate(scopes: string[]) {
+    let scope = scopes[0];
+    //字符串和转义字符的token标记
+    let arr = [
+        'string.quoted',
+        'constant.character.escape'
+    ];
+
+    return arr.some(item => {
+        return scope.indexOf(item) === 0;
+    });
+}
+
+function isBaseTranslate(scopes: string[]) {
+    let scope = scopes[0];
+    let arr = [
+        'entity',
+        'variable',
+        'support',
+        // Object表达式支持
+        'meta.object-literal.key'
+    ];
+
+    return arr.some(item => {
+        return scope.indexOf(item) === 0;
+    });
+}
 
 export class CommentParse {
     private _model: string[];
@@ -85,24 +138,24 @@ export class CommentParse {
         }
     }
 
-    public multiScope({ positionLine, dataTokens1, token1Index }: { dataTokens1: IToken[], token1Index: number, positionLine: number }, checkContentHandle: checkScopeFunction, maxLine: number, minLine: number, skipContentHandle?: (scope: string) => boolean) {
+    public multiScope({ line, tokens, index }: { tokens: IToken[], index: number, line: number }, checkContentHandle: checkScopeFunction, maxLine: number, minLine: number, skipContentHandle?: (scope: string) => boolean) {
 
-        let { tokenStartIndex, tokenEndIndex, tokenText } = this._parseScopesText(dataTokens1, positionLine, token1Index);
+        let { tokenStartIndex, tokenEndIndex, tokenText } = this._parseScopesText(tokens, line, index);
 
-        let startLine = positionLine;
-        let endLine = positionLine;
+        let startLine = line;
+        let endLine = line;
         //合并当前坐标之前的相连同类节点 before
-        for (let line = positionLine, tokens1 = dataTokens1, tokenIndex = token1Index; line >= minLine;) {
+        for (let currentLine = line, tokens1 = tokens, tokenIndex = index; currentLine >= minLine;) {
             let index;
             for (index = tokenIndex - 1; index >= 0; index -= 1) {
-                let res = this._parseScopesText(tokens1, line, index);
+                let res = this._parseScopesText(tokens1, currentLine, index);
                 if (skipContentHandle && skipContentHandle(res.scopes[0])) {
                     continue;
                 }
                 if (checkContentHandle(res.scopes)) {
                     tokenText = res.tokenText + tokenText;
                     tokenStartIndex = res.tokenStartIndex;
-                    startLine = line;
+                    startLine = currentLine;
                 } else {
                     break;
                 }
@@ -110,26 +163,26 @@ export class CommentParse {
             if (index >= 0) {
                 break
             }
-            line -= 1;
-            if (line >= minLine) {
-                let data1 = this._getTokensAtLine(line);
+            currentLine -= 1;
+            if (currentLine >= minLine) {
+                let data1 = this._getTokensAtLine(currentLine);
                 tokens1 = data1.tokens1;
                 tokenIndex = tokens1.length;
                 tokenText = '\n' + tokenText;
             }
         }
         //合并当前坐标之后的相连同类节点 after
-        for (let line = positionLine, tokens1 = dataTokens1, tokenIndex = token1Index; line <= maxLine;) {
+        for (let currentLine = line, tokens1 = tokens, tokenIndex = index; currentLine <= maxLine;) {
             let index;
             for (index = tokenIndex + 1; index < tokens1.length; index += 1) {
-                let res = this._parseScopesText(tokens1, line, index);
+                let res = this._parseScopesText(tokens1, currentLine, index);
                 if (skipContentHandle && skipContentHandle(res.scopes[0])) {
                     continue;
                 }
                 if (checkContentHandle(res.scopes)) {
                     tokenText = tokenText + res.tokenText;
                     tokenEndIndex = res.tokenEndIndex;
-                    endLine = line;
+                    endLine = currentLine;
                 } else {
                     break;
                 }
@@ -137,9 +190,9 @@ export class CommentParse {
             if (index < tokens1.length) {
                 break
             }
-            line += 1;
-            if (line <= maxLine) {
-                let data1 = this._getTokensAtLine(line);
+            currentLine += 1;
+            if (currentLine <= maxLine) {
+                let data1 = this._getTokensAtLine(currentLine);
                 tokens1 = data1.tokens1;
                 tokenIndex = -1;
                 tokenText = tokenText + '\n';
@@ -165,54 +218,78 @@ export class CommentParse {
 
     }
 
+    
+    // 定位 position 起始位置标记
+    private _posOffsetTokens(position:Position) {
+        let {tokens1} = this._getTokensAtLine(position.line);
+        let token1Index = 0;
+        for (let i = tokens1.length - 1; i >= 0; i--) {
+            let t = tokens1[i];
+            if (position.character - 1 >= t.startIndex) {
+                token1Index = i;
+                break;
+            }
+        }
+        return token1Index;
+    }
+
+    private _posScopesParse(position: Position) {
+        let index = this._posOffsetTokens(position);
+        let {tokens1:tokens} = this._getTokensAtLine(position.line);
+        let {startIndex, endIndex, scopes} = tokens[index];
+        let text = this._model[position.line].substring(startIndex, endIndex);
+        scopes = scopes.reduce<string[]>((s,item)=>[item,...s],[]);
+
+        return {
+            startIndex,
+            endIndex,
+            text,
+            scopes
+        }
+    }
+
+    public commentScopeParse(position: Position, checkHandle:checkScopeFunction, skipHandle:checkScopeFunction, ignore:checkScopeFunction) {
+        let {tokens1} = this._getTokensAtLine(position.line);
+        let index = this._posOffsetTokens(position);
+
+        return {
+            text: '',
+            range:'',
+            tokens:[
+                [
+                    {
+                        text:'//',
+                        start:0,
+                        end:1,
+                        skip:true
+                    },
+                    {
+                        text:'xxx',
+                        start:2,
+                        end:5,
+                        skip:false
+                    }
+                ],
+                [
+                    {
+                        text:'//',
+                        start:0,
+                        end:1,
+                        skip:true
+                    },
+                    {
+                        text:'xxx',
+                        start:2,
+                        end:5,
+                        skip:false
+                    }
+                ]
+            ]
+        }
+    }
+
+
     public computeText(position: Position, fullToken = false): ICommentBlock | null {
-        function isCommentTranslate(scopes: string[]) {
-            //评论的token标记
-            let arr = [
-                'punctuation.definition.comment',
-                'comment.block',
-                'comment.line'
-            ];
-
-            return scopes.some(scope => {
-                return arr.some(item => {
-                    return scope.indexOf(item) === 0;
-                });
-            })
-        }
-
-        function skipCommentTranslate(scope: string) {
-            return scope.indexOf('punctuation.whitespace.comment') === 0;
-        }
-
-        function isStringTranslate(scopes: string[]) {
-            let scope = scopes[0];
-            //字符串和转义字符的token标记
-            let arr = [
-                'string.quoted',
-                'constant.character.escape'
-            ];
-
-            return arr.some(item => {
-                return scope.indexOf(item) === 0;
-            });
-        }
-
-        function isBaseTranslate(scopes: string[]) {
-            let scope = scopes[0];
-            let arr = [
-                'entity',
-                'variable',
-                'support',
-                // Object表达式支持
-                'meta.object-literal.key'
-            ];
-
-            return arr.some(item => {
-                return scope.indexOf(item) === 0;
-            });
-        }
-
         let data = this._getTokensAtLine(position.line);
         let token1Index = 0;
         //定位起始位置标记
@@ -228,18 +305,18 @@ export class CommentParse {
         //字符串中包含 \n 等， 需要在当前行，合并连续token
         if (scopes && isStringTranslate(scopes)) {
             return this.multiScope({
-                positionLine: position.line,
-                dataTokens1: data.tokens1,
-                token1Index
+                line: position.line,
+                tokens: data.tokens1,
+                index:token1Index
             }, isStringTranslate, position.line, position.line);
         }
 
         //评论会跨越多行，需要在多行中合并连续评论token
         if (scopes && isCommentTranslate(scopes)) {
             return this.multiScope({
-                positionLine: position.line,
-                dataTokens1: data.tokens1,
-                token1Index
+                line: position.line,
+                tokens: data.tokens1,
+                index:token1Index
             }, isCommentTranslate, this._model.length - 1, 0, skipCommentTranslate);
         }
 

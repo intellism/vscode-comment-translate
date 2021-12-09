@@ -12,5 +12,9 @@
         "**/server"
     ],
     "npm.enableScriptExplorer": true,
-    "commentTranslate.targetLanguage": "zh-CN"
+    "commentTranslate.targetLanguage": "zh-CN",
+    "cSpell.words": [
+        "Asar",
+        "Kinyarwanda"
+    ]
 }

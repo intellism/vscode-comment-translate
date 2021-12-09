@@ -21,6 +21,8 @@ import {
 import { Comment } from './Comment';
 import { patchAsarRequire } from './util/patch-asar-require';
 import { ShortLive } from './util/short-live';
+import humanizeString = require('humanize-string');
+import { ICommentBlock } from './syntax/CommentParse';
 
 // Create a connection for the server. The connection uses Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
@@ -39,7 +41,7 @@ let concise = false;
 
 connection.onInitialize((params: InitializeParams) => {
 	let capabilities = params.capabilities;
-	comment = new Comment(params.initializationOptions, documents, connection);
+	comment = new Comment(params.initializationOptions, documents);
 	patchAsarRequire(params.initializationOptions.appRoot);
 	comment.onTranslate((string) => {
 		connection.console.log(string);
@@ -55,7 +57,6 @@ connection.onInitialize((params: InitializeParams) => {
 
 	return {
 		capabilities: {
-			hoverProvider: true,
 			definitionProvider: true,
 			textDocumentSync: TextDocumentSyncKind.Incremental,
 		}
@@ -100,13 +101,6 @@ let shortLive = new ShortLive((item: TextDocumentPositionParams, data: TextDocum
 // The content of a text document has changed. This event is emitted
 // when the text document first opened or when its content has changed.
 let last: Map<string, Hover> = new Map();
-connection.onHover(async (textDocumentPosition) => {
-	if (!comment) return null;
-	if (concise && !shortLive.isLive(textDocumentPosition)) return null;
-	let hover = await comment.getComment(textDocumentPosition);
-	hover && last.set(textDocumentPosition.textDocument.uri, hover);
-	return hover;
-});
 
 connection.onDefinition(async (definitionParams) => {
 	shortLive.add(definitionParams);
@@ -121,6 +115,38 @@ connection.onRequest('lastHover', ({ uri }) => {
 connection.onRequest('translate', ({text,targetLanguage}:{text:string,targetLanguage:string}) => {
 	if (!comment) return null;
 	return comment.translate(text,{to:targetLanguage});
+});
+
+// 迁移hover到手动触发
+connection.onRequest('getHover', async (textDocumentPosition:TextDocumentPositionParams) => {
+	if (!comment) return null;
+	if (concise && !shortLive.isLive(textDocumentPosition)) return null;
+	
+	let hover;
+
+	let block:ICommentBlock|null = await connection.sendRequest<ICommentBlock>('selectionContains', textDocumentPosition);
+	if(!block) {
+		block = await comment.getComment(textDocumentPosition);
+	}
+	if (block) {
+		if (block.humanize) {
+			//转换为可以自然语言分割
+			let humanize = humanizeString(block.comment);
+			let targetLanguageComment = await comment.translate(humanize);
+			hover = {
+				contents: [`[Comment Translate $(globe)] ${comment.link(humanize)}`, '\r \n' + humanize + ' => ' + targetLanguageComment], range: block.range
+			};
+		} else {
+			let targetLanguageComment = await comment.translate(block.comment);
+			hover = {
+				contents: [`[Comment Translate $(globe)] ${comment.link(block.comment)}`, "\r```typescript \n" + targetLanguageComment + " \n```"],
+				range: block.range
+			};
+		}
+	}
+
+	hover && last.set(textDocumentPosition.textDocument.uri, hover);
+	return hover;
 });
 
 /*

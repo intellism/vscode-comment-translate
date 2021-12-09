@@ -1,8 +1,7 @@
-import { TextDocumentPositionParams, Hover, TextDocuments, Connection,Emitter } from "vscode-languageserver/node";
+import { TextDocumentPositionParams, TextDocuments, Connection,Emitter } from "vscode-languageserver/node";
 import { BaseTranslate, ITranslateOptions } from "./translate/translate";
 import { GoogleTranslate } from "./translate/GoogleTranslate";
 import { BingTranslate } from "./translate/BingTranslate";
-import * as humanizeString from 'humanize-string';
 import { CommentParse, ICommentOption, ICommentBlock } from "./syntax/CommentParse";
 import { TextMateService } from "./syntax/TextMateService";
 import { BaiduTranslate } from "./translate/BaiduTranslate";
@@ -25,7 +24,7 @@ export class Comment {
     private _setting: ICommentTranslateSettings;
     private _commentParseCache: Map<string, CommentParse> = new Map();
     protected _onTranslate = new Emitter<string>();
-    constructor(extensions: ICommentOption, private _documents: TextDocuments<TextDocument>, private _connection: Connection) {
+    constructor(extensions: ICommentOption, private _documents: TextDocuments<TextDocument>) {
         this._setting = { multiLineMerge: false, targetLanguage: extensions.userLanguage,concise: false,source:'Google' };
         this._createTranslator();
         this._textMateService = new TextMateService(extensions.grammarExtensions, extensions.appRoot);
@@ -74,11 +73,6 @@ export class Comment {
         return this._translator.link(text, { to: this._setting.targetLanguage });
     }
 
-    private async _getSelectionContainPosition(textDocumentPosition: TextDocumentPositionParams): Promise<ICommentBlock> {
-        let block = await this._connection.sendRequest<ICommentBlock>('selectionContains', textDocumentPosition);
-        return block;
-    }
-
     _removeCommentParse(textDocument: TextDocument) {
         let key = `${textDocument.languageId}-${textDocument.uri}`;
         this._commentParseCache.delete(key);
@@ -96,32 +90,16 @@ export class Comment {
         return parse;
     }
 
-    async getComment(textDocumentPosition: TextDocumentPositionParams): Promise<Hover|null> {
+    async getComment(textDocumentPosition: TextDocumentPositionParams): Promise<ICommentBlock|null> {
         let textDocument = this._documents.get(textDocumentPosition.textDocument.uri);
         if (!textDocument) return null;
         let parse = await this._getCommentParse(textDocument);
         //优先判断是hover坐标是否为选中区域。 优先翻译选择区域
-        let block:ICommentBlock|null = await this._getSelectionContainPosition(textDocumentPosition);
-        if (!block && parse) {
+        let block:ICommentBlock|null = null;
+        if (parse) {
             block = await parse.computeText(textDocumentPosition.position, this._setting.concise);
         }
-        if (block) {
-            if (block.humanize) {
-                //转换为可以自然语言分割
-                let humanize = humanizeString(block.comment);
-                let targetLanguageComment = await this.translate(humanize);
-                return {
-                    contents: [`[Comment Translate] ${this.link(humanize)}`, '\r \n' + humanize + ' => ' + targetLanguageComment], range: block.range
-                };
-            } else {
-                let targetLanguageComment = await this.translate(block.comment);
-                return {
-                    contents: [`[Comment Translate] ${this.link(block.comment)}`, "\r```typescript \n" + targetLanguageComment + " \n```"],
-                    range: block.range
-                };
-            }
 
-        }
-        return null;
+        return block;
     }
 }
