@@ -1,11 +1,17 @@
-import { Emitter } from 'vscode-languageserver';
+import { Emitter, Event } from 'vscode-languageserver';
 
 export interface ITranslateOptions {
     from?: string;
     to?: string;
 }
 
-export abstract class BaseTranslate {
+export interface ITranslate {
+    onTranslate: Event<string>;
+    translate(content:string, options: ITranslateOptions):Promise<String>;
+    link(content:string, options: ITranslateOptions):string;
+}
+
+export abstract class BaseTranslate implements ITranslate {
     protected _onTranslate = new Emitter<string>();
     private _inRequest: Map<string, Promise<string>> = new Map();
     constructor() {

@@ -23,11 +23,11 @@ import { patchAsarRequire } from './util/patch-asar-require';
 import { ShortLive } from './util/short-live';
 import humanizeString = require('humanize-string');
 import { ICommentBlock } from './syntax/CommentParse';
+import { TranslateCreator } from './translate/Translator';
 
 // Create a connection for the server. The connection uses Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
 let connection = createConnection(ProposedFeatures.all);
-
 
 // Create a simple text document manager. The text document manager
 // supports full document sync only
@@ -37,13 +37,27 @@ const documents: TextDocuments<TextDocument> = new TextDocuments(TextDocument);
 let hasConfigurationCapability: boolean = false;
 let hasWorkspaceFolderCapability: boolean = false;
 let comment: Comment;
-let concise = false;
+let translator: TranslateCreator;
+export interface ICommentTranslateSettings {
+    multiLineMerge?: boolean;
+    concise?: boolean;
+    targetLanguage?: string;
+    source:string;
+}
+
+let config: ICommentTranslateSettings = {
+	multiLineMerge: false,concise: false,source:'Google'
+};
 
 connection.onInitialize((params: InitializeParams) => {
 	let capabilities = params.capabilities;
+
+	config.targetLanguage = params.initializationOptions.userLanguage;
 	comment = new Comment(params.initializationOptions, documents);
+	translator = new TranslateCreator();
+
 	patchAsarRequire(params.initializationOptions.appRoot);
-	comment.onTranslate((string) => {
+	translator.onTranslate((string) => {
 		connection.console.log(string);
 	});
 	// Does the client support the `workspace/configuration` request?
@@ -63,6 +77,15 @@ connection.onInitialize((params: InitializeParams) => {
 	};
 });
 
+export function getConfig() {
+	return config;
+}
+
+async function changeConfiguration() {
+	let setting = await connection.workspace.getConfiguration('commentTranslate');
+	config = setting;
+}
+
 connection.onInitialized(async () => {
 	if (hasConfigurationCapability) {
 		// Register for all configuration changes.
@@ -77,16 +100,11 @@ connection.onInitialized(async () => {
 		});
 	}
 
-	let setting = await connection.workspace.getConfiguration('commentTranslate');
-	concise = setting.concise;
-	comment.setSetting(setting);
+	await changeConfiguration();
 });
 // The example settings
-connection.onDidChangeConfiguration(async () => {
-	let setting = await connection.workspace.getConfiguration('commentTranslate');
-	concise = setting.concise;
-	comment.setSetting(setting);
-});
+connection.onDidChangeConfiguration(changeConfiguration);
+
 // Only keep settings for open documents
 // documents.onDidClose(e => {
 // 	documentSettings.delete(e.document.uri);
@@ -113,12 +131,15 @@ connection.onRequest('lastHover', ({ uri }) => {
 });
 
 connection.onRequest('translate', ({text,targetLanguage}:{text:string,targetLanguage:string}) => {
-	if (!comment) return null;
-	return comment.translate(text,{to:targetLanguage});
+	if (!translator) return null;
+	return translator.translate(text,{to:targetLanguage});
 });
 
 // 迁移hover到手动触发
 connection.onRequest('getHover', async (textDocumentPosition:TextDocumentPositionParams) => {
+	
+	let {concise} = getConfig();
+
 	if (!comment) return null;
 	if (concise && !shortLive.isLive(textDocumentPosition)) return null;
 	
@@ -132,14 +153,14 @@ connection.onRequest('getHover', async (textDocumentPosition:TextDocumentPositio
 		if (block.humanize) {
 			//转换为可以自然语言分割
 			let humanize = humanizeString(block.comment);
-			let targetLanguageComment = await comment.translate(humanize);
+			let targetLanguageComment = await translator.translate(humanize);
 			hover = {
-				contents: [`[Comment Translate $(globe)] ${comment.link(humanize)}`, '\r \n' + humanize + ' => ' + targetLanguageComment], range: block.range
+				contents: [`[Comment Translate $(globe)] ${translator.link(humanize)}`, '\r \n' + humanize + ' => ' + targetLanguageComment], range: block.range
 			};
 		} else {
-			let targetLanguageComment = await comment.translate(block.comment);
+			let targetLanguageComment = await translator.translate(block.comment);
 			hover = {
-				contents: [`[Comment Translate $(globe)] ${comment.link(block.comment)}`, "\r```typescript \n" + targetLanguageComment + " \n```"],
+				contents: [`[Comment Translate $(globe)] ${translator.link(block.comment)}`, "\r```typescript \n" + targetLanguageComment + " \n```"],
 				range: block.range
 			};
 		}
