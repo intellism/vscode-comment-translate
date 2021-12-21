@@ -7,5 +7,8 @@
     "commentTranslate.command.replaceSelections": "翻译并替换选区",
     "commentTranslate.configuration.targetLanguage": "翻译成目标语言",
     "commentTranslate.configuration.source": "翻译服务源",
+    "commentTranslate.configuration.openHover": "Open hover translation",
+    "commentTranslate.configuration.stringHover": "Hover translation string",
+    "commentTranslate.configuration.variableHover": "Hover translation variable",
     "commentTranslate.configuration.MultilineMerge": "多行注释合并"
 }

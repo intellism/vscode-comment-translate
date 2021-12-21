@@ -9,3 +9,7 @@ export async function changeTargetLanguage () {
         await configuration.update('targetLanguage', target);
     }
 }
+
+export async function changeTranslateSource() {
+    
+}

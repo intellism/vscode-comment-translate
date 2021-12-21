@@ -88,7 +88,7 @@ export async function activate(context: ExtensionContext) {
         });
         canLanguages = canLanguages.concat(extension.packageJSON.contributes.grammars.map((g: any) => g.language));
     });
-    let BlackLanguage: string[] = ['log', 'Log'];
+    let BlackLanguage: string[] = ['log', 'Log','code-runner-output'];
     canLanguages = canLanguages.filter(v => v).filter((v) => BlackLanguage.indexOf(v) < 0);
     let userLanguage = env.language;
 

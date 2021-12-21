@@ -302,10 +302,25 @@
                         "default": false,
                         "description": "%commentTranslate.configuration.MultilineMerge%"
                     },
-                    "commentTranslate.concise": {
+                    "commentTranslate.hover.concise": {
                         "type": "boolean",
                         "default": false,
                         "description": "%commentTranslate.configuration.concise%"
+                    },
+                    "commentTranslate.hover.variable": {
+                        "type": "boolean",
+                        "default": false,
+                        "description": "%commentTranslate.configuration.variableHover%"
+                    },
+                    "commentTranslate.hover.string": {
+                        "type": "boolean",
+                        "default": false,
+                        "description": "%commentTranslate.configuration.stringHover%"
+                    },
+                    "commentTranslate.hover.open": {
+                        "type": "boolean",
+                        "default": true,
+                        "description": "%commentTranslate.configuration.openHover%"
                     },
                     "commentTranslate.source": {
                         "type": "string",

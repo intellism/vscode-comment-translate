@@ -1,10 +1,35 @@
-import { Selection, window } from "vscode";
+import { Selection, window, Range, Position } from "vscode";
 import { selectTargetLanguage } from "../configuration";
 import { client } from "../extension";
-
-async function translateSelection(text: string, selection: Selection, targetLanguage:string) {
-    let translation = await client.sendRequest<string>('translate', {text,targetLanguage});
+async function translateSelection(text: string, selection: Selection, targetLanguage: string) {
+    let translation = await client.sendRequest<string>('translate', { text, targetLanguage });
     return { translation, selection };
+}
+
+export async function replaceRange({ uri, text, range }: { uri: string, text: string, range: Range }) {
+    let editor = window.activeTextEditor;
+    if (!(editor && editor.document && editor.document.uri.toString() === uri)) {
+        return client.outputChannel.append(`Not active editor`);
+    }
+
+    let decoration = window.createTextEditorDecorationType({
+        color: '#FF2D00',
+        backgroundColor: "transparent"
+    });
+    editor.setDecorations(decoration, [range]);
+    setTimeout(() => {
+        decoration.dispose();
+    }, 500);
+    try {
+        editor.revealRange(range);
+        editor.edit(builder => {
+            text && builder.replace(new Selection(new Position(range.start.line, range.start.character), new Position(range.end.line, range.end.character)), text);
+        });
+    } catch (e) {
+        decoration.dispose();
+        client.outputChannel.append(e);
+    }
+
 }
 
 //翻译选择区域并替换
@@ -15,7 +40,7 @@ export async function replaceSelections() {
         return client.outputChannel.append(`No selection！\n`);
     }
     let targetLanguage = await selectTargetLanguage();
-    if(!targetLanguage) return;
+    if (!targetLanguage) return;
     let translates = editor.selections
         .filter(selection => !selection.isEmpty)
         .map(selection => {

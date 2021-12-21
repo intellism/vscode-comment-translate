@@ -9,12 +9,9 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
  * 翻译源添加
    * 添加google收费API配置
    * DeepL、Baidu、Yandex等收费API
- * hover框，添加场景命令。select、replace、config
  * 优化翻译逻辑，支持正则忽略
    * 内置场景注释忽略逻辑
 ### Changed
- * hover 展示显示对应的 languageId
- * 仅仅翻译有效文本，保留格式符号:``` // * # <!-- --> ```
 * 合并注释更合理支持
    * block 注释多行合并。 
    * line注释，提前 标识符，支持非 // 行注释
@@ -22,14 +19,23 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 * 快捷键添加when条件，减少用户影响
 * 配置调整
    * 关闭翻译，切换翻译源快捷入口。 目标语言切换更一级
-   * 细化配置调整项目。默认关闭，变量名-字符串的翻译(引导-划词翻译)。
-* 优化：静默模式下，划词翻译，直接显示结果. (增加划词翻译快捷开关)
 * 重构
-   * hover逻辑切换到client
    * 翻译源剥离、支持外部插件扩展翻译源
 
 ### Fixed
  * 请求错误后，5分钟禁止访问结果被错误cache
+
+## [2.0.0] 2022-1-1
+### Added
+ * hover框，添加场景命令。select、replace、config
+ * hover 展示显示对应的 languageId
+### Changed
+* 仅仅翻译有效文本，保留格式符号:``` // * # <!-- --> ```
+* 配置调整
+   * 细化配置调整项目。默认关闭，变量名-字符串的翻译(引导-划词翻译)。
+* 优化：静默模式下，划词翻译，直接显示结果. (增加划词翻译快捷开关)
+* 重构
+   * hover逻辑切换到client
 
 ## [1.5.0] 2021-8-2
 ### Added

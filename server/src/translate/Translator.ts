@@ -6,18 +6,20 @@ import { Emitter } from "vscode-languageserver";
 import { getConfig } from "../server";
 import { ITranslate, ITranslateOptions } from "./translate";
 
-export class TranslateCreator {
+export class Translator implements ITranslate {
 
     private _translator: ITranslate;
     protected _onTranslate = new Emitter<string>();
     private _registry: Map<string, new () => ITranslate> = new Map();
     private _source: string = '';
-
     constructor() {
         this._registry.set('Bing', BingTranslate);
         this._registry.set('Baidu', BaiduTranslate);
         this._registry.set('Google', GoogleTranslate);
         this._translator = this._createTranslator() || new GoogleTranslate();
+        // this.onTranslate((string) => {
+        //     connection.console.log(string);
+        // });
     }
 
     get translator() {

@@ -1,10 +1,23 @@
 import { TextDocument, Position, Range } from "vscode-languageserver";
 import { IGrammar, StackElement, IToken, IGrammarExtensions } from "./TextMateService";
 import { isUpperCase, hasEndMark, isLowerCase } from "../util/string";
+import { getConfig } from "../server";
 export interface ITokenState {
     startState: StackElement | null;
     tokens1: IToken[];
     endState: StackElement | null;
+}
+
+interface IScopeLen{
+    scopes:string[];
+    len:number;
+}
+
+interface ICommentToken {
+    ignoreStart?:number;
+    ignoreEnd?:number;
+    text:string;
+    scope:IScopeLen[];
 }
 
 export interface ICommentOption {
@@ -17,7 +30,7 @@ export interface ICommentBlock {
     humanize?: boolean;
     range: Range;
     comment: string;
-    childBlock?: ICommentBlock[];
+    tokens?: ICommentToken[];
 }
 
 export type checkScopeFunction = (scopes: string[]) => boolean;
@@ -42,8 +55,8 @@ function skipCommentTranslate(scope: string) {
     return scope.indexOf('punctuation.whitespace.comment') === 0;
 }
 
-function ignoreCommentTranslate(scope:string) {
-    return scope.indexOf('punctuation.definition.comment') === 0;
+function ignoreCommentTranslate(scopes:string[]) {
+    return scopes[0].indexOf('punctuation.definition.comment') === 0;
 }
 
 function isStringTranslate(scopes: string[]) {
@@ -217,27 +230,25 @@ export class CommentParse {
         }
 
     }
-
     
     // 定位 position 起始位置标记
     private _posOffsetTokens(position:Position) {
         let {tokens1} = this._getTokensAtLine(position.line);
-        let token1Index = 0;
+        let index = 0;
         for (let i = tokens1.length - 1; i >= 0; i--) {
             let t = tokens1[i];
             if (position.character - 1 >= t.startIndex) {
-                token1Index = i;
+                index = i;
                 break;
             }
         }
-        return token1Index;
+        return index;
     }
 
-    private _posScopesParse(position: Position) {
-        let index = this._posOffsetTokens(position);
-        let {tokens1:tokens} = this._getTokensAtLine(position.line);
+    private _posScopesParse(line:number,index:number) {
+        let {tokens1:tokens} = this._getTokensAtLine(line);
         let {startIndex, endIndex, scopes} = tokens[index];
-        let text = this._model[position.line].substring(startIndex, endIndex);
+        let text = this._model[line].substring(startIndex, endIndex);
         scopes = scopes.reduce<string[]>((s,item)=>[item,...s],[]);
 
         return {
@@ -248,44 +259,157 @@ export class CommentParse {
         }
     }
 
-    public commentScopeParse(position: Position, checkHandle:checkScopeFunction, skipHandle:checkScopeFunction, ignore:checkScopeFunction) {
-        let {tokens1} = this._getTokensAtLine(position.line);
-        let index = this._posOffsetTokens(position);
+    public commentScopeParse(position: Position, checkHandle: checkScopeFunction, single: boolean = false, opts?: { skipHandle?: checkScopeFunction,ignoreHandle?: checkScopeFunction }): ICommentBlock {
+        const {skipHandle,ignoreHandle} = opts || {};
+        const { line: prevLine } = position;
+        const index = this._posOffsetTokens(position);
+        // 结果变量.
+        let { startIndex, endIndex } = this._posScopesParse(prevLine, index);
+        let startLine = prevLine;
+        let endLine = prevLine;        
+        let tokens:ICommentToken[] = []; // TODO 初始化不对. 有些浪费
+        for(let line = prevLine;line>=0;line--) {
+            let comment = '';
+            let i = index;
+            let scope:IScopeLen[] = [];
+            if(line !== prevLine) {
+                const {tokens1} = this._getTokensAtLine(line);
+                i = tokens1.length-1;
+            }
+
+            for(; i>=0; i--) {
+                let { scopes, text, startIndex:si } = this._posScopesParse(line,i);
+                if (skipHandle && skipHandle(scopes)) {
+                    continue;
+                }
+                if (checkHandle(scopes)) {
+                    comment = text + comment;
+                    startIndex = si;
+                    startLine = line;
+                    scope.unshift({
+                        scopes,
+                        len:text.length
+                    });
+                } else {
+                    break;
+                }
+            }
+            comment&&tokens.unshift({
+                text:comment,
+                scope
+            });
+
+            if (i >= 0 || single) break;
+        }
+
+        for(let line = prevLine;line<this._model.length;line++) {
+            let comment = '';
+            let i = 0;
+            let scope:IScopeLen[] = [];
+            const {tokens1} = this._getTokensAtLine(line);
+            if(line === prevLine) {
+                i = index + 1;
+            }
+            for(; i<tokens1.length; i++) {
+                let { scopes, text, endIndex:ei } = this._posScopesParse(line,i);
+                if (skipHandle && skipHandle(scopes)) {
+                    continue;
+                }
+                if (checkHandle(scopes)) {
+                    comment = comment + text;
+                    endIndex = ei;
+                    endLine = line;
+                    scope.push({scopes,len:text.length});
+                } else {
+                    break;
+                }
+            }
+
+            if(line === prevLine) {
+                let current = tokens[tokens.length-1];
+                current.text = current.text+comment;
+                current.scope = current.scope.concat(scope);
+            } else {
+                comment&&tokens.push({
+                    text:comment,
+                    scope
+                });
+            }
+            if (i < tokens1.length || single) break;
+        }
+        if(ignoreHandle) {
+            tokens = tokens.map(item=>{
+                let {scope} = item;
+                let ignoreStart = 0;
+                let ignoreEnd = 0;
+                let j;
+                for(j=0;j<scope.length;j++) {
+                    if(ignoreHandle(scope[j].scopes)) {
+                        ignoreStart += scope[j].len;
+                    } else {
+                        break;
+                    }
+                }
+
+                for(let i=scope.length-1;i>j;i--) {
+                    if(ignoreHandle(scope[i].scopes)) {
+                        ignoreEnd += scope[i].len;
+                    } else {
+                        break;
+                    }
+                }
+                return Object.assign({ ignoreStart, ignoreEnd },item);
+            });
+        }
+
+        let range = Range.create({
+            line: startLine,
+            character: startIndex
+        }, {
+            line: endLine,
+            character: endIndex
+        });
 
         return {
-            text: '',
-            range:'',
-            tokens:[
-                [
-                    {
-                        text:'//',
-                        start:0,
-                        end:1,
-                        skip:true
-                    },
-                    {
-                        text:'xxx',
-                        start:2,
-                        end:5,
-                        skip:false
-                    }
-                ],
-                [
-                    {
-                        text:'//',
-                        start:0,
-                        end:1,
-                        skip:true
-                    },
-                    {
-                        text:'xxx',
-                        start:2,
-                        end:5,
-                        skip:false
-                    }
-                ]
-            ]
+            comment: tokens.map(((item)=>{
+                return item.text;
+            })).join('\n'),
+            range,
+            tokens
         }
+    }
+
+    public computeText1(position: Position): ICommentBlock | null {
+        const index = this._posOffsetTokens(position);
+        let { scopes,startIndex,endIndex,text } = this._posScopesParse(position.line,index);
+        let { hover:{string:stringHover,variable:variableHover} } = getConfig();
+        if (scopes && isCommentTranslate(scopes)) {
+            return this.commentScopeParse(position,isCommentTranslate,false,{
+                ignoreHandle:ignoreCommentTranslate,skipHandle:(scopes=>{return skipCommentTranslate(scopes[0])})
+            });
+        }
+        //字符串中包含 \n 等， 需要在当前行，合并连续token
+        if (stringHover && scopes && isStringTranslate(scopes)) {
+            return this.commentScopeParse(position,isStringTranslate,true);
+        }
+        
+        if (variableHover && scopes && isBaseTranslate(scopes)) {
+            let range = Range.create({
+                line: position.line,
+                character: startIndex
+            }, {
+                    line: position.line,
+                    character: endIndex
+                });
+
+            return {
+                humanize: true,
+                comment: text,
+                range: range
+            }
+        }
+
+        return null;
     }
 
 
@@ -313,6 +437,9 @@ export class CommentParse {
 
         //评论会跨越多行，需要在多行中合并连续评论token
         if (scopes && isCommentTranslate(scopes)) {
+            // return this.commentScopeParse(position,isCommentTranslate,false,{
+            //     ignoreHandle:ignoreCommentTranslate,skipHandle:(scopes=>{return skipCommentTranslate(scopes[0])})
+            // });
             return this.multiScope({
                 line: position.line,
                 tokens: data.tokens1,

@@ -7,7 +7,7 @@ export interface ITranslateOptions {
 
 export interface ITranslate {
     onTranslate: Event<string>;
-    translate(content:string, options: ITranslateOptions):Promise<String>;
+    translate(content:string, options: ITranslateOptions):Promise<string>;
     link(content:string, options: ITranslateOptions):string;
 }
 

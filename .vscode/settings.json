@@ -16,5 +16,7 @@
     "cSpell.words": [
         "Asar",
         "Kinyarwanda"
-    ]
+    ],
+    "commentTranslate.multiLineMerge": true,
+    "commentTranslate.source": "Bing"
 }
