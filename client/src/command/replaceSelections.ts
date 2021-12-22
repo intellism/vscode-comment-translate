@@ -8,10 +8,12 @@ async function translateSelection(text: string, selection: Selection, targetLang
 
 export async function replaceRange({ uri, text, range }: { uri: string, text: string, range: Range }) {
     let editor = window.activeTextEditor;
-    if (!(editor && editor.document && editor.document.uri.toString() === uri)) {
+    // 传入uri已经被decode了,所以都decode一下
+    if (!(editor && editor.document && decodeURIComponent(editor.document.uri.toString()) === decodeURIComponent(uri))) {
         return client.outputChannel.append(`Not active editor`);
     }
 
+    text = Buffer.from(text , 'base64').toString();
     let decoration = window.createTextEditorDecorationType({
         color: '#FF2D00',
         backgroundColor: "transparent"

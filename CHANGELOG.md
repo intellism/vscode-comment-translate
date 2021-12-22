@@ -24,6 +24,7 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ### Fixed
  * 请求错误后，5分钟禁止访问结果被错误cache
+ * 内容中有 ")" 会与Markdown冲突。 hover command会出问题
 
 ## [2.0.0] 2022-1-1
 ### Added

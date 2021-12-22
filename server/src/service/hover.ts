@@ -3,6 +3,7 @@ import { Hover, Range, TextDocumentPositionParams } from "vscode-languageserver/
 import { comment, connection, getConfig, translator } from "../server";
 import { ICommentBlock } from "../syntax/CommentParse";
 import { ShortLive } from "../util/short-live";
+import { hasEndMark, isLowerCase, isUpperCase } from "../util/string";
 
 export let shortLive = new ShortLive((item: TextDocumentPositionParams, data: TextDocumentPositionParams) => {
 	if (item.textDocument.uri === data.textDocument.uri) {
@@ -20,7 +21,7 @@ export interface ITranslateHover {
 }
 
 export async function getHover(textDocumentPosition: TextDocumentPositionParams): Promise<ITranslateHover | null> {
-	const { hover: { concise, open } } = getConfig();
+	const { hover: { concise, open }, multiLineMerge } = getConfig();
 	if (!open || !comment) return null;
 	if (concise && !shortLive.isLive(textDocumentPosition)) return null;
 
@@ -43,6 +44,28 @@ export async function getHover(textDocumentPosition: TextDocumentPositionParams)
 			let texts = tokens.map(({ text, ignoreStart = 0, ignoreEnd = 0 }) => {
 				return text.slice(ignoreStart, text.length - ignoreEnd).trim();
 			});
+
+			// 合并行
+			let combined:boolean[] = [];
+			if(multiLineMerge) {
+				texts = texts.reduce<string[]>((prev,curr,index)=>{
+					let lastIndex = combined.lastIndexOf(false);
+					combined[index] = false;
+					if(prev.length>0) {
+						let last = prev[lastIndex];
+						if (isUpperCase(last) && hasEndMark(last) && isLowerCase(curr)) {
+							// 如果可以合并，合并到上一行
+							prev[lastIndex] = last+ ' ' + curr;
+							//当前行空掉，但是保留空白占位符
+							curr = '';
+							combined[index] = true;
+						}
+					}
+					prev.push(curr);
+					return prev;
+				},[]);
+			}
+
 			let validTexts = texts.filter(text=>{
 				return text.length>0;
 			});
@@ -59,6 +82,10 @@ export async function getHover(textDocumentPosition: TextDocumentPositionParams)
 					if(translateText.length>0) {
 						targetText = targets[j];
 						j+=1;
+					}
+					// 被合并的行跳过
+					if(targetText === '' && combined[i]){
+						continue;
 					}
 					translated.push(text.slice(0, ignoreStart) + targetText + text.slice(text.length - ignoreEnd));
 				}

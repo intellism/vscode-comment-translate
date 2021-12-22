@@ -1,5 +1,6 @@
 
-import { workspace, window, QuickPickItem } from 'vscode';
+import { resolve } from 'dns';
+import { workspace, window, QuickPickItem, ThemeIcon, commands } from 'vscode';
 import { LANGS } from './lang';
 
 // TODO 临时仅支持这部分语言
@@ -20,7 +21,7 @@ import { LANGS } from './lang';
 let languages = new Map(LANGS);
 
 let defaultLanguage: string;
-export async function selectTargetLanguage(placeHolder: string = 'Select target language') {
+export async function selectTargetLanguage(placeHolder: string = 'Select target languageX') {
 
     let items: QuickPickItem[] = LANGS.map(item => {
         return {
@@ -38,9 +39,40 @@ export async function selectTargetLanguage(placeHolder: string = 'Select target 
         description: defaultLanguage,
         detail: 'Default select'
     });
-    let res: QuickPickItem = await window.showQuickPick(items, {
-        placeHolder
-    });
+    
+    let res: QuickPickItem = await new Promise<QuickPickItem|undefined>(
+        async(resolve) => {
+            let quickPick = window.createQuickPick();
+            quickPick.items = items;
+            quickPick.placeholder = placeHolder;
+
+            let enableHover = await getConfig<boolean>('hover.open');
+            const openBrowserButton = {
+                iconPath: new ThemeIcon(enableHover?'eye':'eye-closed'),
+                tooltip: 'Toggle enable hover.'
+            };
+    
+            quickPick.buttons = [openBrowserButton];
+            quickPick.onDidTriggerButton(async item => {
+                if (item === openBrowserButton) {
+                    let enableHover = await getConfig<boolean>('hover.open');
+                    openBrowserButton.iconPath = new ThemeIcon(!enableHover?'eye':'eye-closed');
+                    quickPick.buttons = [openBrowserButton];
+                    commands.executeCommand('commentTranslate.toggleEnableHover');
+                }
+                // quickPick.hide();
+            });
+            quickPick.onDidChangeSelection((r)=>{
+                if(r.length>0) {
+                    quickPick.hide();
+                    resolve(r[0]);
+                } else {
+                    resolve(undefined);
+                }
+            });
+            quickPick.show();
+        }
+    );
     if (res) {
         defaultLanguage = res.description;
         return res.description;
@@ -54,11 +86,11 @@ export async function showTargetLanguageStatusBarItem(userLanguage: string) {
     targetBar.tooltip = 'Comment translate target language. click to change';
 
     let setLanguageText = async () => {
-        let configuration = workspace.getConfiguration('commentTranslate');
-        let currentLanguage: string = (await configuration.get<string>('targetLanguage')) || userLanguage;
+        let currentLanguage = await getConfig<string>('targetLanguage') || userLanguage;
+        let enableHover = await getConfig<boolean>('hover.open');
         let current = languages.get(currentLanguage);
         if (current) {
-            targetBar.text = '$(globe) ' + current;
+            targetBar.text = `$(${enableHover?'eye':'eye-closed'}) ` + current;
         }
     }
     await setLanguageText();
@@ -70,4 +102,32 @@ export async function showTargetLanguageStatusBarItem(userLanguage: string) {
     })
 
     return targetBar;
+}
+
+export async function getConfig<T>(key:string):Promise<T> {
+    let configuration = workspace.getConfiguration('commentTranslate');
+    return await configuration.get<T>(key);
+}
+
+const Source = [
+    ['Google','google'],
+    ['Baidu','baidu'],
+    ['Bing','bing'],
+];
+export async function selectTranslateSource( placeHolder: string = 'Select translate source.' ) {
+    let originSource = await getConfig<string>('source');
+    let items: QuickPickItem[] = Source.filter(item=>item[0] !== originSource).map(item => {
+        return {
+            label: item[0],
+            description: item[1],
+        };
+    });
+
+    let res: QuickPickItem = await window.showQuickPick(items, {
+        placeHolder
+    });
+    if (res) {
+        return res.label;
+    }
+    return null;
 }
