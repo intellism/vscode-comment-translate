@@ -1,5 +1,5 @@
 import humanizeString = require("humanize-string");
-import { Hover, Range, TextDocumentPositionParams } from "vscode-languageserver/node";
+import { Range, TextDocumentPositionParams } from "vscode-languageserver/node";
 import { comment, connection, getConfig, translator } from "../server";
 import { ICommentBlock } from "../syntax/CommentParse";
 import { ShortLive } from "../util/short-live";
@@ -27,7 +27,7 @@ export async function getHover(textDocumentPosition: TextDocumentPositionParams)
 
 	let block: ICommentBlock | null = await connection.sendRequest<ICommentBlock>('selectionContains', textDocumentPosition);
 	if (!block) {
-		block = await comment.getComment1(textDocumentPosition);
+		block = await comment.getComment(textDocumentPosition);
 	}
 	if (block) {
 		let translatedText: string;

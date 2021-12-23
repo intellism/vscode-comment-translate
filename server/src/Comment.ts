@@ -42,16 +42,7 @@ export class Comment {
         if (!doc) return null;
         const parse = await this._getCommentParse(doc);
         if (!parse) return null;
-        const { hover:{concise} } = getConfig();
-        return await parse.computeText(position, concise);
-    }
-
-    async getComment1({ textDocument, position }: TextDocumentPositionParams): Promise<ICommentBlock | null> {
-        const doc = this._documents.get(textDocument.uri);
-        if (!doc) return null;
-        const parse = await this._getCommentParse(doc);
-        if (!parse) return null;
-        return parse.computeText1(position);
+        return parse.computeText(position);
     }
     
 }
