@@ -64,12 +64,17 @@ function isStringTranslate(scopes: string[]) {
     //字符串和转义字符的token标记
     let arr = [
         'string.quoted',
+        'punctuation.definition.string',
         'constant.character.escape'
     ];
 
     return arr.some(item => {
         return scope.indexOf(item) === 0;
     });
+}
+
+function ignoreStringTranslate(scopes: string[]) {
+    return scopes[0].indexOf('punctuation.definition.string') === 0;
 }
 
 function isBaseTranslate(scopes: string[]) {
@@ -390,7 +395,7 @@ export class CommentParse {
         }
         //字符串中包含 \n 等， 需要在当前行，合并连续token
         if (stringHover && scopes && isStringTranslate(scopes)) {
-            return this.commentScopeParse(position,isStringTranslate,true);
+            return this.commentScopeParse(position,isStringTranslate,true,{ignoreHandle:ignoreStringTranslate});
         }
         
         if (variableHover && scopes && isBaseTranslate(scopes)) {

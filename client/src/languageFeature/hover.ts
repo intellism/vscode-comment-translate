@@ -41,7 +41,7 @@ export function registerHover(canLanguages:string[] = []) {
 
             let md = new MarkdownString(`\`\`\`${document.languageId} \n${translatedText} \n \`\`\``);
             if(humanizeText) {
-                md = new MarkdownString(`${humanizeText}=>${translatedText}`);
+                md = new MarkdownString(`\`\`\`${document.languageId} \n ${humanizeText} => ${translatedText} \n \`\`\``);
             }
             const hover = new Hover([header,md], range);
             last.set(uri, hover);

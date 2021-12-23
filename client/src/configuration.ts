@@ -107,7 +107,7 @@ export async function showTargetLanguageStatusBarItem(userLanguage: string) {
 
 export async function getConfig<T>(key:string):Promise<T> {
     let configuration = workspace.getConfiguration('commentTranslate');
-    return await configuration.get<T>(key);
+    return configuration.get<T>(key);
 }
 
 const Source = [

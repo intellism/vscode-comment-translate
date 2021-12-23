@@ -34,12 +34,7 @@ export async function getHover(textDocumentPosition: TextDocumentPositionParams)
 		let humanizeText: string = '';
 		const { comment: originText, range } = block;
 		let {tokens} = block;
-		const needHumanize = originText.trim().indexOf(' ') < 0;
-		if (needHumanize) {
-			// 转换为可以自然语言分割
-			humanizeText = humanizeString(originText);
-			translatedText = await translator.translate(humanizeText);
-		} else if (tokens) {
+		if (tokens) {
 			// TODO 文本处理 可以抽离出去，后面正则过滤的时候迁移
 			let texts = tokens.map(({ text, ignoreStart = 0, ignoreEnd = 0 }) => {
 				return text.slice(ignoreStart, text.length - ignoreEnd).trim();
@@ -70,7 +65,16 @@ export async function getHover(textDocumentPosition: TextDocumentPositionParams)
 				return text.length>0;
 			});
 			let comment = validTexts.join('\n');
-			translatedText = await translator.translate(comment);
+
+			// 只有1行，并且符合大小切换
+			if(tokens.length === 1 ) {
+				const needHumanize = comment.trim().indexOf(' ') < 0;
+				if (needHumanize) {
+					// 转换为可以自然语言分割
+					humanizeText = humanizeString(comment);
+				}
+			}
+			translatedText = await translator.translate(humanizeText || comment);
 			// 优化显示
 			let targets = translatedText.split('\n');
 			if (validTexts.length === targets.length) {
@@ -92,7 +96,12 @@ export async function getHover(textDocumentPosition: TextDocumentPositionParams)
 				translatedText = translated.join('\n');
 			}
 		} else {
-			translatedText = await translator.translate(originText);
+			const needHumanize = originText.trim().indexOf(' ') < 0;
+			if (needHumanize) {
+				// 转换为可以自然语言分割
+				humanizeText = humanizeString(originText);
+			}
+			translatedText = await translator.translate(humanizeText || originText);
 		}
 
 		return {
