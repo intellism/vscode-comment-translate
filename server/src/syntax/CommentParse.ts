@@ -40,7 +40,7 @@ export type checkScopeFunction = (scopes: string[]) => boolean;
 
 function isComment(scopes: string[]) {
     //评论的token标记
-    let arr = [
+    const arr = [
         'punctuation.definition.comment',
         'comment.block',
         'comment.line'
@@ -53,8 +53,8 @@ function isComment(scopes: string[]) {
     })
 }
 
-function skipComment(scope: string) {
-    return scope.indexOf('punctuation.whitespace.comment') === 0;
+function skipComment(scopes: string[]) {
+    return scopes[0].indexOf('punctuation.whitespace.comment') === 0;
 }
 
 function ignoreComment(scopes:string[]) {
@@ -62,9 +62,9 @@ function ignoreComment(scopes:string[]) {
 }
 
 function isString(scopes: string[]) {
-    let scope = scopes[0];
+    const scope = scopes[0];
     //字符串和转义字符的token标记
-    let arr = [
+    const arr = [
         'string.quoted',
         'punctuation.definition.string',
         'constant.character.escape'
@@ -80,8 +80,8 @@ function ignoreString(scopes: string[]) {
 }
 
 function isBase(scopes: string[]) {
-    let scope = scopes[0];
-    let arr = [
+    const scope = scopes[0];
+    const arr = [
         'entity',
         'variable',
         'support',
@@ -110,7 +110,7 @@ export class CommentParse {
         }
         //重编译过的地方
         for (let i = lineLength; i <= lineNumber; i++) {
-            let tokenizationResult = this._grammar.tokenizeLine(this._model[i], state);
+            const tokenizationResult = this._grammar.tokenizeLine(this._model[i], state);
             this._lines.push({
                 startState: state,
                 tokens1: tokenizationResult.tokens,
@@ -129,11 +129,11 @@ export class CommentParse {
 
     // 定位 position 起始位置标记
     private _posOffsetTokens(position:Position) {
-        let {tokens1} = this._getTokensAtLine(position.line);
+        const {tokens1} = this._getTokensAtLine(position.line);
         let index = 0;
         for (let i = tokens1.length - 1; i >= 0; i--) {
-            let t = tokens1[i];
-            if (position.character - 1 >= t.startIndex) {
+            const {startIndex} = tokens1[i];
+            if (position.character - 1 >= startIndex) {
                 index = i;
                 break;
             }
@@ -142,10 +142,10 @@ export class CommentParse {
     }
 
     private _posScopesParse(line:number,index:number) {
-        let {tokens1:tokens} = this._getTokensAtLine(line);
-        let {startIndex, endIndex, scopes} = tokens[index];
-        let text = this._model[line].substring(startIndex, endIndex);
-        scopes = scopes.reduce<string[]>((s,item)=>[item,...s],[]);
+        const {tokens1:tokens} = this._getTokensAtLine(line);
+        const {startIndex, endIndex, scopes:prevScope} = tokens[index];
+        const text = this._model[line].substring(startIndex, endIndex);
+        const scopes = prevScope.reduce<string[]>((s,item)=>[item,...s],[]);
 
         return {
             startIndex,
@@ -167,14 +167,14 @@ export class CommentParse {
         for(let line = prevLine;line>=0;line--) {
             let comment = '';
             let i = index;
-            let scope:IScopeLen[] = [];
+            const scope:IScopeLen[] = [];
             if(line !== prevLine) {
                 const {tokens1} = this._getTokensAtLine(line);
                 i = tokens1.length-1;
             }
 
             for(; i>=0; i--) {
-                let { scopes, text, startIndex:si } = this._posScopesParse(line,i);
+                const { scopes, text, startIndex:si } = this._posScopesParse(line,i);
                 if (skipHandle && skipHandle(scopes)) {
                     continue;
                 }
@@ -201,13 +201,13 @@ export class CommentParse {
         for(let line = prevLine;line<this._model.length;line++) {
             let comment = '';
             let i = 0;
-            let scope:IScopeLen[] = [];
+            const scope:IScopeLen[] = [];
             const {tokens1} = this._getTokensAtLine(line);
             if(line === prevLine) {
                 i = index + 1;
             }
             for(; i<tokens1.length; i++) {
-                let { scopes, text, endIndex:ei } = this._posScopesParse(line,i);
+                const { scopes, text, endIndex:ei } = this._posScopesParse(line,i);
                 if (skipHandle && skipHandle(scopes)) {
                     continue;
                 }
@@ -222,7 +222,7 @@ export class CommentParse {
             }
 
             if(line === prevLine) {
-                let current = tokens[tokens.length-1];
+                const current = tokens[tokens.length-1];
                 current.text = current.text+comment;
                 current.scope = current.scope.concat(scope);
             } else {
@@ -235,7 +235,7 @@ export class CommentParse {
         }
         if(ignoreHandle) {
             tokens = tokens.map(item=>{
-                let {scope} = item;
+                const {scope} = item;
                 let ignoreStart = 0;
                 let ignoreEnd = 0;
                 let j;
@@ -258,7 +258,7 @@ export class CommentParse {
             });
         }
 
-        let range = Range.create({
+        const range = Range.create({
             line: startLine,
             character: startIndex
         }, {
@@ -277,11 +277,11 @@ export class CommentParse {
 
     public computeText(position: Position): ICommentBlock | null {
         const index = this._posOffsetTokens(position);
-        let { scopes,startIndex,endIndex,text } = this._posScopesParse(position.line,index);
-        let { hover:{string:stringHover,variable:variableHover} } = getConfig();
+        const { scopes,startIndex,endIndex,text } = this._posScopesParse(position.line,index);
+        const { hover:{string:stringHover,variable:variableHover} } = getConfig();
         if (scopes && isComment(scopes)) {
             return this.commentScopeParse(position,isComment,false,{
-                ignoreHandle:ignoreComment,skipHandle:(scopes=>{return skipComment(scopes[0])})
+                ignoreHandle:ignoreComment,skipHandle:(scopes=>{return skipComment(scopes)})
             });
         }
         //字符串中包含 \n 等， 需要在当前行，合并连续token
@@ -290,7 +290,7 @@ export class CommentParse {
         }
         
         if (variableHover && scopes && isBase(scopes)) {
-            let range = Range.create({
+            const range = Range.create({
                 line: position.line,
                 character: startIndex
             }, {
