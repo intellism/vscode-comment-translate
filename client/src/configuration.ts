@@ -1,25 +1,8 @@
 
-import { resolve } from 'dns';
 import { workspace, window, QuickPickItem, ThemeIcon, commands } from 'vscode';
 import { LANGS } from './lang';
 
-// TODO 临时仅支持这部分语言
-// const language: [string, string][] = [
-//     ['de', 'German'],
-//     ['es', 'Spanish'],
-//     ['en', 'English'],
-//     ['fr', 'French'],
-//     ['it', 'Italian'],
-//     ['ja', 'Japanese'],
-//     ['ko', 'Korean'],
-//     ['ru', 'Russian'],
-//     ['pl', 'Polish'],
-//     ['zh-CN', 'Chinese (Simplified)'],
-//     ['zh-TW', 'Chinese (Traditional)']
-// ];
-
 let languages = new Map(LANGS);
-
 let defaultLanguage: string;
 export async function selectTargetLanguage(placeHolder: string = 'Select target languageX') {
 
@@ -31,7 +14,7 @@ export async function selectTargetLanguage(placeHolder: string = 'Select target 
     });
 
     if (!defaultLanguage) {
-        defaultLanguage = await workspace.getConfiguration('commentTranslate').get<string>('targetLanguage');
+        defaultLanguage = await getConfig<string>('targetLanguage');
     }
     let defaultTarget = languages.get(defaultLanguage);
     defaultTarget && items.unshift({
@@ -45,22 +28,22 @@ export async function selectTargetLanguage(placeHolder: string = 'Select target 
             let quickPick = window.createQuickPick();
             quickPick.items = items;
             quickPick.placeholder = placeHolder;
+            const createButton = async () => {
+                let enableHover = await getConfig<boolean>('hover.open');
+                let button = {
+                    iconPath: new ThemeIcon(enableHover?'eye':'eye-closed'),
+                    tooltip: 'Toggle enable hover.'
+                };
+                quickPick.buttons = [button];
 
-            let enableHover = await getConfig<boolean>('hover.open');
-            const openBrowserButton = {
-                iconPath: new ThemeIcon(enableHover?'eye':'eye-closed'),
-                tooltip: 'Toggle enable hover.'
+                return button;
             };
-    
-            quickPick.buttons = [openBrowserButton];
+            let toggleEnableHoverButton = await createButton();
             quickPick.onDidTriggerButton(async item => {
-                if (item === openBrowserButton) {
-                    let enableHover = await getConfig<boolean>('hover.open');
-                    openBrowserButton.iconPath = new ThemeIcon(!enableHover?'eye':'eye-closed');
-                    quickPick.buttons = [openBrowserButton];
-                    commands.executeCommand('commentTranslate.toggleEnableHover');
+                if (item === toggleEnableHoverButton) {
+                    await commands.executeCommand('commentTranslate.toggleEnableHover');
+                    toggleEnableHoverButton = await createButton();
                 }
-                // quickPick.hide();
             });
             quickPick.onDidChangeSelection((r)=>{
                 if(r.length>0) {
@@ -80,6 +63,25 @@ export async function selectTargetLanguage(placeHolder: string = 'Select target 
     return null;
 }
 
+
+export async function showHoverStatusBar(userLanguage: string) {
+    let bar = window.createStatusBarItem();
+    bar.command = 'commentTranslate.toggleEnableHover';
+    bar.tooltip = 'Comment translate toggle enable hover.';
+
+    let setLanguageText = async () => {
+        let enableHover = await getConfig<boolean>('hover.open');
+        bar.text = `$(${enableHover?'eye':'eye-closed'}) `;
+    }
+    await setLanguageText();
+    bar.show();
+    workspace.onDidChangeConfiguration(async eventNames => {
+        if (eventNames.affectsConfiguration('commentTranslate')) {
+            await setLanguageText();
+        };
+    });
+    return bar;
+}
 export async function showTargetLanguageStatusBarItem(userLanguage: string) {
     let targetBar = window.createStatusBarItem();
     targetBar.command = 'commentTranslate.changeTargetLanguage';
@@ -87,10 +89,9 @@ export async function showTargetLanguageStatusBarItem(userLanguage: string) {
 
     let setLanguageText = async () => {
         let currentLanguage = await getConfig<string>('targetLanguage') || userLanguage;
-        let enableHover = await getConfig<boolean>('hover.open');
         let current = languages.get(currentLanguage);
         if (current) {
-            targetBar.text = `$(${enableHover?'eye':'eye-closed'}) ` + current;
+            targetBar.text = current;
         }
     }
     await setLanguageText();
@@ -99,7 +100,7 @@ export async function showTargetLanguageStatusBarItem(userLanguage: string) {
         if (eventNames.affectsConfiguration('commentTranslate')) {
             await setLanguageText();
         };
-    })
+    });
 
     return targetBar;
 }
@@ -123,9 +124,7 @@ export async function selectTranslateSource( placeHolder: string = 'Select trans
         };
     });
 
-    let res: QuickPickItem = await window.showQuickPick(items, {
-        placeHolder
-    });
+    let res: QuickPickItem = await window.showQuickPick(items, {placeHolder});
     if (res) {
         return res.label;
     }

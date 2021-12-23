@@ -5,7 +5,7 @@
 'use strict';
 
 import * as path from 'path';
-import { workspace, ExtensionContext, extensions, env, commands, window, Selection, Position, Hover, TextEditorSelectionChangeKind, languages, MarkdownString, Range } from 'vscode';
+import { ExtensionContext, extensions, env, commands, window, Position, TextEditorSelectionChangeKind} from 'vscode';
 
 import {
     LanguageClient,
@@ -16,7 +16,7 @@ import {
     Range as RangeL
 } from 'vscode-languageclient/node';
 import { registerCommands } from './command/command';
-import { selectTargetLanguage, showTargetLanguageStatusBarItem } from './configuration';
+import { selectTargetLanguage, showHoverStatusBar, showTargetLanguageStatusBarItem } from './configuration';
 import { registerHover } from './languageFeature/hover';
 
 export let client: LanguageClient;
@@ -130,8 +130,9 @@ export async function activate(context: ExtensionContext) {
     registerHover(canLanguages);
 
     // 注册状态图标
+    let hoverBar = await showHoverStatusBar(userLanguage);
     let targetBar = await showTargetLanguageStatusBarItem(userLanguage);
-    context.subscriptions.push(targetBar);
+    context.subscriptions.push(targetBar,hoverBar);
 
     //client准备就绪后再其他服务
     await client.onReady();
