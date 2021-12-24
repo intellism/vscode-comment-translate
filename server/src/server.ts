@@ -11,6 +11,7 @@ import {
 	InitializeParams,
 	TextDocumentSyncKind,
 	DidChangeConfigurationNotification,
+	TextDocumentPositionParams,
 } from 'vscode-languageserver/node';
 import {
 	TextDocument
@@ -20,6 +21,13 @@ import { Comment } from './Comment';
 import { patchAsarRequire } from './util/patch-asar-require';
 import { getHover, shortLive } from './service/hover';
 import { Translator } from './translate/Translator';
+import { ICommentBlock } from './syntax/CommentParse';
+
+
+export async function getComment(textDocumentPosition: TextDocumentPositionParams): Promise<ICommentBlock | null> {
+	if(!comment) return null;
+	return comment.getComment(textDocumentPosition);
+}
 
 // Create a connection for the server. The connection uses Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
@@ -117,6 +125,7 @@ connection.onRequest('translate', ({text,targetLanguage}:{text:string,targetLang
 	return translator.translate(text,{to:targetLanguage});
 });
 connection.onRequest('getHover', getHover);
+connection.onRequest('getComment', getComment);
 connection.onDefinition(async (definitionParams) => {
 	shortLive.add(definitionParams);
 	return null;

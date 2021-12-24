@@ -17,8 +17,12 @@ import {
 } from 'vscode-languageclient/node';
 import { registerCommands } from './command/command';
 import { selectTargetLanguage, showHoverStatusBar, showTargetLanguageStatusBarItem } from './configuration';
+import { ICommentBlock } from './languageFeature/complie';
+import { registerDefinition } from './languageFeature/definition';
 import { registerHover } from './languageFeature/hover';
+import { Translator } from './translate/Translator';
 
+let outputChannel = window.createOutputChannel('Comment Translate');
 export let client: LanguageClient;
 let canLanguages: string[] = [];
 
@@ -47,7 +51,7 @@ export interface IGrammarExtensions {
     extensionLocation: string;
     languages: ITMLanguageExtensionPoint[];
 }
-
+export let translator:Translator;
 export async function activate(context: ExtensionContext) {
     // The server is implemented in node
     let serverModule = context.asAbsolutePath(
@@ -105,6 +109,7 @@ export async function activate(context: ExtensionContext) {
     let clientOptions: LanguageClientOptions = {
         // Register the server for plain text documents
         revealOutputChannelOn: 4,
+        outputChannel:outputChannel,
         initializationOptions: {
             grammarExtensions, appRoot: env.appRoot, userLanguage
         },
@@ -128,6 +133,7 @@ export async function activate(context: ExtensionContext) {
 
     registerCommands(context);
     registerHover(canLanguages);
+    registerDefinition(canLanguages);
 
     // 注册状态图标
     let hoverBar = await showHoverStatusBar(userLanguage);
@@ -136,11 +142,12 @@ export async function activate(context: ExtensionContext) {
 
     //client准备就绪后再其他服务
     await client.onReady();
-    interface ICommentBlock {
-        humanize?: boolean;
-        range: RangeL;
-        comment: string;
-    }
+
+    translator = new Translator();
+    translator.onTranslate(e=>{
+        outputChannel.append(e);
+    });
+
     //提供选择检查服务
     client.onRequest<ICommentBlock, TextDocumentPositionParams>('selectionContains', (textDocumentPosition: TextDocumentPositionParams) => {
         let editor = window.activeTextEditor;

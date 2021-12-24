@@ -9,6 +9,12 @@
 		"vscode": "^1.52.0"
 	},
 	"dependencies": {
+		"@vitalets/google-translate-token": "^1.2.0",
+		"baidu-translate-api-temp": "^0.4.4",
+		"bing-translate-api": "^2.2.1",
+		"humanize-string": "2.1.0",
+		"querystring": "^0.2.1",
+		"request": "^2.88.2",
 		"vscode-languageclient": "^7.0.0"
 	},
 	"devDependencies": {

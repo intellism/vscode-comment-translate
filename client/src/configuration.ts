@@ -4,8 +4,7 @@ import { LANGS } from './lang';
 
 let languages = new Map(LANGS);
 let defaultLanguage: string;
-export async function selectTargetLanguage(placeHolder: string = 'Select target languageX') {
-
+export async function selectTargetLanguage(placeHolder: string = 'Select target language') {
     let items: QuickPickItem[] = LANGS.map(item => {
         return {
             label: item[1],
@@ -14,7 +13,7 @@ export async function selectTargetLanguage(placeHolder: string = 'Select target 
     });
 
     if (!defaultLanguage) {
-        defaultLanguage = await getConfig<string>('targetLanguage');
+        defaultLanguage = getConfig<string>('targetLanguage');
     }
     let defaultTarget = languages.get(defaultLanguage);
     defaultTarget && items.unshift({
@@ -29,7 +28,7 @@ export async function selectTargetLanguage(placeHolder: string = 'Select target 
             quickPick.items = items;
             quickPick.placeholder = placeHolder;
             const createButton = async () => {
-                let enableHover = await getConfig<boolean>('hover.open');
+                let enableHover = getConfig<boolean>('hover.open');
                 let button = {
                     iconPath: new ThemeIcon(enableHover?'eye':'eye-closed'),
                     tooltip: 'Toggle enable hover.'
@@ -70,7 +69,7 @@ export async function showHoverStatusBar(userLanguage: string) {
     bar.tooltip = 'Comment translate toggle enable hover.';
 
     let setLanguageText = async () => {
-        let enableHover = await getConfig<boolean>('hover.open');
+        let enableHover = getConfig<boolean>('hover.open');
         bar.text = `$(${enableHover?'eye':'eye-closed'}) `;
     }
     await setLanguageText();
@@ -88,7 +87,7 @@ export async function showTargetLanguageStatusBarItem(userLanguage: string) {
     targetBar.tooltip = 'Comment translate target language. click to change';
 
     let setLanguageText = async () => {
-        let currentLanguage = await getConfig<string>('targetLanguage') || userLanguage;
+        let currentLanguage = getConfig<string>('targetLanguage') || userLanguage;
         let current = languages.get(currentLanguage);
         if (current) {
             targetBar.text = current;
@@ -105,7 +104,7 @@ export async function showTargetLanguageStatusBarItem(userLanguage: string) {
     return targetBar;
 }
 
-export async function getConfig<T>(key:string):Promise<T> {
+export function getConfig<T>(key:string):T {
     let configuration = workspace.getConfiguration('commentTranslate');
     return configuration.get<T>(key);
 }
@@ -116,7 +115,7 @@ const Source = [
     ['Bing','bing'],
 ];
 export async function selectTranslateSource( placeHolder: string = 'Select translate source.' ) {
-    let originSource = await getConfig<string>('source');
+    let originSource = getConfig<string>('source');
     let items: QuickPickItem[] = Source.filter(item=>item[0] !== originSource).map(item => {
         return {
             label: item[0],

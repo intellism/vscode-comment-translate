@@ -1,9 +1,47 @@
-import humanizeString = require("humanize-string");
-import { Range, TextDocumentPositionParams } from "vscode-languageserver/node";
-import { comment, connection, getConfig, translator } from "../server";
-import { ICommentBlock } from "../syntax/CommentParse";
+import humanizeString2 = require("humanize-string");
+import { Range, Position, window } from "vscode";
+import { getConfig } from "../configuration";
+import { client, translator } from "../extension";
+// import { comment, connection, getConfig, translator } from "../server";
+// import { ICommentBlock } from "../syntax/CommentParse";
 import { ShortLive } from "../util/short-live";
 import { hasEndMark, isLowerCase, isUpperCase } from "../util/string";
+
+export interface TextDocumentPositionParams {
+    /**
+     * The text document.
+     */
+    textDocument: TextDocumentIdentifier;
+    /**
+     * The position inside the text document.
+     */
+    position: Position;
+}
+
+export interface TextDocumentIdentifier {
+    /**
+     * The text document's uri.
+     */
+    uri: string;
+}
+
+export interface ICommentBlock {
+    humanize?: boolean;
+    range: Range;
+    comment: string;
+    tokens?: ICommentToken[];
+}
+interface ICommentToken {
+    ignoreStart?:number;
+    ignoreEnd?:number;
+    text:string;
+    scope:IScopeLen[];
+}
+
+interface IScopeLen{
+    scopes:string[];
+    len:number;
+}
 
 export let shortLive = new ShortLive((item: TextDocumentPositionParams, data: TextDocumentPositionParams) => item.textDocument.uri === data.textDocument.uri);
 
@@ -15,18 +53,39 @@ export interface ITranslateHover {
 	range: Range;
 }
 
-export async function getComment(textDocumentPosition: TextDocumentPositionParams): Promise<ICommentBlock | null> {
-	if(!comment) return null;
-	return comment.getComment(textDocumentPosition);
+function selectionContains(textDocumentPosition: TextDocumentPositionParams):ICommentBlock | null {
+	let editor = window.activeTextEditor;
+	//有活动editor，并且打开文档与请求文档一致时处理请求
+	if (editor && editor.document.uri.toString() === textDocumentPosition.textDocument.uri) {
+		//类型转换
+		let position = new Position(textDocumentPosition.position.line, textDocumentPosition.position.character);
+		let selection = editor.selections.find((selection) => {
+			return !selection.isEmpty && selection.contains(position);
+		});
+
+		if (selection) {
+			return {
+				range: selection,
+				comment: editor.document.getText(selection)
+			};
+		}
+	}
+
+	return null;
 }
+
 export async function getHover(textDocumentPosition: TextDocumentPositionParams): Promise<ITranslateHover | null> {
-	const { hover: { concise, open }, multiLineMerge } = getConfig();
-	if (!open || !comment) return null;
+	const concise = getConfig<boolean>('hover.concise');
+	const open = getConfig<boolean>('hover.open');
+	const multiLineMerge = getConfig<boolean>('multiLineMerge');
+	if (!open) return null;
 	if (concise && !shortLive.isLive(textDocumentPosition)) return null;
 
-	let block: ICommentBlock | null = await connection.sendRequest<ICommentBlock>('selectionContains', textDocumentPosition);
+	// 改为本地
+	let block: ICommentBlock | null = selectionContains(textDocumentPosition);
 	if (!block) {
-		block = await comment.getComment(textDocumentPosition);
+		// TODO 改为远程
+		block = await client.sendRequest<ICommentBlock | null>('getComment', textDocumentPosition);
 	}
 	if (!block) {
 		return null;
@@ -72,7 +131,7 @@ export async function getHover(textDocumentPosition: TextDocumentPositionParams)
 			const needHumanize = comment.trim().indexOf(' ') < 0;
 			if (needHumanize) {
 				// 转换为可以自然语言分割
-				humanizeText = humanizeString(comment);
+				humanizeText = humanizeString2(comment);
 			}
 		}
 		translatedText = await translator.translate(humanizeText || comment);
@@ -100,7 +159,7 @@ export async function getHover(textDocumentPosition: TextDocumentPositionParams)
 		const needHumanize = originText.trim().indexOf(' ') < 0;
 		if (needHumanize) {
 			// 转换为可以自然语言分割
-			humanizeText = humanizeString(originText);
+			humanizeText = humanizeString2(originText);
 		}
 		translatedText = await translator.translate(humanizeText || originText);
 	}
