@@ -3,11 +3,8 @@ import { shortLive } from "./complie";
 
 export function registerDefinition(canLanguages:string[] = []) {
     languages.registerDefinitionProvider(canLanguages, {
-        provideDefinition:(document, position)=>{
-            shortLive.add({textDocument: {
-                uri: document.uri.toString()
-            },
-            position});
+        provideDefinition:(document)=>{
+            shortLive.add(document.uri.toString());
             return null;
         }
     })

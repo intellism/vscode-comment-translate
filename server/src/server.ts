@@ -19,8 +19,6 @@ import {
 
 import { Comment } from './Comment';
 import { patchAsarRequire } from './util/patch-asar-require';
-import { getHover, shortLive } from './service/hover';
-import { Translator } from './translate/Translator';
 import { ICommentBlock } from './syntax/CommentParse';
 
 
@@ -41,7 +39,6 @@ const documents: TextDocuments<TextDocument> = new TextDocuments(TextDocument);
 let hasConfigurationCapability: boolean = false;
 let hasWorkspaceFolderCapability: boolean = false;
 export let comment: Comment;
-export let translator:Translator;
 
 export interface ICommentTranslateSettings {
 	multiLineMerge?: boolean;
@@ -71,10 +68,6 @@ connection.onInitialize((params: InitializeParams) => {
 
 	config.targetLanguage = params.initializationOptions.userLanguage;
 	comment = new Comment(params.initializationOptions, documents);
-	translator = new Translator();
-	translator.onTranslate((string) => {
-		connection.console.log(string);
-	});
 	patchAsarRequire(params.initializationOptions.appRoot);
 	// Does the client support the `workspace/configuration` request?
 	// If not, we will fall back using global settings
@@ -85,11 +78,10 @@ connection.onInitialize((params: InitializeParams) => {
 		capabilities.workspace && !!capabilities.workspace.workspaceFolders
 	);
 
-	connection.console.log('in');
+	connection.console.log('Start comment translate server.');
 
 	return {
 		capabilities: {
-			definitionProvider: true,
 			textDocumentSync: TextDocumentSyncKind.Incremental,
 		}
 	};
@@ -100,8 +92,7 @@ export function getConfig() {
 }
 
 async function changeConfiguration() {
-	let setting = await connection.workspace.getConfiguration('commentTranslate');
-	config = setting;
+	config = await connection.workspace.getConfiguration('commentTranslate');
 }
 
 connection.onInitialized(async () => {
@@ -120,16 +111,8 @@ connection.onInitialized(async () => {
 
 	await changeConfiguration();
 });
-connection.onRequest('translate', ({text,targetLanguage}:{text:string,targetLanguage:string}) => {
-	if (!translator) return null;
-	return translator.translate(text,{to:targetLanguage});
-});
-connection.onRequest('getHover', getHover);
+
 connection.onRequest('getComment', getComment);
-connection.onDefinition(async (definitionParams) => {
-	shortLive.add(definitionParams);
-	return null;
-});
 // The example settings
 connection.onDidChangeConfiguration(changeConfiguration);
 

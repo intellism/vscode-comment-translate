@@ -1,6 +1,5 @@
 import { Hover, languages, MarkdownString, Range } from "vscode";
 import { getConfig } from "../configuration";
-import { client } from "../extension";
 import { getHover } from "./complie";
 
 export interface ITranslateHover {
@@ -18,16 +17,7 @@ export function registerHover(canLanguages:string[] = []) {
         async provideHover(document, position) {
             
             const uri = document.uri.toString();
-            const res = await getHover({textDocument: {
-                uri: uri
-            },
-            position});
-            // const res = await client.sendRequest<ITranslateHover | null>('getHover', {
-            //     textDocument: {
-            //         uri: uri
-            //     },
-            //     position
-            // });
+            const res = await getHover(uri, position);
             if(!res) return null;
             const {translatedText,translatedLink,humanizeText,range} = res;
             const base64TranslatedText = Buffer.from(translatedText).toString('base64');

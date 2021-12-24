@@ -1,4 +1,4 @@
-import humanizeString2 = require("humanize-string");
+import humanizeString = require("humanize-string");
 import { Range, Position, window } from "vscode";
 import { getConfig } from "../configuration";
 import { client, translator } from "../extension";
@@ -6,24 +6,6 @@ import { client, translator } from "../extension";
 // import { ICommentBlock } from "../syntax/CommentParse";
 import { ShortLive } from "../util/short-live";
 import { hasEndMark, isLowerCase, isUpperCase } from "../util/string";
-
-export interface TextDocumentPositionParams {
-    /**
-     * The text document.
-     */
-    textDocument: TextDocumentIdentifier;
-    /**
-     * The position inside the text document.
-     */
-    position: Position;
-}
-
-export interface TextDocumentIdentifier {
-    /**
-     * The text document's uri.
-     */
-    uri: string;
-}
 
 export interface ICommentBlock {
     humanize?: boolean;
@@ -43,7 +25,7 @@ interface IScopeLen{
     len:number;
 }
 
-export let shortLive = new ShortLive((item: TextDocumentPositionParams, data: TextDocumentPositionParams) => item.textDocument.uri === data.textDocument.uri);
+export let shortLive = new ShortLive<string>((prev, curr) => prev===curr);
 
 export interface ITranslateHover {
 	originText: string;
@@ -53,12 +35,11 @@ export interface ITranslateHover {
 	range: Range;
 }
 
-function selectionContains(textDocumentPosition: TextDocumentPositionParams):ICommentBlock | null {
+function selectionContains(url:string, position:Position):ICommentBlock | null {
 	let editor = window.activeTextEditor;
 	//有活动editor，并且打开文档与请求文档一致时处理请求
-	if (editor && editor.document.uri.toString() === textDocumentPosition.textDocument.uri) {
+	if (editor && editor.document.uri.toString() === url) {
 		//类型转换
-		let position = new Position(textDocumentPosition.position.line, textDocumentPosition.position.character);
 		let selection = editor.selections.find((selection) => {
 			return !selection.isEmpty && selection.contains(position);
 		});
@@ -74,18 +55,18 @@ function selectionContains(textDocumentPosition: TextDocumentPositionParams):ICo
 	return null;
 }
 
-export async function getHover(textDocumentPosition: TextDocumentPositionParams): Promise<ITranslateHover | null> {
+export async function getHover(url:string, position:Position): Promise<ITranslateHover | null> {
 	const concise = getConfig<boolean>('hover.concise');
 	const open = getConfig<boolean>('hover.open');
 	const multiLineMerge = getConfig<boolean>('multiLineMerge');
 	if (!open) return null;
-	if (concise && !shortLive.isLive(textDocumentPosition)) return null;
+	if (concise && !shortLive.isLive(url)) return null;
 
 	// 改为本地
-	let block: ICommentBlock | null = selectionContains(textDocumentPosition);
+	let block: ICommentBlock | null = selectionContains(url,position);
 	if (!block) {
 		// TODO 改为远程
-		block = await client.sendRequest<ICommentBlock | null>('getComment', textDocumentPosition);
+		block = await client.sendRequest<ICommentBlock | null>('getComment', {textDocument: {uri: url},position});
 	}
 	if (!block) {
 		return null;
@@ -131,7 +112,7 @@ export async function getHover(textDocumentPosition: TextDocumentPositionParams)
 			const needHumanize = comment.trim().indexOf(' ') < 0;
 			if (needHumanize) {
 				// 转换为可以自然语言分割
-				humanizeText = humanizeString2(comment);
+				humanizeText = humanizeString(comment);
 			}
 		}
 		translatedText = await translator.translate(humanizeText || comment);
@@ -159,7 +140,7 @@ export async function getHover(textDocumentPosition: TextDocumentPositionParams)
 		const needHumanize = originText.trim().indexOf(' ') < 0;
 		if (needHumanize) {
 			// 转换为可以自然语言分割
-			humanizeText = humanizeString2(originText);
+			humanizeText = humanizeString(originText);
 		}
 		translatedText = await translator.translate(humanizeText || originText);
 	}
