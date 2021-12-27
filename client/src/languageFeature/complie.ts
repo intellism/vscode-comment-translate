@@ -62,27 +62,38 @@ export async function getHover(url:string, position:Position): Promise<ITranslat
 	if (!open) return null;
 	if (concise && !shortLive.isLive(url)) return null;
 
-	// 改为本地
 	let block: ICommentBlock | null = selectionContains(url,position);
 	if (!block) {
-		// TODO 改为远程
-		block = await client.sendRequest<ICommentBlock | null>('getComment', {textDocument: {uri: url},position});
+		const textDocumentPosition = {textDocument: {uri: url},position};
+		block = await client.sendRequest<ICommentBlock | null>('getComment', textDocumentPosition);
 	}
 	if (!block) {
 		return null;
 	}
+
 	let translatedText: string;
 	let humanizeText: string = '';
-	let { tokens } = block;
-	const { comment: originText, range } = block;
-	if (tokens) {
+	const { comment: originText, range, tokens } = block;
+	
+	if(!tokens) {
+		// 选取翻译&单个单词翻译的时候。无tokens的简单结果
+		const needHumanize = originText.trim().indexOf(' ') < 0;
+		if (needHumanize) {
+			// 转换为可以自然语言分割
+			humanizeText = humanizeString(originText);
+		}
+		translatedText = await translator.translate(humanizeText || originText);
+	} else {
+		// 注释、文本，有tokens的语义翻译处理。
 		// TODO 文本处理 可以抽离出去，后面正则过滤的时候迁移
+
+		// 获取待翻译字符串。
 		let texts = tokens.map(({ text, ignoreStart = 0, ignoreEnd = 0 }) => {
 			return text.slice(ignoreStart, text.length - ignoreEnd).trim();
 		});
 
-		// 合并行
-		let combined: boolean[] = [];
+		// 开启多行合并的时候，合并有效字符串中的多行到同一行。
+		let combined: boolean[] = []; // 标记被合并行。 便于翻译后重新组合
 		if (multiLineMerge) {
 			texts = texts.reduce<string[]>((prev, curr, index) => {
 				let lastIndex = combined.lastIndexOf(false);
@@ -102,6 +113,7 @@ export async function getHover(url:string, position:Position): Promise<ITranslat
 			}, []);
 		}
 
+		// 过滤空白行，解决部分翻译源，多行空白会压缩问题。
 		let validTexts = texts.filter(text => {
 			return text.length > 0;
 		});
@@ -115,8 +127,10 @@ export async function getHover(url:string, position:Position): Promise<ITranslat
 				humanizeText = humanizeString(comment);
 			}
 		}
+
 		translatedText = await translator.translate(humanizeText || comment);
-		// 优化显示
+		
+		// 重新组合翻译结果，还原被翻译时过滤的符合.  如 /* // 等
 		let targets = translatedText.split('\n');
 		if (validTexts.length === targets.length) {
 			let translated = [];
@@ -132,18 +146,14 @@ export async function getHover(url:string, position:Position): Promise<ITranslat
 				if (targetText === '' && combined[i]) {
 					continue;
 				}
-				translated.push(text.slice(0, ignoreStart) + targetText + text.slice(text.length - ignoreEnd));
+				const startText = text.slice(0, ignoreStart);
+				const endText = text.slice(text.length - ignoreEnd);
+				translated.push(startText + targetText + endText);
 			}
 			translatedText = translated.join('\n');
 		}
-	} else {
-		const needHumanize = originText.trim().indexOf(' ') < 0;
-		if (needHumanize) {
-			// 转换为可以自然语言分割
-			humanizeText = humanizeString(originText);
-		}
-		translatedText = await translator.translate(humanizeText || originText);
-	}
+
+	} 
 
 	return {
 		originText,

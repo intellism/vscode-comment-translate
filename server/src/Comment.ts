@@ -4,7 +4,6 @@ import { TextMateService } from "./syntax/TextMateService";
 import {
     TextDocument
 } from 'vscode-languageserver-textdocument';
-import { getConfig } from "./server";
 
 export class Comment {
 
@@ -31,8 +30,7 @@ export class Comment {
         }
         const grammar = await this._textMateService.createGrammar(languageId);
 
-        const { multiLineMerge } = getConfig();
-        const parse = new CommentParse(textDocument, grammar, multiLineMerge);
+        const parse = new CommentParse(textDocument, grammar);
         this._commentParseCache.set(key, parse);
         return parse;
     }

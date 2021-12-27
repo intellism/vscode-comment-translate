@@ -27,21 +27,27 @@ export async function selectTargetLanguage(placeHolder: string = 'Select target 
             let quickPick = window.createQuickPick();
             quickPick.items = items;
             quickPick.placeholder = placeHolder;
-            const createButton = async () => {
-                let enableHover = getConfig<boolean>('hover.open');
-                let button = {
-                    iconPath: new ThemeIcon(enableHover?'eye':'eye-closed'),
-                    tooltip: 'Toggle enable hover.'
-                };
-                quickPick.buttons = [button];
+            // const createButton = async () => {
+            //     let enableHover = getConfig<boolean>('hover.open');
+            //     let button = {
+            //         iconPath: new ThemeIcon(enableHover?'eye':'eye-closed'),
+            //         tooltip: 'Toggle enable hover.'
+            //     };
+            //     quickPick.buttons = [button];
 
-                return button;
+            //     return button;
+            // };
+
+            let button = {
+                iconPath: new ThemeIcon('settings-gear'),
+                tooltip: 'Open Comment Translate setting.'
             };
-            let toggleEnableHoverButton = await createButton();
+            quickPick.buttons = [button];
             quickPick.onDidTriggerButton(async item => {
-                if (item === toggleEnableHoverButton) {
-                    await commands.executeCommand('commentTranslate.toggleEnableHover');
-                    toggleEnableHoverButton = await createButton();
+                if (item === button) {
+                    await commands.executeCommand('workbench.action.openWorkspaceSettings',{
+                        query:'commentTranslate'
+                    });
                 }
             });
             quickPick.onDidChangeSelection((r)=>{

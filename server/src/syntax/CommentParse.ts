@@ -29,7 +29,6 @@ export interface ICommentOption {
 }
 
 export interface ICommentBlock {
-    humanize?: boolean;
     range: Range;
     comment: string;
     tokens?: ICommentToken[];
@@ -98,7 +97,7 @@ export class CommentParse {
     private _model: string[];
     private _lines: ITokenState[] = [];
 
-    constructor(textDocument: TextDocument, private _grammar: IGrammar, private _multiLineMerge: boolean = false) {
+    constructor(textDocument: TextDocument, private _grammar: IGrammar) {
         this._model = textDocument.getText().split('\n');
     }
 
@@ -281,7 +280,7 @@ export class CommentParse {
         const { hover:{string:stringHover,variable:variableHover} } = getConfig();
         if (scopes && isComment(scopes)) {
             return this.commentScopeParse(position,isComment,false,{
-                ignoreHandle:ignoreComment,skipHandle:(scopes=>{return skipComment(scopes)})
+                ignoreHandle:ignoreComment,skipHandle:skipComment
             });
         }
         //字符串中包含 \n 等， 需要在当前行，合并连续token
@@ -299,7 +298,6 @@ export class CommentParse {
                 });
 
             return {
-                humanize: true,
                 comment: text,
                 range: range
             }
