@@ -5,21 +5,20 @@
 'use strict';
 
 import * as path from 'path';
-import { ExtensionContext, extensions, env, commands, window, Position, TextEditorSelectionChangeKind} from 'vscode';
+import { ExtensionContext, extensions, env, commands, window, TextEditorSelectionChangeKind} from 'vscode';
 
 import {
     LanguageClient,
     LanguageClientOptions,
     ServerOptions,
     TransportKind,
-    TextDocumentPositionParams,
-    Range as RangeL
 } from 'vscode-languageclient/node';
 import { registerCommands } from './command/command';
-import { selectTargetLanguage, showHoverStatusBar, showTargetLanguageStatusBarItem } from './configuration';
-import { ICommentBlock } from './languageFeature/complie';
+import { showHoverStatusBar, showTargetLanguageStatusBarItem } from './configuration';
 import { registerDefinition } from './languageFeature/definition';
 import { registerHover } from './languageFeature/hover';
+import { AliTranslator } from './plugin/translateAli';
+import { TranslationExtensionProvider } from './translate/translationExtension';
 import { Translator } from './translate/Translator';
 
 let outputChannel = window.createOutputChannel('Comment Translate');
@@ -52,6 +51,7 @@ export interface IGrammarExtensions {
     languages: ITMLanguageExtensionPoint[];
 }
 export let translator:Translator;
+export let translationProvider:TranslationExtensionProvider
 export async function activate(context: ExtensionContext) {
     // The server is implemented in node
     let serverModule = context.asAbsolutePath(
@@ -72,28 +72,53 @@ export async function activate(context: ExtensionContext) {
         }
     };
 
-    let extAll = extensions.all;
-    let languageId = 2;
-    let grammarExtensions: IGrammarExtensions[] = [];
+    // let extAll = extensions.all;
+    // let languageId = 2;
+    // let grammarExtensions: IGrammarExtensions[] = [];
     
-    extAll.forEach(extension => {
-        if (!(extension.packageJSON.contributes && extension.packageJSON.contributes.grammars)) return;
-        let languages: ITMLanguageExtensionPoint[] = [];
-        (extension.packageJSON.contributes && extension.packageJSON.contributes.languages || []).forEach((language: any) => {
-            languages.push({
-                id: languageId++,
-                name: language.id
-            });
-        })
-        grammarExtensions.push({
-            languages: languages,
-            value: extension.packageJSON.contributes && extension.packageJSON.contributes.grammars,
-            extensionLocation: extension.extensionPath
+    // extAll.forEach(extension => {
+    //     if (!(extension.packageJSON.contributes && extension.packageJSON.contributes.grammars)) return;
+    //     let languages: ITMLanguageExtensionPoint[] = [];
+    //     (extension.packageJSON.contributes && extension.packageJSON.contributes.languages || []).forEach((language: any) => {
+    //         languages.push({
+    //             id: languageId++,
+    //             name: language.id
+    //         });
+    //     })
+    //     grammarExtensions.push({
+    //         languages: languages,
+    //         value: extension.packageJSON.contributes && extension.packageJSON.contributes.grammars,
+    //         extensionLocation: extension.extensionPath
+    //     });
+    //     canLanguages = canLanguages.concat(extension.packageJSON.contributes.grammars.map((g: any) => g.language));
+    // });
+
+    let languageId = 2;
+    let grammarExtensions: IGrammarExtensions[] = extensions.all.filter(({packageJSON})=>{
+        return packageJSON.contributes && packageJSON.contributes.grammars;
+    }).map(({packageJSON,extensionPath})=>{
+        const contributesLanguages = packageJSON.contributes.languages||[];
+        const languages:ITMLanguageExtensionPoint[] = contributesLanguages.map((item:any)=>{ 
+            return {
+                id:languageId++,
+                name:item.id
+            }
         });
-        canLanguages = canLanguages.concat(extension.packageJSON.contributes.grammars.map((g: any) => g.language));
+        return {
+            languages,
+            value:packageJSON.contributes.grammars,
+            extensionLocation:extensionPath
+        }
     });
+
+    canLanguages = grammarExtensions.reduce<string[]>(((prev, item)=>{
+        let lang = item.value.map((grammar)=>grammar.language).filter(v=>v);
+        return prev.concat(lang);
+    }), canLanguages);
+
+
     let BlackLanguage: string[] = ['log', 'Log','code-runner-output'];
-    canLanguages = canLanguages.filter(v => v).filter((v) => BlackLanguage.indexOf(v) < 0);
+    canLanguages = canLanguages.filter((v) => BlackLanguage.indexOf(v) < 0);
     let userLanguage = env.language;
 
     let langMaps:Map<string,string> = new Map([
@@ -148,29 +173,12 @@ export async function activate(context: ExtensionContext) {
         outputChannel.append(e);
     });
 
-    //提供选择检查服务
-    client.onRequest<ICommentBlock, TextDocumentPositionParams>('selectionContains', (textDocumentPosition: TextDocumentPositionParams) => {
-        let editor = window.activeTextEditor;
-        //有活动editor，并且打开文档与请求文档一致时处理请求
-        if (editor && editor.document.uri.toString() === textDocumentPosition.textDocument.uri) {
-            //类型转换
-            let position = new Position(textDocumentPosition.position.line, textDocumentPosition.position.character);
-            let selection = editor.selections.find((selection) => {
-                return !selection.isEmpty && selection.contains(position);
-            });
+    translationProvider = new TranslationExtensionProvider(translator);
 
-            if (selection) {
-                return {
-                    range: selection,
-                    comment: editor.document.getText(selection)
-                };
-            }
-        }
-
-        return null;
-    });
     let lastShowHover: number;
     let showHoverTimer:NodeJS.Timeout;
+
+    //TODO 正常编码的时候，大段代码选中也会触发。 可增加 isCode() 判断，减少不必要提醒
     context.subscriptions.push(window.onDidChangeTextEditorSelection((e)=>{
         // 只支持划词翻译
         if(e.kind !== TextEditorSelectionChangeKind.Mouse) return;
@@ -186,6 +194,14 @@ export async function activate(context: ExtensionContext) {
             lastShowHover = (new Date()).getTime();
         },laterTime);
     }));
+
+
+    // 暴露翻译插件
+    return {
+        extendTranslation: function(registry:any) {
+			registry('ali.cloud', AliTranslator);
+		}
+    }
 }
 
 export function deactivate(): Thenable<void> {

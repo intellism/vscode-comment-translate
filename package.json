@@ -2,7 +2,7 @@
     "name": "comment-translate",
     "displayName": "%commentTranslate.displayName%",
     "description": "%commentTranslate.description%",
-    "version": "1.5.0",
+    "version": "2.0.0",
     "publisher": "intellsmi",
     "author": {
         "name": "Zheng MaoWei",
@@ -70,6 +70,7 @@
             {
                 "title": "Comment Translate Configuration",
                 "type": "Object",
+                "order": 11,
                 "properties": {
                     "commentTranslate.targetLanguage": {
                         "type": "string",
@@ -324,16 +325,34 @@
                     },
                     "commentTranslate.source": {
                         "type": "string",
-                        "enum": [
-                            "Google",
-                            "Bing",
-                            "Baidu"
-                        ],
+                        "default": "Google",
                         "description": "%commentTranslate.configuration.source%"
                     }
                 }
-            }
-        ]
+            },
+            {
+				"title": "Translation ALI Configuration",
+                "type": "Object",
+                "order": 12,
+                "properties": {
+					"commentTranslate.translationAli.accessKeyId": {
+						"type": "string",
+						"description": "accessKeyId"
+					},
+					"commentTranslate.translationAli.accessKeySecret": {
+						"type": "string",
+						"description": "accessKeySecret"
+					}
+				}
+			}
+        ],
+        "translations": [
+			{
+				"translation": "ali.cloud",
+				"title": "Ali translate cloud",
+                "category": "ALI"
+			}
+		]
     },
     "scripts": {
         "vscode:prepublish": "npm run compile",

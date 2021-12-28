@@ -2,8 +2,6 @@ import humanizeString = require("humanize-string");
 import { Range, Position, window } from "vscode";
 import { getConfig } from "../configuration";
 import { client, translator } from "../extension";
-// import { comment, connection, getConfig, translator } from "../server";
-// import { ICommentBlock } from "../syntax/CommentParse";
 import { ShortLive } from "../util/short-live";
 import { hasEndMark, isLowerCase, isUpperCase } from "../util/string";
 

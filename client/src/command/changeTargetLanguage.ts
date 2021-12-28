@@ -1,5 +1,6 @@
 import { workspace } from "vscode";
 import { selectTargetLanguage, selectTranslateSource } from "../configuration";
+import { translationProvider } from "../extension";
 
 // 更改目标语言命令
 export async function changeTargetLanguage () {
@@ -13,6 +14,7 @@ export async function changeTargetLanguage () {
 export async function changeTranslateSource() {
     let targetSource = await selectTranslateSource();
     if(targetSource) {
+        await translationProvider.selectTranslation(targetSource);
         const configuration = workspace.getConfiguration('commentTranslate');
         await configuration.update('source', targetSource);
     }

@@ -1,8 +1,9 @@
 import { Selection, window, Range, Position } from "vscode";
 import { selectTargetLanguage } from "../configuration";
-import { client } from "../extension";
+import { client, translator } from "../extension";
 async function translateSelection(text: string, selection: Selection, targetLanguage: string) {
-    let translation = await client.sendRequest<string>('translate', { text, targetLanguage });
+    // let translation = await client.sendRequest<string>('translate', { text, targetLanguage });
+    let translation = await translator.translate(text, {to:targetLanguage});
     return { translation, selection };
 }
 

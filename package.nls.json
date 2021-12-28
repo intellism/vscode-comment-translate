@@ -6,7 +6,7 @@
     "commentTranslate.command.replaceSelections": "Translate and replace selections",
     "commentTranslate.configuration.concise": "Concise mode",
     "commentTranslate.configuration.targetLanguage": "Translation to target language",
-    "commentTranslate.configuration.source": "Translate servcie source",
+    "commentTranslate.configuration.source": "Translate servcie source. Google, Bing, Baidu have been built-in.",
     "commentTranslate.configuration.openHover": "Open hover translation",
     "commentTranslate.configuration.stringHover": "Hover translation string",
     "commentTranslate.configuration.variableHover": "Hover translation variable",

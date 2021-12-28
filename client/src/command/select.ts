@@ -6,10 +6,12 @@ export async function selectLastHover() {
     if (editor) {
         // let hover = await client.sendRequest<Hover>('lastHover', { uri: editor.document.uri.toString() });
         let hover = lastHover(editor.document.uri.toString());
-        if (!hover) return;
+        if (!hover || !hover.range) return;
         editor.revealRange(hover.range);
+        const {start,end} = hover.range;
 
-        // TODO 可以取消现有选区？
-        editor.selections = [new Selection(new Position(hover.range.start.line, hover.range.start.character), new Position(hover.range.end.line, hover.range.end.character))];
+        // 会复用对象？必须重新构建
+        // editor.selections = [new Selection(start,end)]; 
+        editor.selections = [new Selection(start.line,start.character,end.line,end.character)];
     }
 }

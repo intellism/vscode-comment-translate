@@ -1,5 +1,6 @@
 
 import { workspace, window, QuickPickItem, ThemeIcon, commands } from 'vscode';
+import { translationProvider, translator } from './extension';
 import { LANGS } from './lang';
 
 let languages = new Map(LANGS);
@@ -21,9 +22,9 @@ export async function selectTargetLanguage(placeHolder: string = 'Select target 
         description: defaultLanguage,
         detail: 'Default select'
     });
-    
-    let res: QuickPickItem = await new Promise<QuickPickItem|undefined>(
-        async(resolve) => {
+
+    let res: QuickPickItem = await new Promise<QuickPickItem | undefined>(
+        async (resolve) => {
             let quickPick = window.createQuickPick();
             quickPick.items = items;
             quickPick.placeholder = placeHolder;
@@ -45,13 +46,13 @@ export async function selectTargetLanguage(placeHolder: string = 'Select target 
             quickPick.buttons = [button];
             quickPick.onDidTriggerButton(async item => {
                 if (item === button) {
-                    await commands.executeCommand('workbench.action.openWorkspaceSettings',{
-                        query:'commentTranslate'
+                    await commands.executeCommand('workbench.action.openWorkspaceSettings', {
+                        query: 'commentTranslate'
                     });
                 }
             });
-            quickPick.onDidChangeSelection((r)=>{
-                if(r.length>0) {
+            quickPick.onDidChangeSelection((r) => {
+                if (r.length > 0) {
                     quickPick.hide();
                     resolve(r[0]);
                 } else {
@@ -76,7 +77,7 @@ export async function showHoverStatusBar(userLanguage: string) {
 
     let setLanguageText = async () => {
         let enableHover = getConfig<boolean>('hover.open');
-        bar.text = `$(${enableHover?'eye':'eye-closed'}) `;
+        bar.text = `$(${enableHover ? 'eye' : 'eye-closed'}) `;
     }
     await setLanguageText();
     bar.show();
@@ -110,28 +111,29 @@ export async function showTargetLanguageStatusBarItem(userLanguage: string) {
     return targetBar;
 }
 
-export function getConfig<T>(key:string):T {
+export function getConfig<T>(key: string): T {
     let configuration = workspace.getConfiguration('commentTranslate');
     return configuration.get<T>(key);
 }
 
-const Source = [
-    ['Google','google'],
-    ['Baidu','baidu'],
-    ['Bing','bing'],
-];
-export async function selectTranslateSource( placeHolder: string = 'Select translate source.' ) {
-    let originSource = getConfig<string>('source');
-    let items: QuickPickItem[] = Source.filter(item=>item[0] !== originSource).map(item => {
-        return {
-            label: item[0],
-            description: item[1],
-        };
-    });
+export async function selectTranslateSource(placeHolder: string = 'Select translate source.') {
+    const allTranslaton = translationProvider.getAllTransationConfig();
+    let items: QuickPickItem[] = [];
+    for (let [id, conf] of allTranslaton) {
+        let {category='',title} = conf;
+        if (category) {
+            category = category + ':';
+        }
 
-    let res: QuickPickItem = await window.showQuickPick(items, {placeHolder});
+        items.push({
+            label: category + title,
+            description: id
+        });
+    }
+
+    let res: QuickPickItem = await window.showQuickPick(items, { placeHolder });
     if (res) {
-        return res.label;
+        return res.description;
     }
     return null;
 }
