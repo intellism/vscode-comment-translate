@@ -46,7 +46,7 @@ export async function selectTargetLanguage(placeHolder: string = 'Select target 
                     });
                 }
                 if (item === changeTranslateSourceButton) {
-                    await commands.executeCommand('commentTranslate._changeTranslateSource');
+                    await commands.executeCommand('commentTranslate.changeTranslateSource');
                 }
             });
             quickPick.onDidChangeSelection((r) => {
@@ -74,7 +74,7 @@ export async function showHoverStatusBar(userLanguage: string) {
     bar.tooltip = 'Comment translate toggle enable hover.';
 
     let setLanguageText = async () => {
-        let enableHover = getConfig<boolean>('hover.open');
+        let enableHover = getConfig<boolean>('hover.enabled');
         bar.text = `$(${enableHover ? 'eye' : 'eye-closed'}) `;
     }
     await setLanguageText();

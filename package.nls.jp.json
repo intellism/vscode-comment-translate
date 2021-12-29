@@ -1,14 +1,15 @@
 {
     "commentTranslate.displayName": "コメント翻訳",
-    "commentTranslate.configuration.concise": "簡潔なモード",
+    "commentTranslate.configuration.concise": "簡潔なモード.オンにするとctrlまたはcommandを押すだけで懸濁翻訳がトリガーされます",
     "commentTranslate.description": "このプラグインは、Google Translate APIを使用してVSCodeプログラミング言語のコメントを翻訳します。 ",
     "commentTranslate.command.select": "最後の翻訳領域を素早く選択",
     "commentTranslate.command.changeTargetLanguage": "翻訳対象言語の変更",
+    "commentTranslate.command.changeTranslateSource": "ソースを変える",
     "commentTranslate.command.replaceSelections": "選択の翻訳と置換",
     "commentTranslate.configuration.targetLanguage": "ターゲット言語への翻訳",
     "commentTranslate.configuration.source": "サービスソースの翻訳",
-    "commentTranslate.configuration.openHover": "Open hover translation",
-    "commentTranslate.configuration.stringHover": "Hover translation string",
-    "commentTranslate.configuration.variableHover": "Hover translation variable",
+    "commentTranslate.configuration.openHover": "オープンホバー翻訳",
+    "commentTranslate.configuration.stringHover": "翻訳文字列",
+    "commentTranslate.configuration.variableHover": "翻訳変数",
     "commentTranslate.configuration.MultilineMerge": "コメント複数行マージ"
 }

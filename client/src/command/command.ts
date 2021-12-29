@@ -9,7 +9,7 @@ export function registerCommands(context: ExtensionContext) {
         commands.registerCommand('commentTranslate._replaceRange', replaceRange),
         commands.registerCommand('commentTranslate.replaceSelections', replaceSelections),
         commands.registerCommand('commentTranslate._toggleMultiLineMerge', toggleMultiLineMerge),
-        commands.registerCommand('commentTranslate._changeTranslateSource', changeTranslateSource),
+        commands.registerCommand('commentTranslate.changeTranslateSource', changeTranslateSource),
         commands.registerCommand('commentTranslate._openOutputPannel', openOutputPannel),
         commands.registerCommand('commentTranslate.toggleEnableHover', toggleEnableHover),
         commands.registerCommand('commentTranslate.changeTargetLanguage', changeTargetLanguage)

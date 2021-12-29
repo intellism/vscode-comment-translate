@@ -27,7 +27,7 @@ export function registerHover(canLanguages:string[] = []) {
             const multiLine = getConfig<boolean>('multiLineMerge');
             const combine = `[$(${multiLine?'selection':'remove'})](command:commentTranslate._toggleMultiLineMerge "Toggle Combine Multi Line")`;
 
-            const translate = `[$(sync)](command:commentTranslate._changeTranslateSource "Change translate source")`;
+            const translate = `[$(sync)](command:commentTranslate.changeTranslateSource "Change translate source")`;
 
             const header = new MarkdownString(`[Comment Translate]${space}${replace}${space}${combine}${separator}${translate}${space}${translatedLink}`,true);
             header.isTrusted = true;

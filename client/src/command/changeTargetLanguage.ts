@@ -36,8 +36,8 @@ export async function toggleMultiLineMerge() {
 
 export async function toggleEnableHover() {
     let configuration = workspace.getConfiguration('commentTranslate');
-    let origin = await configuration.get<boolean>('hover.open');
-    await configuration.update('hover.open', !origin);
+    let origin = await configuration.get<boolean>('hover.enabled');
+    await configuration.update('hover.enabled', !origin);
 }
 
 export async function openOutputPannel() {

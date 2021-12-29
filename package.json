@@ -45,6 +45,11 @@
                 "category": "Comment Translate"
             },
             {
+                "command": "commentTranslate.changeTranslateSource",
+                "title": "%commentTranslate.command.changeTranslateSource%",
+                "category": "Comment Translate"
+            },
+            {
                 "command": "commentTranslate.changeTargetLanguage",
                 "title": "%commentTranslate.command.changeTargetLanguage%",
                 "category": "Comment Translate"
@@ -296,36 +301,43 @@
                             "Yoruba",
                             "Zulu"
                         ],
+                        "order": 26,
                         "description": "%commentTranslate.configuration.targetLanguage%"
                     },
                     "commentTranslate.multiLineMerge": {
                         "type": "boolean",
                         "default": false,
+                        "order": 25,
                         "description": "%commentTranslate.configuration.MultilineMerge%"
                     },
                     "commentTranslate.hover.concise": {
                         "type": "boolean",
                         "default": false,
+                        "order": 22,
                         "description": "%commentTranslate.configuration.concise%"
                     },
                     "commentTranslate.hover.variable": {
                         "type": "boolean",
                         "default": false,
+                        "order": 24,
                         "description": "%commentTranslate.configuration.variableHover%"
                     },
                     "commentTranslate.hover.string": {
                         "type": "boolean",
                         "default": false,
+                        "order": 23,
                         "description": "%commentTranslate.configuration.stringHover%"
                     },
-                    "commentTranslate.hover.open": {
+                    "commentTranslate.hover.enabled": {
                         "type": "boolean",
                         "default": true,
+                        "order": 21,
                         "description": "%commentTranslate.configuration.openHover%"
                     },
                     "commentTranslate.source": {
                         "type": "string",
                         "default": "Google",
+                        "order": 27,
                         "description": "%commentTranslate.configuration.source%"
                     }
                 }

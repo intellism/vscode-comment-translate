@@ -55,7 +55,7 @@ function selectionContains(url: string, position: Position): ICommentBlock | nul
 
 export async function getHover(url: string, position: Position): Promise<ITranslateHover | null> {
 	const concise = getConfig<boolean>('hover.concise');
-	const open = getConfig<boolean>('hover.open');
+	const open = getConfig<boolean>('hover.enabled');
 	const targetLanguage = getConfig<string>('targetLanguage');
 	const multiLineMerge = getConfig<boolean>('multiLineMerge');
 	if (!open) return null;
