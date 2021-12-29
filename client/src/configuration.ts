@@ -1,6 +1,6 @@
 
 import { workspace, window, QuickPickItem, ThemeIcon, commands } from 'vscode';
-import { translationProvider, translator } from './extension';
+import { translateExtensionProvider } from './extension';
 import { LANGS } from './lang';
 
 let languages = new Map(LANGS);
@@ -28,27 +28,25 @@ export async function selectTargetLanguage(placeHolder: string = 'Select target 
             let quickPick = window.createQuickPick();
             quickPick.items = items;
             quickPick.placeholder = placeHolder;
-            // const createButton = async () => {
-            //     let enableHover = getConfig<boolean>('hover.open');
-            //     let button = {
-            //         iconPath: new ThemeIcon(enableHover?'eye':'eye-closed'),
-            //         tooltip: 'Toggle enable hover.'
-            //     };
-            //     quickPick.buttons = [button];
-
-            //     return button;
-            // };
-
             let button = {
                 iconPath: new ThemeIcon('settings-gear'),
                 tooltip: 'Open Comment Translate setting.'
             };
-            quickPick.buttons = [button];
+
+            let changeTranslateSourceButton = {
+                iconPath: new ThemeIcon('sync'),
+                tooltip: 'Change translate source.'
+            }
+
+            quickPick.buttons = [changeTranslateSourceButton,button];
             quickPick.onDidTriggerButton(async item => {
                 if (item === button) {
                     await commands.executeCommand('workbench.action.openWorkspaceSettings', {
                         query: 'commentTranslate'
                     });
+                }
+                if (item === changeTranslateSourceButton) {
+                    await commands.executeCommand('commentTranslate._changeTranslateSource');
                 }
             });
             quickPick.onDidChangeSelection((r) => {
@@ -117,7 +115,7 @@ export function getConfig<T>(key: string): T {
 }
 
 export async function selectTranslateSource(placeHolder: string = 'Select translate source.') {
-    const allTranslaton = translationProvider.getAllTransationConfig();
+    const allTranslaton = translateExtensionProvider.getAllTransationConfig();
     let items: QuickPickItem[] = [];
     for (let [id, conf] of allTranslaton) {
         let {category='',title} = conf;

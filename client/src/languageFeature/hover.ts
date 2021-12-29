@@ -38,6 +38,10 @@ export function registerHover(canLanguages:string[] = []) {
             }
             const codeDefine = '```';
             let md = new MarkdownString(`${codeDefine}${document.languageId}\n${showText}\n ${codeDefine}`);
+            if(!translatedText) {
+                md = new MarkdownString(`**Translate Error**: Check [OutputPannel](command:commentTranslate._openOutputPannel "open output pannel") for details.`);
+                md.isTrusted = true;
+            }
             const hover = new Hover([header,md], range);
             last.set(uri, hover);
             return hover;

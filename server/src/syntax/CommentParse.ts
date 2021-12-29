@@ -285,7 +285,7 @@ export class CommentParse {
         }
         //字符串中包含 \n 等， 需要在当前行，合并连续token
         if (stringHover && scopes && isString(scopes)) {
-            return this.commentScopeParse(position,isString,true,{ignoreHandle:ignoreString});
+            return this.commentScopeParse(position,isString,false,{ignoreHandle:ignoreString});
         }
         
         if (variableHover && scopes && isBase(scopes)) {

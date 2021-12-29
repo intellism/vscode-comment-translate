@@ -1,5 +1,6 @@
-import { BaseTranslate, ITranslateOptions } from './translate';
+import { BaseTranslate } from './baseTranslate';
 import request from '../util/request-promise';
+import { ITranslateOptions } from './translateManager';
 const querystring = require('querystring');
 const GoogleToken: IGetToken = require('@vitalets/google-translate-token');
 interface IGetToken {
@@ -11,10 +12,8 @@ interface IGetToken {
     }>;
 }
 
-//免费API https://github.com/Selection-Translator/translation.js/tree/master/src
 export class GoogleTranslate extends BaseTranslate {
-    private _requestErrorTime: number = 0;
-    async _request(content: string, { from = 'auto', to = 'auto' }: ITranslateOptions): Promise<string> {
+    async _translate(content: string, { from = 'auto', to = 'auto' }: ITranslateOptions): Promise<string> {
         let tld = 'cn';
         let token = await GoogleToken.get(content, { tld });
         let url = 'https://translate.google.' + tld + '/translate_a/single';
@@ -56,33 +55,13 @@ export class GoogleTranslate extends BaseTranslate {
 
     link(content: string, { to = 'auto' }: ITranslateOptions): string {
         // [fix] 参数变化zh-cn -> zh-CN。
-        let [first, last] = to.split('-');
-        if (last) {
-            last = last.toLocaleUpperCase();
-            to = `${first}-${last}`;
-        }
+        // let [first, last] = to.split('-');
+        // if (last) {
+        //     last = last.toLocaleUpperCase();
+        //     to = `${first}-${last}`;
+        // }
         let str = `https://translate.google.cn/#view=home&op=translate&sl=auto&tl=${to}&text=${encodeURIComponent(content)}`;
         return `[Google](${str})`;
         // return `<a href="${encodeURI(str)}">Google</a>`;
-    }
-
-    async _translate(content: string, opts: ITranslateOptions): Promise<string> {
-        let result = '';
-        // 上一次失败的时间间隔小于5分钟，直接返回空
-        if (Date.now() - this._requestErrorTime <= 5 * 60 * 1000) {
-            return result;
-        }
-        try {
-            result = await this._request(content, opts);
-            this._onTranslate.fire(
-                `[Google Translate]:\n${content}\n[<============================>]:\n${result}\n`
-            );
-        } catch (e) {
-            this._requestErrorTime = Date.now();
-            this._onTranslate.fire(
-                `[Google Translate]: request error\n ${JSON.stringify(e)} \n Try again in 5 minutes.`
-            );
-        }
-        return result;
     }
 }

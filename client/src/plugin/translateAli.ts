@@ -2,7 +2,7 @@
 
 import * as RPCClient from '@alicloud/pop-core';
 import { workspace } from 'vscode';
-import { ITranslateOptions } from '../translate/translate';
+import { ITranslate, ITranslateOptions } from '../translate/translateManager';
 
 const PREFIXCONFIG = 'commentTranslate.translationAli';
 const PARAMS = {
@@ -238,12 +238,24 @@ interface IParam {
     SourceText: string;
 }
 
+const langMaps:Map<string,string> = new Map([
+    ['zh-CN','zh'],
+    ['zh-TW','zh-tw'],
+]);
+
+function convertLang( src:string ){
+    if(langMaps.has(src)) {
+        return langMaps.get(src);
+    }
+    return src;
+}
+
 export function getConfig<T>(key:string):T | undefined {
     let configuration = workspace.getConfiguration(PREFIXCONFIG);
     return configuration.get<T>(key);
 }
 
-export class AliTranslator {
+export class AliTranslate implements ITranslate {
     private _client: RPCClient | null = null;
     constructor() {
         this.createClient();
@@ -257,7 +269,7 @@ export class AliTranslator {
     createClient() {
         let accessKeyId = getConfig<string>('accessKeyId');
         let accessKeySecret= getConfig<string>('accessKeySecret');
-        if(!(accessKeyId && accessKeySecret)) {
+        if(!accessKeyId || !accessKeySecret) {
             console.error('Please check the configuration of accesskeyid and accesskeysecret! ');
             return null;
         }
@@ -274,39 +286,28 @@ export class AliTranslator {
         
         return this._translate({
             SourceText:content,
-            TargetLanguage:this._langMap(to),
-            SourceLanguage:this._langMap(from)
+            TargetLanguage:convertLang(to),
+            SourceLanguage:convertLang(from)
         });
-    }
-
-    _langMap( src:string ){
-        let langMaps:Map<string,string> = new Map([
-            ['zh-CN','zh'],
-            ['zh-TW','zh-tw'],
-        ]);
-
-        if(langMaps.has(src)) {
-            return langMaps.get(src);
-        }
-        return src;
     }
 
     async _translate(params:IParam) {
         if(!this._client) {
-            throw new Error('Client was not initialized successfully!');
-        };
+            throw new Error('Client was not initialized successfully! Please check the configuration of accesskeyid and accesskeysecret!');
+        }
 
         let result = await this._client.request<{code:number,Data:{Translated:string}}>('TranslateGeneral', Object.assign({},params,PARAMS), requestOption);
         return result.Data.Translated;
     }
 
     link(content: string, {  to = 'auto' }: ITranslateOptions) {
-        let str = `https://cn.bing.com/translator/?text=${encodeURIComponent(content)}&from=auto-detect&to=${this._langMap(to)}`;
+        let str = `https://cn.bing.com/translator/?text=${encodeURIComponent(content)}&from=auto-detect&to=${convertLang(to)}`;
         return `[AliCloud](${str})`;
     }
 
-    isSupported() {
-
+    isSupported(src:string) {
+        const found = LANGS.find(item => item === convertLang(src));
+        return found?true:false;
     }
 }
 

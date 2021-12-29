@@ -1,10 +1,10 @@
 import { Selection, window, Range, Position } from "vscode";
 import { selectTargetLanguage } from "../configuration";
-import { client, translator } from "../extension";
+import { client, translateManager } from "../extension";
 async function translateSelection(text: string, selection: Selection, targetLanguage: string) {
     // let translation = await client.sendRequest<string>('translate', { text, targetLanguage });
-    let translation = await translator.translate(text, {to:targetLanguage});
-    return { translation, selection };
+    let translatedText = await translateManager.translate(text, {to:targetLanguage});
+    return { translatedText, selection };
 }
 
 export async function replaceRange({ uri, text, range }: { uri: string, text: string, range: Range }) {
@@ -65,8 +65,8 @@ export async function replaceSelections() {
             decoration.dispose();
         }, 1000 - (Date.now() - beginTime));
         editor.edit(builder => {
-            results.forEach(item => {
-                item.translation && builder.replace(item.selection, item.translation);
+            results.forEach(({translatedText, selection}) => {
+                translatedText && builder.replace(selection, translatedText);
             });
         });
     } catch (e) {

@@ -1,29 +1,29 @@
 import humanizeString = require("humanize-string");
 import { Range, Position, window } from "vscode";
 import { getConfig } from "../configuration";
-import { client, translator } from "../extension";
+import { client, translateManager } from "../extension";
 import { ShortLive } from "../util/short-live";
 import { hasEndMark, isLowerCase, isUpperCase } from "../util/string";
 
 export interface ICommentBlock {
-    humanize?: boolean;
-    range: Range;
-    comment: string;
-    tokens?: ICommentToken[];
+	humanize?: boolean;
+	range: Range;
+	comment: string;
+	tokens?: ICommentToken[];
 }
 interface ICommentToken {
-    ignoreStart?:number;
-    ignoreEnd?:number;
-    text:string;
-    scope:IScopeLen[];
+	ignoreStart?: number;
+	ignoreEnd?: number;
+	text: string;
+	scope: IScopeLen[];
 }
 
-interface IScopeLen{
-    scopes:string[];
-    len:number;
+interface IScopeLen {
+	scopes: string[];
+	len: number;
 }
 
-export let shortLive = new ShortLive<string>((prev, curr) => prev===curr);
+export let shortLive = new ShortLive<string>((prev, curr) => prev === curr);
 
 export interface ITranslateHover {
 	originText: string;
@@ -33,7 +33,7 @@ export interface ITranslateHover {
 	range: Range;
 }
 
-function selectionContains(url:string, position:Position):ICommentBlock | null {
+function selectionContains(url: string, position: Position): ICommentBlock | null {
 	let editor = window.activeTextEditor;
 	//有活动editor，并且打开文档与请求文档一致时处理请求
 	if (editor && editor.document.uri.toString() === url) {
@@ -53,16 +53,17 @@ function selectionContains(url:string, position:Position):ICommentBlock | null {
 	return null;
 }
 
-export async function getHover(url:string, position:Position): Promise<ITranslateHover | null> {
+export async function getHover(url: string, position: Position): Promise<ITranslateHover | null> {
 	const concise = getConfig<boolean>('hover.concise');
 	const open = getConfig<boolean>('hover.open');
+	const targetLanguage = getConfig<string>('targetLanguage');
 	const multiLineMerge = getConfig<boolean>('multiLineMerge');
 	if (!open) return null;
 	if (concise && !shortLive.isLive(url)) return null;
 
-	let block: ICommentBlock | null = selectionContains(url,position);
+	let block: ICommentBlock | null = selectionContains(url, position);
 	if (!block) {
-		const textDocumentPosition = {textDocument: {uri: url},position};
+		const textDocumentPosition = { textDocument: { uri: url }, position };
 		block = await client.sendRequest<ICommentBlock | null>('getComment', textDocumentPosition);
 	}
 	if (!block) {
@@ -72,15 +73,15 @@ export async function getHover(url:string, position:Position): Promise<ITranslat
 	let translatedText: string;
 	let humanizeText: string = '';
 	const { comment: originText, range, tokens } = block;
-	
-	if(!tokens) {
+
+	if (!tokens) {
 		// 选取翻译&单个单词翻译的时候。无tokens的简单结果
 		const needHumanize = originText.trim().indexOf(' ') < 0;
 		if (needHumanize) {
 			// 转换为可以自然语言分割
 			humanizeText = humanizeString(originText);
 		}
-		translatedText = await translator.translate(humanizeText || originText);
+		translatedText = await translateManager.translate(humanizeText || originText, { to: targetLanguage });
 	} else {
 		// 注释、文本，有tokens的语义翻译处理。
 		// TODO 文本处理 可以抽离出去，后面正则过滤的时候迁移
@@ -126,38 +127,42 @@ export async function getHover(url:string, position:Position): Promise<ITranslat
 			}
 		}
 
-		translatedText = await translator.translate(humanizeText || comment);
-		
-		// 重新组合翻译结果，还原被翻译时过滤的符合.  如 /* // 等
-		let targets = translatedText.split('\n');
-		if (validTexts.length === targets.length) {
-			let translated = [];
-			for (let i = 0, j = 0; i < tokens.length; i++) {
-				const { text, ignoreStart = 0, ignoreEnd = 0 } = tokens[i];
-				const translateText = texts[i];
-				let targetText = '';
-				if (translateText.length > 0) {
-					targetText = targets[j];
-					j += 1;
+		const translateText = humanizeText || comment;
+		if (!translateText) {
+			translatedText = originText;
+		} else {
+			translatedText = await translateManager.translate(translateText, { to: targetLanguage });
+			// 重新组合翻译结果，还原被翻译时过滤的符合.  如 /* // 等
+			let targets = translatedText.split('\n');
+			if (translatedText && validTexts.length === targets.length) {
+				let translated = [];
+				for (let i = 0, j = 0; i < tokens.length; i++) {
+					const { text, ignoreStart = 0, ignoreEnd = 0 } = tokens[i];
+					const translateText = texts[i];
+					let targetText = '';
+					if (translateText.length > 0) {
+						targetText = targets[j];
+						j += 1;
+					}
+					// 被合并的行跳过
+					if (targetText === '' && combined[i]) {
+						continue;
+					}
+					const startText = text.slice(0, ignoreStart);
+					const endText = text.slice(text.length - ignoreEnd);
+					translated.push(startText + targetText + endText);
 				}
-				// 被合并的行跳过
-				if (targetText === '' && combined[i]) {
-					continue;
-				}
-				const startText = text.slice(0, ignoreStart);
-				const endText = text.slice(text.length - ignoreEnd);
-				translated.push(startText + targetText + endText);
+				translatedText = translated.join('\n');
 			}
-			translatedText = translated.join('\n');
 		}
 
-	} 
+	}
 
 	return {
 		originText,
 		range,
 		translatedText,
 		humanizeText,
-		translatedLink: translator.link(humanizeText || originText)
+		translatedLink: translateManager.link(humanizeText || originText, { to: targetLanguage })
 	};
 }

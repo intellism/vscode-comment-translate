@@ -5,7 +5,7 @@
 'use strict';
 
 import * as path from 'path';
-import { ExtensionContext, extensions, env, commands, window, TextEditorSelectionChangeKind} from 'vscode';
+import { ExtensionContext, extensions, env, commands, window, TextEditorSelectionChangeKind } from 'vscode';
 
 import {
     LanguageClient,
@@ -14,14 +14,17 @@ import {
     TransportKind,
 } from 'vscode-languageclient/node';
 import { registerCommands } from './command/command';
-import { showHoverStatusBar, showTargetLanguageStatusBarItem } from './configuration';
+import { getConfig, showHoverStatusBar, showTargetLanguageStatusBarItem } from './configuration';
 import { registerDefinition } from './languageFeature/definition';
 import { registerHover } from './languageFeature/hover';
-import { AliTranslator } from './plugin/translateAli';
-import { TranslationExtensionProvider } from './translate/translationExtension';
-import { Translator } from './translate/Translator';
+import { AliTranslate } from './plugin/translateAli';
+import { BaiduTranslate } from './translate/baiduTranslate';
+import { BingTranslate } from './translate/bingTranslate';
+import { GoogleTranslate } from './translate/googleTranslate';
+import { ITranslateConfig, Registry, TranslateExtensionProvider } from './translate/translateExtension';
+import { TranslateManager } from './translate/translateManager';
 
-let outputChannel = window.createOutputChannel('Comment Translate');
+export let outputChannel = window.createOutputChannel('Comment Translate');
 export let client: LanguageClient;
 let canLanguages: string[] = [];
 
@@ -50,8 +53,8 @@ export interface IGrammarExtensions {
     extensionLocation: string;
     languages: ITMLanguageExtensionPoint[];
 }
-export let translator:Translator;
-export let translationProvider:TranslationExtensionProvider
+export let translateManager: TranslateManager;
+export let translateExtensionProvider: TranslateExtensionProvider
 export async function activate(context: ExtensionContext) {
     // The server is implemented in node
     let serverModule = context.asAbsolutePath(
@@ -72,61 +75,40 @@ export async function activate(context: ExtensionContext) {
         }
     };
 
-    // let extAll = extensions.all;
-    // let languageId = 2;
-    // let grammarExtensions: IGrammarExtensions[] = [];
-    
-    // extAll.forEach(extension => {
-    //     if (!(extension.packageJSON.contributes && extension.packageJSON.contributes.grammars)) return;
-    //     let languages: ITMLanguageExtensionPoint[] = [];
-    //     (extension.packageJSON.contributes && extension.packageJSON.contributes.languages || []).forEach((language: any) => {
-    //         languages.push({
-    //             id: languageId++,
-    //             name: language.id
-    //         });
-    //     })
-    //     grammarExtensions.push({
-    //         languages: languages,
-    //         value: extension.packageJSON.contributes && extension.packageJSON.contributes.grammars,
-    //         extensionLocation: extension.extensionPath
-    //     });
-    //     canLanguages = canLanguages.concat(extension.packageJSON.contributes.grammars.map((g: any) => g.language));
-    // });
-
     let languageId = 2;
-    let grammarExtensions: IGrammarExtensions[] = extensions.all.filter(({packageJSON})=>{
+    let grammarExtensions: IGrammarExtensions[] = extensions.all.filter(({ packageJSON }) => {
         return packageJSON.contributes && packageJSON.contributes.grammars;
-    }).map(({packageJSON,extensionPath})=>{
-        const contributesLanguages = packageJSON.contributes.languages||[];
-        const languages:ITMLanguageExtensionPoint[] = contributesLanguages.map((item:any)=>{ 
+    }).map(({ packageJSON, extensionPath }) => {
+        const contributesLanguages = packageJSON.contributes.languages || [];
+        const languages: ITMLanguageExtensionPoint[] = contributesLanguages.map((item: any) => {
             return {
-                id:languageId++,
-                name:item.id
+                id: languageId++,
+                name: item.id
             }
         });
         return {
             languages,
-            value:packageJSON.contributes.grammars,
-            extensionLocation:extensionPath
+            value: packageJSON.contributes.grammars,
+            extensionLocation: extensionPath
         }
     });
 
-    canLanguages = grammarExtensions.reduce<string[]>(((prev, item)=>{
-        let lang = item.value.map((grammar)=>grammar.language).filter(v=>v);
+    canLanguages = grammarExtensions.reduce<string[]>(((prev, item) => {
+        let lang = item.value.map((grammar) => grammar.language).filter(v => v);
         return prev.concat(lang);
     }), canLanguages);
 
 
-    let BlackLanguage: string[] = ['log', 'Log','code-runner-output'];
+    let BlackLanguage: string[] = ['log', 'Log', 'code-runner-output'];
     canLanguages = canLanguages.filter((v) => BlackLanguage.indexOf(v) < 0);
     let userLanguage = env.language;
 
-    let langMaps:Map<string,string> = new Map([
-        ['zh-cn','zh-CN'],
-        ['zh-tw','zh-TW'],
+    let langMaps: Map<string, string> = new Map([
+        ['zh-cn', 'zh-CN'],
+        ['zh-tw', 'zh-TW'],
     ]);
     // 修复语言代码不一致
-    if(langMaps.has(userLanguage)) {
+    if (langMaps.has(userLanguage)) {
         userLanguage = langMaps.get(userLanguage);
     }
 
@@ -134,7 +116,7 @@ export async function activate(context: ExtensionContext) {
     let clientOptions: LanguageClientOptions = {
         // Register the server for plain text documents
         revealOutputChannelOn: 4,
-        outputChannel:outputChannel,
+        outputChannel: outputChannel,
         initializationOptions: {
             grammarExtensions, appRoot: env.appRoot, userLanguage
         },
@@ -163,44 +145,60 @@ export async function activate(context: ExtensionContext) {
     // 注册状态图标
     let hoverBar = await showHoverStatusBar(userLanguage);
     let targetBar = await showTargetLanguageStatusBarItem(userLanguage);
-    context.subscriptions.push(targetBar,hoverBar);
+    context.subscriptions.push(targetBar, hoverBar);
 
     //client准备就绪后再其他服务
     await client.onReady();
 
-    translator = new Translator();
-    translator.onTranslate(e=>{
+    translateManager = new TranslateManager(context.workspaceState);
+    translateManager.onTranslate(e => {
         outputChannel.append(e);
     });
 
-    translationProvider = new TranslationExtensionProvider(translator);
+    const buildInTranslate:ITranslateConfig[] = [{
+        title: 'Google translate',
+        ctor: GoogleTranslate,
+        translate: 'Google'
+    },
+    {
+        title: 'Baidu translate',
+        ctor: BaiduTranslate,
+        translate: 'Baidu'
+    },
+    {
+        title: 'Bing translate',
+        ctor: BingTranslate,
+        translate: 'Bing'
+    }];
+    translateExtensionProvider = new TranslateExtensionProvider(translateManager, buildInTranslate);
+    translateExtensionProvider.init(getConfig<string>('source'));
 
     let lastShowHover: number;
-    let showHoverTimer:NodeJS.Timeout;
+    let showHoverTimer: NodeJS.Timeout;
 
     //TODO 正常编码的时候，大段代码选中也会触发。 可增加 isCode() 判断，减少不必要提醒
-    context.subscriptions.push(window.onDidChangeTextEditorSelection((e)=>{
+    context.subscriptions.push(window.onDidChangeTextEditorSelection((e) => {
         // 只支持划词翻译
-        if(e.kind !== TextEditorSelectionChangeKind.Mouse) return;
-        if(e.selections.filter(selection => !selection.isEmpty).length === 0) return;
+        if (e.kind !== TextEditorSelectionChangeKind.Mouse) return;
+        if (e.selections.filter(selection => !selection.isEmpty).length === 0) return;
         let laterTime = 300;
-        if(lastShowHover) {
+        if (lastShowHover) {
             let gap = (new Date()).getTime() - lastShowHover;
-            laterTime = Math.max(600-gap, 300);
+            laterTime = Math.max(600 - gap, 300);
         }
         clearTimeout(showHoverTimer);
-        showHoverTimer = setTimeout(()=>{
+        showHoverTimer = setTimeout(() => {
             commands.executeCommand('editor.action.showHover');
             lastShowHover = (new Date()).getTime();
-        },laterTime);
+        }, laterTime);
     }));
 
 
     // 暴露翻译插件
     return {
-        extendTranslation: function(registry:any) {
-			registry('ali.cloud', AliTranslator);
-		}
+        extendTranslate: function (registry: Registry) {
+            registry('ali.cloud', AliTranslate);
+        }
     }
 }
 

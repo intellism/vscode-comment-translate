@@ -346,11 +346,14 @@
 				}
 			}
         ],
-        "translations": [
+        "translates": [
 			{
-				"translation": "ali.cloud",
-				"title": "Ali translate cloud",
-                "category": "ALI"
+				"translate": "ali.cloud",
+				"title": "Ali Cloud Translate"
+			},
+            {
+				"translate": "notfound",
+				"title": "Can not found translate"
 			}
 		]
     },
