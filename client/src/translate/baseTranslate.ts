@@ -1,6 +1,8 @@
 import { ITranslate, ITranslateOptions } from './translateManager';
 
 export abstract class BaseTranslate implements ITranslate {
+
+    maxLen = 1000;
     constructor() {
     }
 

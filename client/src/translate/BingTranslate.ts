@@ -5,6 +5,8 @@ const { translate } = require('bing-translate-api');
 
 //免费API https://github.com/Selection-Translator/translation.js/tree/master/src
 export class BingTranslate extends BaseTranslate {
+
+    override readonly maxLen= 1000;
     async _translate(content: string, { from = 'auto', to = 'auto' }: ITranslateOptions): Promise<string> {
         let res = await translate(content, this._langMap(from), this._langMap(to));
         // console.log(res);

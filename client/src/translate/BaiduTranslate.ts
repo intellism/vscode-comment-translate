@@ -29,6 +29,7 @@ function convertLang( src:string ){
 }
 
 export class BaiduTranslate extends BaseTranslate {
+    override readonly maxLen= 500;
     async _translate(content: string, { from = 'auto', to = 'auto' }: ITranslateOptions): Promise<string> {
         let res = await translate(content, {
             from:convertLang(from), 

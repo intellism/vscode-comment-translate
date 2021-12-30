@@ -257,6 +257,7 @@ export function getConfig<T>(key:string):T | undefined {
 
 export class AliTranslate implements ITranslate {
     private _client: RPCClient | null = null;
+    readonly maxLen=1000;
     constructor() {
         this.createClient();
         workspace.onDidChangeConfiguration(async eventNames => {

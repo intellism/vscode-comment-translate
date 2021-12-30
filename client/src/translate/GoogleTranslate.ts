@@ -13,6 +13,7 @@ interface IGetToken {
 }
 
 export class GoogleTranslate extends BaseTranslate {
+    override readonly maxLen= 500;
     async _translate(content: string, { from = 'auto', to = 'auto' }: ITranslateOptions): Promise<string> {
         let tld = 'cn';
         let token = await GoogleToken.get(content, { tld });
