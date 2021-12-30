@@ -1,4 +1,4 @@
-import { Hover, languages, MarkdownString, Position, window } from "vscode";
+import { ExtensionContext, Hover, languages, MarkdownString, Position, window } from "vscode";
 import { getConfig } from "../configuration";
 import { client } from "../extension";
 import { ShortLive } from "../util/short-live";
@@ -6,9 +6,9 @@ import { compileBlock, ICommentBlock } from "./compile";
 
 export let shortLive = new ShortLive<string>((prev, curr) => prev === curr);
 let last: Map<string, Hover> = new Map();
-export function registerHover(canLanguages:string[] = []) {
+export function registerHover(context: ExtensionContext, canLanguages:string[] = []) {
 
-    languages.registerHoverProvider(canLanguages, {
+    let hoverProviderDisposable = languages.registerHoverProvider(canLanguages, {
         async provideHover(document, position) {
 
             const uri = document.uri.toString();
@@ -59,6 +59,7 @@ export function registerHover(canLanguages:string[] = []) {
         }
     });
 
+    context.subscriptions.push(hoverProviderDisposable);
 }
 
 

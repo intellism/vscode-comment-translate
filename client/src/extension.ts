@@ -14,6 +14,7 @@ import {
     TransportKind,
 } from 'vscode-languageclient/node';
 import { registerCommands } from './command/command';
+import { mouseToSelect } from './command/select';
 import { getConfig, showHoverStatusBar, showTargetLanguageStatusBarItem } from './configuration';
 import { registerDefinition } from './languageFeature/definition';
 import { registerHover } from './languageFeature/hover';
@@ -137,18 +138,17 @@ export async function activate(context: ExtensionContext) {
     // client.registerProposedFeatures();
     // Start the client. This will also launch the server
     client.start();
-
     registerCommands(context);
-    registerHover(canLanguages);
-    registerDefinition(canLanguages);
+    registerHover(context,canLanguages);
+    registerDefinition(context,canLanguages);
 
     // 注册状态图标
     let hoverBar = await showHoverStatusBar(userLanguage);
     let targetBar = await showTargetLanguageStatusBarItem(userLanguage);
     context.subscriptions.push(targetBar, hoverBar);
-
     //client准备就绪后再其他服务
     await client.onReady();
+    mouseToSelect(context);
 
     translateManager = new TranslateManager(context.workspaceState);
     translateManager.onTranslate(e => {
@@ -172,28 +172,6 @@ export async function activate(context: ExtensionContext) {
     }];
     translateExtensionProvider = new TranslateExtensionProvider(translateManager, buildInTranslate);
     translateExtensionProvider.init(getConfig<string>('source'));
-
-    let lastShowHover: number;
-    let showHoverTimer: NodeJS.Timeout;
-
-    //TODO 正常编码的时候，大段代码选中也会触发。 可增加 isCode() 判断，减少不必要提醒
-    context.subscriptions.push(window.onDidChangeTextEditorSelection((e) => {
-        // 只支持划词翻译
-        if (e.kind !== TextEditorSelectionChangeKind.Mouse) return;
-        if (e.selections.filter(selection => !selection.isEmpty).length === 0) return;
-        let laterTime = 300;
-        if (lastShowHover) {
-            let gap = (new Date()).getTime() - lastShowHover;
-            laterTime = Math.max(600 - gap, 300);
-        }
-        clearTimeout(showHoverTimer);
-        showHoverTimer = setTimeout(() => {
-            commands.executeCommand('editor.action.showHover');
-            lastShowHover = (new Date()).getTime();
-        }, laterTime);
-    }));
-
-
     // 暴露翻译插件
     return {
         extendTranslate: function (registry: Registry) {
