@@ -1,5 +1,5 @@
 import { languages } from "vscode";
-import { shortLive } from "./complie";
+import { shortLive } from "./hover";
 
 export function registerDefinition(canLanguages:string[] = []) {
     languages.registerDefinitionProvider(canLanguages, {

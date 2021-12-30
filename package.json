@@ -339,6 +339,30 @@
                         "default": "Google",
                         "order": 27,
                         "description": "%commentTranslate.configuration.source%"
+                    },
+                    "commentTranslate.ignore": {
+                        "type": "array",
+                        "title": "Ignore text",
+                        "items": {
+                            "type": "object",
+                            "title": "Ignore text item",
+                            "properties": {
+                                "languageId": {
+                                    "type": "string",
+                                    "title": "Language id"
+                                },
+                                "regular": {
+                                    "type": "string",
+                                    "title": "Regular expression"
+                                }
+                            }
+                        },
+                        "default": [
+                            {
+                                "languageId":"javascript,typescript,javascriptreact,typescriptreact",
+                                "regular":"[\\*\\s]+"
+                            }
+                        ]
                     }
                 }
             },

@@ -60,9 +60,7 @@ export class TranslateManager implements ITranslate {
 
     public async translate(text: string, { to, from = 'auto' }: ITranslateOptions) {
 
-        // TODO 不能依赖getConfig
         const key = `${this._source}-from[${from}]to[${to}]-${text}`;
-
         // 命中本地存储
         const cashe = this._storage.get<string>(key);
         if (cashe) {
@@ -77,7 +75,7 @@ export class TranslateManager implements ITranslate {
             let action = this.translator.translate(text, { from, to });
             this._inRequest.set(key, action);
 
-            const startTranslateTip = `\n[Start translate]:${text}`;
+            const startTranslateTip = `\n[Start translate]:`;
             this._onTranslate.fire(startTranslateTip);
             const translated = await action;
             this._inRequest.delete(key);

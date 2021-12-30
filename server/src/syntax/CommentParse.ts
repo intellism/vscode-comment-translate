@@ -156,18 +156,18 @@ export class CommentParse {
 
     public commentScopeParse(position: Position, checkHandle: checkScopeFunction, single: boolean = false, opts?: { skipHandle?: checkScopeFunction,ignoreHandle?: checkScopeFunction }): ICommentBlock {
         const {skipHandle,ignoreHandle} = opts || {};
-        const { line: prevLine } = position;
+        const { line: originLine } = position;
         const index = this._posOffsetTokens(position);
         // 结果变量.
-        let { startIndex, endIndex } = this._posScopesParse(prevLine, index);
-        let startLine = prevLine;
-        let endLine = prevLine;        
+        let { startIndex, endIndex } = this._posScopesParse(originLine, index);
+        let startLine = originLine;
+        let endLine = originLine;        
         let tokens:ICommentToken[] = []; // TODO 初始化不对. 有些浪费
-        for(let line = prevLine;line>=0;line--) {
+        for(let line = originLine;line>=0;line--) {
             let comment = '';
             let i = index;
             const scope:IScopeLen[] = [];
-            if(line !== prevLine) {
+            if(line !== originLine) {
                 const {tokens1} = this._getTokensAtLine(line);
                 i = tokens1.length-1;
             }
@@ -197,12 +197,12 @@ export class CommentParse {
             if (i >= 0 || single) break;
         }
 
-        for(let line = prevLine;line<this._model.length;line++) {
+        for(let line = originLine;line<this._model.length;line++) {
             let comment = '';
             let i = 0;
             const scope:IScopeLen[] = [];
             const {tokens1} = this._getTokensAtLine(line);
-            if(line === prevLine) {
+            if(line === originLine) {
                 i = index + 1;
             }
             for(; i<tokens1.length; i++) {
@@ -220,7 +220,7 @@ export class CommentParse {
                 }
             }
 
-            if(line === prevLine) {
+            if(line === originLine) {
                 const current = tokens[tokens.length-1];
                 current.text = current.text+comment;
                 current.scope = current.scope.concat(scope);
@@ -232,11 +232,11 @@ export class CommentParse {
             }
             if (i < tokens1.length || single) break;
         }
+
+        // 标记定义符号位置
         if(ignoreHandle) {
             tokens = tokens.map(item=>{
-                const {scope} = item;
-                let ignoreStart = 0;
-                let ignoreEnd = 0;
+                let {ignoreStart = 0,ignoreEnd = 0,scope} = item;
                 let j;
                 for(j=0;j<scope.length;j++) {
                     if(ignoreHandle(scope[j].scopes)) {
@@ -253,7 +253,7 @@ export class CommentParse {
                         break;
                     }
                 }
-                return Object.assign({ ignoreStart, ignoreEnd },item);
+                return Object.assign(item,{ ignoreStart, ignoreEnd });
             });
         }
 
