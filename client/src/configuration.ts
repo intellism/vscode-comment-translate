@@ -5,7 +5,7 @@ import { LANGS } from './lang';
 
 let languages = new Map(LANGS);
 let defaultLanguage: string;
-export async function selectTargetLanguage(placeHolder: string = 'Select target language') {
+export async function selectTargetLanguage(placeHolder: string = 'Select target language'):Promise<string> {
     let items: QuickPickItem[] = LANGS.map(item => {
         return {
             label: item[1],
@@ -14,7 +14,7 @@ export async function selectTargetLanguage(placeHolder: string = 'Select target 
     });
 
     if (!defaultLanguage) {
-        defaultLanguage = getConfig<string>('targetLanguage');
+        defaultLanguage = getConfig<string>('targetLanguage') || '';
     }
     let defaultTarget = languages.get(defaultLanguage);
     defaultTarget && items.unshift({
@@ -23,7 +23,7 @@ export async function selectTargetLanguage(placeHolder: string = 'Select target 
         detail: 'Default select'
     });
 
-    let res: QuickPickItem = await new Promise<QuickPickItem | undefined>(
+    let res: QuickPickItem | undefined = await new Promise<QuickPickItem | undefined>(
         async (resolve) => {
             let quickPick = window.createQuickPick();
             quickPick.items = items;
@@ -61,10 +61,10 @@ export async function selectTargetLanguage(placeHolder: string = 'Select target 
         }
     );
     if (res) {
-        defaultLanguage = res.description;
-        return res.description;
+        defaultLanguage = res.description || '';
+        return defaultLanguage;
     }
-    return null;
+    return '';
 }
 
 
@@ -109,7 +109,7 @@ export async function showTargetLanguageStatusBarItem(userLanguage: string) {
     return targetBar;
 }
 
-export function getConfig<T>(key: string): T {
+export function getConfig<T>(key: string) {
     let configuration = workspace.getConfiguration('commentTranslate');
     return configuration.get<T>(key);
 }
@@ -129,7 +129,7 @@ export async function selectTranslateSource(placeHolder: string = 'Select transl
         });
     }
 
-    let res: QuickPickItem = await window.showQuickPick(items, { placeHolder });
+    let res: QuickPickItem | undefined = await window.showQuickPick(items, { placeHolder });
     if (res) {
         return res.description;
     }

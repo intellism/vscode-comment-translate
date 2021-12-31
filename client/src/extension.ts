@@ -112,7 +112,7 @@ export async function activate(context: ExtensionContext) {
     ]);
     // 修复语言代码不一致
     if (langMaps.has(userLanguage)) {
-        userLanguage = langMaps.get(userLanguage);
+        userLanguage = langMaps.get(userLanguage) || '';
     }
 
     // Options to control the language client
@@ -173,7 +173,7 @@ export async function activate(context: ExtensionContext) {
         translate: 'Bing'
     }];
     translateExtensionProvider = new TranslateExtensionProvider(translateManager, buildInTranslate);
-    translateExtensionProvider.init(getConfig<string>('source'));
+    translateExtensionProvider.init(getConfig<string>('source') || '');
     // 暴露翻译插件
     return {
         extendTranslate: function (registry: ITranslateRegistry) {
@@ -183,8 +183,5 @@ export async function activate(context: ExtensionContext) {
 }
 
 export function deactivate(): Thenable<void> {
-    if (!client) {
-        return undefined;
-    }
     return client.stop();
 }

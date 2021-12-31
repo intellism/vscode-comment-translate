@@ -245,7 +245,7 @@ const langMaps:Map<string,string> = new Map([
 
 function convertLang( src:string ){
     if(langMaps.has(src)) {
-        return langMaps.get(src);
+        return langMaps.get(src) || '';
     }
     return src;
 }

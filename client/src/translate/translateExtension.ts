@@ -94,6 +94,7 @@ export class TranslateExtensionProvider {
             // 激活插件
             let extension = extensions.all.find((extension) => extension.id === conf.extensionId);
             // console.log('extension');
+            if(!extension) return null;
             await extension.activate();
             // 执行插入点
             if (extension.exports && extension.exports.extendTranslate) {
@@ -104,7 +105,7 @@ export class TranslateExtensionProvider {
                 };
                 await extension.exports.extendTranslate(registry);
             }
-        } else {
+        } else if(conf.ctor) {
             // 兼容原有配置，BuildIn的不添加前缀
             id = conf.translate;
             this._translateManager.registry(id, conf.ctor);

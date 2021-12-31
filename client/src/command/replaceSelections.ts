@@ -28,9 +28,9 @@ export async function replaceRange({ uri, text, range }: { uri: string, text: st
         editor.edit(builder => {
             text && builder.replace(new Selection(new Position(range.start.line, range.start.character), new Position(range.end.line, range.end.character)), text);
         });
-    } catch (e) {
+    } catch (e:any) {
         decoration.dispose();
-        client.outputChannel.append(e);
+        client.outputChannel.append(e.toString());
     }
 
 }
@@ -38,8 +38,8 @@ export async function replaceRange({ uri, text, range }: { uri: string, text: st
 //翻译选择区域并替换
 export async function replaceSelections() {
     let editor = window.activeTextEditor;
-    if (!(editor && editor.document &&
-        editor.selections.some(selection => !selection.isEmpty))) {
+    if (!editor || editor.document ||
+        editor.selections.some(selection => !selection.isEmpty)) {
         return client.outputChannel.append(`No selection！\n`);
     }
     let targetLanguage = await selectTargetLanguage();
@@ -47,6 +47,7 @@ export async function replaceSelections() {
     let translates = editor.selections
         .filter(selection => !selection.isEmpty)
         .map(selection => {
+            // @ts-ignore
             let text = editor.document.getText(selection);
             return translateSelection(text, selection, targetLanguage);
         });
@@ -69,8 +70,8 @@ export async function replaceSelections() {
                 translatedText && builder.replace(selection, translatedText);
             });
         });
-    } catch (e) {
+    } catch (e:any) {
         decoration.dispose();
-        client.outputChannel.append(e);
+        client.outputChannel.append(e.toString());
     }
 }
