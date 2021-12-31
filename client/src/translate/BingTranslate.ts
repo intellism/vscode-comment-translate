@@ -35,7 +35,7 @@ export class BingTranslate extends BaseTranslate {
         // }
 
         // https://cn.bing.com/translator/?ref=TThis&text=good&from=en&to=es
-        let str = `https://cn.bing.com/translator/?text=${encodeURIComponent(content)}&from=auto-detect&to=${this._langMap(to)}`;
+        let str = `https://www.bing.com/translator/?text=${encodeURIComponent(content)}&from=auto-detect&to=${this._langMap(to)}`;
         return `[Bing](${str})`;
     }
 }

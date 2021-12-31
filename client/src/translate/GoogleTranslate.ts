@@ -1,6 +1,7 @@
 import { BaseTranslate } from './baseTranslate';
 import request from '../util/request-promise';
 import { ITranslateOptions } from 'comment-translate-manager';
+import { getConfig } from '../plugin/translateAli';
 const querystring = require('querystring');
 const GoogleToken: IGetToken = require('@vitalets/google-translate-token');
 interface IGetToken {
@@ -12,10 +13,11 @@ interface IGetToken {
     }>;
 }
 
+
 export class GoogleTranslate extends BaseTranslate {
     override readonly maxLen= 500;
     async _translate(content: string, { from = 'auto', to = 'auto' }: ITranslateOptions): Promise<string> {
-        let tld = 'cn';
+        let tld = getConfig<string>('googleTranslate.tld') || 'com';
         let token = await GoogleToken.get(content, { tld });
         let url = 'https://translate.google.' + tld + '/translate_a/single';
         let data: any = {
@@ -61,7 +63,8 @@ export class GoogleTranslate extends BaseTranslate {
         //     last = last.toLocaleUpperCase();
         //     to = `${first}-${last}`;
         // }
-        let str = `https://translate.google.cn/#view=home&op=translate&sl=auto&tl=${to}&text=${encodeURIComponent(content)}`;
+        let tld = getConfig<string>('googleTranslate.tld') || 'com';
+        let str = `https://translate.google.${tld}/#view=home&op=translate&sl=auto&tl=${to}&text=${encodeURIComponent(content)}`;
         return `[Google](${str})`;
         // return `<a href="${encodeURI(str)}">Google</a>`;
     }

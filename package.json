@@ -367,7 +367,7 @@
                 }
             },
             {
-				"title": "Translation ALI Configuration",
+				"title": "ALI Translate Configuration",
                 "type": "Object",
                 "order": 12,
                 "properties": {
@@ -378,6 +378,21 @@
 					"commentTranslate.translationAli.accessKeySecret": {
 						"type": "string",
 						"description": "accessKeySecret"
+					}
+				}
+			},{
+				"title": "Google Translate Configuration",
+                "type": "Object",
+                "order": 12,
+                "properties": {
+					"commentTranslate.googleTranslate.tld": {
+						"type": "string",
+                        "enum": ["cn","com"],
+                        "enumDescriptions": [
+                            "Will request 'translate.google.cn' api",
+                            "Will request 'translate.google.com' api"],
+                        "default":"com",
+						"description": "Determine the requested server address"
 					}
 				}
 			}
