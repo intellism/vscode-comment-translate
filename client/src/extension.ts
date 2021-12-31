@@ -19,7 +19,6 @@ import { getConfig, showHoverStatusBar, showTargetLanguageStatusBarItem } from '
 import { registerDefinition } from './languageFeature/definition';
 import { registerHover } from './languageFeature/hover';
 import { AliTranslate } from './plugin/translateAli';
-import { DeepLTranslate } from './plugin/translateDeepL';
 import { BaiduTranslate } from './translate/baiduTranslate';
 import { BingTranslate } from './translate/bingTranslate';
 import { GoogleTranslate } from './translate/googleTranslate';
@@ -167,10 +166,6 @@ export async function activate(context: ExtensionContext) {
         title: 'Baidu translate',
         ctor: BaiduTranslate,
         translate: 'Baidu'
-    },{
-        title: 'DeepL translate',
-        ctor: DeepLTranslate,
-        translate: 'DeepL'
     },
     {
         title: 'Bing translate',
