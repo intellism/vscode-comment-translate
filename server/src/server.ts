@@ -66,7 +66,6 @@ let config: ICommentTranslateSettings = {
 connection.onInitialize((params: InitializeParams) => {
 	let capabilities = params.capabilities;
 
-	config.targetLanguage = params.initializationOptions.userLanguage;
 	comment = new Comment(params.initializationOptions, documents);
 	patchAsarRequire(params.initializationOptions.appRoot);
 	// Does the client support the `workspace/configuration` request?

@@ -1,5 +1,5 @@
 import { BaseTranslate } from './baseTranslate';
-import { ITranslateOptions } from './translateManager';
+import { ITranslateOptions } from 'comment-translate-manager';
 const translate = require('baidu-translate-api-temp');
 
 const langMaps:Map<string,string> = new Map([

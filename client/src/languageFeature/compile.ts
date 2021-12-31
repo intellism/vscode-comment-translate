@@ -1,7 +1,7 @@
 import humanizeString = require("humanize-string");
 import { Range } from "vscode";
 import { getConfig } from "../configuration";
-import { translateManager } from "../extension";
+import { translateManager, userLanguage } from "../extension";
 import { hasEndMark, isLowerCase, isUpperCase } from "../util/string";
 
 export interface ICommentBlock {
@@ -83,7 +83,7 @@ function getIgnoreRegular(languageId:string) {
 	if(!ignore) return '';
 	let {regular=''} = ignore.find(item=>{
 		return item.languageId.split(',').some((text=>text.trim()===languageId));
-	});
+	}) || {};
 	return regular;
 }
 
@@ -94,7 +94,7 @@ export async function compileBlock(block:ICommentBlock,languageId:string): Promi
 	const { comment: originText } = block;
 	let { tokens } = block;
 
-	const targetLanguage = getConfig<string>('targetLanguage');
+	const targetLanguage = getConfig<string>('targetLanguage') || userLanguage;
 	if (!tokens) {
 		// 选取翻译&单个单词翻译的时候。无tokens的简单结果
 		humanizeText = humanize(originText);

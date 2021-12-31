@@ -1,5 +1,5 @@
 import { BaseTranslate } from './baseTranslate';
-import { ITranslateOptions } from './translateManager';
+import { ITranslateOptions } from 'comment-translate-manager';
 const { translate } = require('bing-translate-api');
 
 

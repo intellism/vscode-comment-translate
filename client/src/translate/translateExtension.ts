@@ -1,5 +1,5 @@
 import { extensions } from "vscode";
-import { ITranslate, TranslateManager } from "./translateManager";
+import { ITranslate, TranslateManager } from "comment-translate-manager";
 
 export interface ITranslateExtensionConfig extends ITranslateConfig {
     extensionId: string;
@@ -12,8 +12,8 @@ export interface ITranslateConfig {
     translate: string;
 }
 
-export interface Registry {
-    (translation: string, Translate: new () => ITranslate): void;
+export interface ITranslateRegistry {
+    (translation: string, translate: new () => ITranslate): void;
 }
 
 export class TranslateExtensionProvider {
@@ -97,7 +97,7 @@ export class TranslateExtensionProvider {
             await extension.activate();
             // 执行插入点
             if (extension.exports && extension.exports.extendTranslate) {
-                const registry:Registry = (translation, Translate) => {
+                const registry:ITranslateRegistry = (translation, Translate) => {
                     // 注册翻译器
                     const key = `${conf.extensionId}-${translation}`;
                     this._translateManager.registry(key, Translate);

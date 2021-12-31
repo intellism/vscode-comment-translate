@@ -2,7 +2,7 @@
 
 import * as RPCClient from '@alicloud/pop-core';
 import { workspace } from 'vscode';
-import { ITranslate, ITranslateOptions } from '../translate/translateManager';
+import { ITranslate, ITranslateOptions } from 'comment-translate-manager';
 
 const PREFIXCONFIG = 'commentTranslate.translationAli';
 const PARAMS = {

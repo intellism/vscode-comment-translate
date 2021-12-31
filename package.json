@@ -380,16 +380,40 @@
 						"description": "accessKeySecret"
 					}
 				}
+			},
+            {
+				"title": "DeepL translate Configuration",
+                "type": "Object",
+                "order": 13,
+                "properties": {
+                    "commentTranslate.deeplTranslate.apiFree": {
+						"type": "boolean",
+						"description": "apiFree",
+                        "default":true
+					},
+					"commentTranslate.deeplTranslate.authKey": {
+						"type": "string",
+                        "markdownDescription": "You need an authentication key to access to the API.[Accessing the API](https://www.deepl.com/zh/docs-api/accessing-the-api/)"
+					},
+					"commentTranslate.deeplTranslate.preserveFormatting": {
+						"type": "string",
+                        "enum": ["0","1"],
+                        "default":"0",
+						"markdownDescription": "Sets whether the translation engine should respect the original formatting, even if it would usually correct some aspects. [More](https://www.deepl.com/zh/docs-api/translating-text/request/)"
+					},
+                    "commentTranslate.deeplTranslate.formality": {
+						"type": "string",
+                        "enum": ["default","more","less"],
+                        "default":"default",
+						"markdownDescription": "Sets whether the translated text should lean towards formal or informal language. [More](https://www.deepl.com/zh/docs-api/translating-text/request/)"
+					}
+				}
 			}
         ],
         "translates": [
 			{
 				"translate": "ali.cloud",
 				"title": "Ali Cloud Translate"
-			},
-            {
-				"translate": "notfound",
-				"title": "Can not found translate"
 			}
 		]
     },

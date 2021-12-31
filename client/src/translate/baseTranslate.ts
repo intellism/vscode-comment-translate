@@ -1,4 +1,4 @@
-import { ITranslate, ITranslateOptions } from './translateManager';
+import { ITranslate, ITranslateOptions } from 'comment-translate-manager';
 
 export abstract class BaseTranslate implements ITranslate {
 

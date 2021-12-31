@@ -1,6 +1,6 @@
 import { BaseTranslate } from './baseTranslate';
 import request from '../util/request-promise';
-import { ITranslateOptions } from './translateManager';
+import { ITranslateOptions } from 'comment-translate-manager';
 const querystring = require('querystring');
 const GoogleToken: IGetToken = require('@vitalets/google-translate-token');
 interface IGetToken {

@@ -5,7 +5,7 @@
 'use strict';
 
 import * as path from 'path';
-import { ExtensionContext, extensions, env, commands, window, TextEditorSelectionChangeKind } from 'vscode';
+import { ExtensionContext, extensions, env, window } from 'vscode';
 
 import {
     LanguageClient,
@@ -19,11 +19,12 @@ import { getConfig, showHoverStatusBar, showTargetLanguageStatusBarItem } from '
 import { registerDefinition } from './languageFeature/definition';
 import { registerHover } from './languageFeature/hover';
 import { AliTranslate } from './plugin/translateAli';
+import { DeepLTranslate } from './plugin/translateDeepL';
 import { BaiduTranslate } from './translate/baiduTranslate';
 import { BingTranslate } from './translate/bingTranslate';
 import { GoogleTranslate } from './translate/googleTranslate';
-import { ITranslateConfig, Registry, TranslateExtensionProvider } from './translate/translateExtension';
-import { TranslateManager } from './translate/translateManager';
+import { ITranslateConfig, ITranslateRegistry, TranslateExtensionProvider } from './translate/translateExtension';
+import { TranslateManager } from 'comment-translate-manager';
 
 export let outputChannel = window.createOutputChannel('Comment Translate');
 export let client: LanguageClient;
@@ -56,6 +57,8 @@ export interface IGrammarExtensions {
 }
 export let translateManager: TranslateManager;
 export let translateExtensionProvider: TranslateExtensionProvider
+export let userLanguage:string;
+
 export async function activate(context: ExtensionContext) {
     // The server is implemented in node
     let serverModule = context.asAbsolutePath(
@@ -102,7 +105,7 @@ export async function activate(context: ExtensionContext) {
 
     let BlackLanguage: string[] = ['log', 'Log', 'code-runner-output'];
     canLanguages = canLanguages.filter((v) => BlackLanguage.indexOf(v) < 0);
-    let userLanguage = env.language;
+    userLanguage = env.language;
 
     let langMaps: Map<string, string> = new Map([
         ['zh-cn', 'zh-CN'],
@@ -119,7 +122,7 @@ export async function activate(context: ExtensionContext) {
         revealOutputChannelOn: 4,
         outputChannel: outputChannel,
         initializationOptions: {
-            grammarExtensions, appRoot: env.appRoot, userLanguage
+            grammarExtensions, appRoot: env.appRoot
         },
         documentSelector: canLanguages,
         synchronize: {
@@ -164,6 +167,10 @@ export async function activate(context: ExtensionContext) {
         title: 'Baidu translate',
         ctor: BaiduTranslate,
         translate: 'Baidu'
+    },{
+        title: 'DeepL translate',
+        ctor: DeepLTranslate,
+        translate: 'DeepL'
     },
     {
         title: 'Bing translate',
@@ -174,7 +181,7 @@ export async function activate(context: ExtensionContext) {
     translateExtensionProvider.init(getConfig<string>('source'));
     // 暴露翻译插件
     return {
-        extendTranslate: function (registry: Registry) {
+        extendTranslate: function (registry: ITranslateRegistry) {
             registry('ali.cloud', AliTranslate);
         }
     }
