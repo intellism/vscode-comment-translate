@@ -6,30 +6,26 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 ### Added
  * 变量命名
     * 中文翻译到驼峰的变量命名
- * 翻译源添加
-   * 添加google收费API配置
-   * DeepL、Baidu、Yandex等收费API
- * 优化翻译逻辑，支持正则忽略
-   * 内置场景注释忽略逻辑
 ### Changed
-* 合并注释更合理支持
-   * block 注释多行合并。 
-   * line注释，提前 标识符，支持非 // 行注释
-* 跳转到google translate服务器，markdown链接改为command,修复换行丢失
-* 快捷键添加when条件，减少用户影响
-* 配置调整
-   * 关闭翻译，切换翻译源快捷入口。 目标语言切换更一级
-* 重构
-   * 翻译源剥离、支持外部插件扩展翻译源
+* 性能优化，按需加载语法文件，提升插件启动时间并减少内存占用
 
 ### Fixed
- * 请求错误后，5分钟禁止访问结果被错误cache
  * 内容中有 ")" 会与Markdown冲突。 hover command会出问题
 
 ## [2.0.0] 2022-1-1
+  
 ### Added
  * hover框，添加场景命令。select、replace、config
  * hover 展示显示对应的 languageId
+ * 减少翻译频率，减少API的请求。
+   * 对字符串、变量不再默认hover翻译；
+   * 添加快速开启和关闭hover翻译命令，状态栏可以快速切换；
+   * 本地存储翻译结果，相同内容不再重复请求；
+* 对合并多行，进一步优化。更精确翻译内容
+   * 修复之前python等的兼容
+   * 支持跳过翻译内容的正则配置。
+* 支持翻译源插件能力，开发者可以自由添加翻译源
+  
 ### Changed
 * 仅仅翻译有效文本，保留格式符号:``` // * # <!-- --> ```
 * 配置调整
