@@ -44,6 +44,11 @@ export class TranslateExtensionProvider {
     constructor(private _translateManager: TranslateManager, buildInTranslate: ITranslateConfig[]) {
         this.buildInTranslation(buildInTranslate);
         this.loadExtensionTranslate();
+        extensions.onDidChange(()=>{
+            this._translateConfig.clear();
+            this.buildInTranslation(buildInTranslate);
+            this.loadExtensionTranslate();
+        });
     }
 
     async init(source: string) {

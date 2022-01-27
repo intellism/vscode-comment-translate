@@ -38,15 +38,22 @@ export async function replaceRange({ uri, text, range }: { uri: string, text: st
 //翻译选择区域并替换
 export async function replaceSelections() {
     let editor = window.activeTextEditor;
-    if (!editor || editor.document ||
-        editor.selections.some(selection => !selection.isEmpty)) {
+
+
+    if (!editor || !editor.document || !editor.selections || editor.selections.length === 0) {
         return client.outputChannel.append(`No selection！\n`);
     }
+
+    const validSelections = editor.selections
+    .filter(selection => !selection.isEmpty);
+
+    if(validSelections.length === 0) {
+        return client.outputChannel.append(`No selection！\n`);
+    }
+
     let targetLanguage = await selectTargetLanguage();
     if (!targetLanguage) return;
-    let translates = editor.selections
-        .filter(selection => !selection.isEmpty)
-        .map(selection => {
+    let translates = validSelections.map(selection => {
             // @ts-ignore
             let text = editor.document.getText(selection);
             return translateSelection(text, selection, targetLanguage);

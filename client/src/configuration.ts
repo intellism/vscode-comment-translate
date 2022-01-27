@@ -1,5 +1,5 @@
 
-import { workspace, window, QuickPickItem, ThemeIcon, commands } from 'vscode';
+import { workspace, window, QuickPickItem, ThemeIcon, commands, MarkdownString } from 'vscode';
 import { translateExtensionProvider } from './extension';
 import { LANGS } from './lang';
 
@@ -89,7 +89,15 @@ export async function showHoverStatusBar(userLanguage: string) {
 export async function showTargetLanguageStatusBarItem(userLanguage: string) {
     let targetBar = window.createStatusBarItem();
     targetBar.command = 'commentTranslate.changeTargetLanguage';
-    targetBar.tooltip = 'Comment translate target language. click to change';
+    // targetBar.tooltip = 'Comment translate target language. click to change';
+
+    const translate = `Comment translate target language. click to change. [Change translate source](command:commentTranslate.changeTranslateSource "Change translate source")`;
+
+    let tooltip = new MarkdownString(translate);
+    tooltip.isTrusted = true;
+    targetBar.tooltip = tooltip;
+
+
 
     let setLanguageText = async () => {
         let currentLanguage = getConfig<string>('targetLanguage') || userLanguage;
@@ -117,6 +125,10 @@ export function getConfig<T>(key: string) {
 export async function selectTranslateSource(placeHolder: string = 'Select translate source.') {
     const allTranslaton = translateExtensionProvider.getAllTransationConfig();
     let items: QuickPickItem[] = [];
+    const moreItem = {
+        label:'More...',
+        description:'Install more translate sources from Extensions Marketplace'
+    };
     for (let [id, conf] of allTranslaton) {
         let {category='',title} = conf;
         if (category) {
@@ -128,9 +140,13 @@ export async function selectTranslateSource(placeHolder: string = 'Select transl
             description: id
         });
     }
-
+    items.push(moreItem);
     let res: QuickPickItem | undefined = await window.showQuickPick(items, { placeHolder });
     if (res) {
+        if(res.description === moreItem.description) {
+            commands.executeCommand('workbench.extensions.search','@tag:translateSource');
+            return null;
+        }
         return res.description;
     }
     return null;

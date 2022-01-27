@@ -2,7 +2,7 @@
     "name": "comment-translate",
     "displayName": "%commentTranslate.displayName%",
     "description": "%commentTranslate.description%",
-    "version": "2.0.0",
+    "version": "2.0.1",
     "publisher": "intellsmi",
     "author": {
         "name": "Zheng MaoWei",
@@ -45,6 +45,11 @@
                 "category": "Comment Translate"
             },
             {
+                "command": "commentTranslate.clipboard",
+                "title": "Translate Clipboard",
+                "category": "Comment Translate"
+            },
+            {
                 "command": "commentTranslate.changeTranslateSource",
                 "title": "%commentTranslate.command.changeTranslateSource%",
                 "category": "Comment Translate"
@@ -63,12 +68,19 @@
         "keybindings": [
             {
                 "command": "commentTranslate.select",
-                "key": "ctrl+shift+s"
+                "key": "alt+shift+s",
+                "mac": "ctrl+shift+s"
             },
             {
                 "command": "commentTranslate.replaceSelections",
                 "when": "editorHasSelection",
-                "key": "ctrl+shift+t"
+                "mac": "ctrl+shift+t",
+                "key": "alt+shift+t"
+            },
+            {
+                "command": "commentTranslate.clipboard",
+                "key": "alt+shiit+c",
+                "mac": "ctrl+shiit+c"
             }
         ],
         "configuration": [

@@ -1,11 +1,12 @@
 import { commands, ExtensionContext } from "vscode";
 import { changeTargetLanguage, changeTranslateSource, openOutputPannel, toggleEnableHover, toggleMultiLineMerge } from "./changeTargetLanguage";
 import { replaceRange, replaceSelections } from "./replaceSelections";
-import { selectLastHover } from "./select";
+import { clipboard, selectLastHover } from "./select";
 
 export function registerCommands(context: ExtensionContext) {
     context.subscriptions.push(
         commands.registerCommand('commentTranslate.select', selectLastHover),
+        commands.registerCommand('commentTranslate.clipboard', clipboard),
         commands.registerCommand('commentTranslate._replaceRange', replaceRange),
         commands.registerCommand('commentTranslate.replaceSelections', replaceSelections),
         commands.registerCommand('commentTranslate._toggleMultiLineMerge', toggleMultiLineMerge),

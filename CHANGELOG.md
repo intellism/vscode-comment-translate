@@ -12,6 +12,18 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 ### Fixed
  * 内容中有 ")" 会与Markdown冲突。 hover command会出问题
 
+
+## [2.0.1] 2022-1-27
+  
+### Added
+   * 新增翻译剪贴板命令
+### Changed
+   * 安装翻译源插件，自动启用配置
+   * 状态栏Hover Tips添加“切换翻译源”命令快捷链接
+   * 快捷键替换。mac 下 ctrl+?,win下  alt+?
+### Fixed
+   * 修复翻译替换失灵问题。  [#83](https://github.com/intellism/vscode-comment-translate/issues/83)
+
 ## [2.0.0] 2022-1-1
   
 ### Added

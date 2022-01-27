@@ -1,5 +1,16 @@
-import { commands, ExtensionContext, Position, Selection, TextEditorSelectionChangeKind, window } from "vscode";
+import {env, commands, ExtensionContext, Position, Selection, TextEditorSelectionChangeKind, window } from "vscode";
+import { getConfig } from "../configuration";
+import { outputChannel, translateManager, userLanguage } from "../extension";
 import { lastHover } from "../languageFeature/hover";
+
+
+export async function clipboard() {
+    let text = await env.clipboard.readText();
+    const targetLanguage = getConfig<string>('targetLanguage') || userLanguage;
+    let translatedText = await translateManager.translate(text, {to:targetLanguage});
+    outputChannel.appendLine('clipboard:' + translatedText);
+    await window.showInformationMessage(translatedText,{detail: text, modal:false});
+}
 
 export async function selectLastHover() {
     let editor = window.activeTextEditor;
