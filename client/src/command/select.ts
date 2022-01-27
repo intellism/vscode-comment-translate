@@ -6,6 +6,10 @@ import { lastHover } from "../languageFeature/hover";
 
 export async function clipboard() {
     let text = await env.clipboard.readText();
+    if(!text) {
+        outputChannel.appendLine('clipboard:The clipboard is empty');
+        return;
+    }
     const targetLanguage = getConfig<string>('targetLanguage') || userLanguage;
     let translatedText = await translateManager.translate(text, {to:targetLanguage});
     outputChannel.appendLine('clipboard:' + translatedText);
