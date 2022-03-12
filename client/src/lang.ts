@@ -1,6 +1,7 @@
 
 export const LANGS:[string,string][] = [
     ["en", "English"],
+    ["en-US", "English (US)"],
     ["zh-CN", "Chinese (Simplified)"],
     ["zh-TW", "Chinese (Traditional)"],
     ["ja", "Japanese"],
