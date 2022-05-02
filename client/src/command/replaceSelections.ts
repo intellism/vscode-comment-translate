@@ -75,7 +75,6 @@ export async function replaceSelections() {
 
     const validSelections = editor.selections
     .filter(selection => !selection.isEmpty);
-        .filter(selection => !selection.isEmpty);
 
     await replaceRanges(editor, validSelections);
 }
