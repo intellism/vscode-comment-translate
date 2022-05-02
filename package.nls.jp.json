@@ -6,6 +6,7 @@
     "commentTranslate.command.changeTargetLanguage": "翻訳対象言語の変更",
     "commentTranslate.command.changeTranslateSource": "ソースを変える",
     "commentTranslate.command.replaceSelections": "選択の翻訳と置換",
+    "commentTranslate.command.replaceAllCommentsInFile": "ファイル内のすべてのコメントを翻訳して置き換えます",
     "commentTranslate.configuration.targetLanguage": "ターゲット言語への翻訳",
     "commentTranslate.configuration.source": "サービスソースの翻訳",
     "commentTranslate.configuration.openHover": "オープンホバー翻訳",

@@ -6,6 +6,7 @@
     "commentTranslate.command.changeTargetLanguage": "更改翻译目标语言",
     "commentTranslate.command.changeTranslateSource": "更改翻译源",
     "commentTranslate.command.replaceSelections": "翻译并替换选区",
+    "commentTranslate.command.replaceAllCommentsInFile": "翻译和替换文件中的所有评论",
     "commentTranslate.configuration.targetLanguage": "翻译成目标语言",
     "commentTranslate.configuration.source": "翻译服务源",
     "commentTranslate.configuration.openHover": "开启悬停翻译",

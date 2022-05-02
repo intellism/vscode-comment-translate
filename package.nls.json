@@ -5,6 +5,7 @@
     "commentTranslate.command.changeTargetLanguage": "Change translate target language",
     "commentTranslate.command.changeTranslateSource": "Change translate source",
     "commentTranslate.command.replaceSelections": "Translate and replace selections",
+    "commentTranslate.command.replaceAllCommentsInFile": "Translate and replace all comments in file",
     "commentTranslate.configuration.concise": "Concise mode.If on, only pressing Ctrl or Command will trigger floating translation",
     "commentTranslate.configuration.targetLanguage": "Translation to target language",
     "commentTranslate.configuration.source": "Translate servcie source. Google, Bing, Baidu have been built-in.",

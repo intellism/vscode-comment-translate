@@ -63,6 +63,10 @@
                 "command": "commentTranslate.replaceSelections",
                 "title": "%commentTranslate.command.replaceSelections%",
                 "category": "Comment Translate"
+            }, {
+                "command": "commentTranslate.replaceAllCommentsInFile",
+                "title": "%commentTranslate.command.replaceAllCommentsInFile%",
+                "category": "Comment Translate"
             }
         ],
         "keybindings": [
