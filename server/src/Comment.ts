@@ -43,4 +43,15 @@ export class Comment {
         return parse.computeText(position);
     }
     
+    async getAllComment(uri:string, type = 'comment'):Promise<ICommentBlock[] | null> {
+        const doc = this._documents.get(uri);
+        if (!doc) return null;
+        const parse = await this._getCommentParse(doc);
+        if (!parse) return null;
+        if(type === 'text') {
+            return parse.getAllText();
+        } else {
+            return parse.getAllComment();
+        }
+    }
 }

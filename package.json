@@ -33,7 +33,7 @@
         "翻訳"
     ],
     "activationEvents": [
-        "*"
+        "onStartupFinished"
     ],
     "icon": "doc/image/icon.png",
     "main": "./client/out/extension",
@@ -42,6 +42,26 @@
             {
                 "command": "commentTranslate.select",
                 "title": "%commentTranslate.command.select%",
+                "category": "Comment Translate"
+            },
+            {
+                "command": "commentTranslate.selectAllText",
+                "title": "%commentTranslate.command.selectAllText%",
+                "category": "Comment Translate"
+            },
+            {
+                "command": "commentTranslate.selectAllComment",
+                "title": "%commentTranslate.command.selectAllComment%",
+                "category": "Comment Translate"
+            },
+            {
+                "command": "commentTranslate.translateAllText",
+                "title": "%commentTranslate.command.translateAllText%",
+                "category": "Comment Translate"
+            },
+            {
+                "command": "commentTranslate.translateAllComment",
+                "title": "%commentTranslate.command.translateAllComment%",
                 "category": "Comment Translate"
             },
             {
@@ -371,56 +391,65 @@
                         },
                         "default": [
                             {
-                                "languageId":"javascript,typescript,javascriptreact,typescriptreact",
-                                "regular":"[\\*\\s]+"
+                                "languageId": "javascript,typescript,javascriptreact,typescriptreact",
+                                "regular": "[\\*\\s]+"
+                            },
+                            {
+                                "languageId": "dart",
+                                "regular": "[\\s|/]+"
                             }
                         ]
                     }
                 }
             },
             {
-				"title": "ALI Translate Configuration",
+                "title": "ALI Translate Configuration",
                 "type": "Object",
                 "order": 12,
                 "properties": {
-					"commentTranslate.translationAli.accessKeyId": {
-						"type": "string",
-						"description": "accessKeyId"
-					},
-					"commentTranslate.translationAli.accessKeySecret": {
-						"type": "string",
-						"description": "accessKeySecret"
-					}
-				}
-			},{
-				"title": "Google Translate Configuration",
+                    "commentTranslate.translationAli.accessKeyId": {
+                        "type": "string",
+                        "description": "accessKeyId"
+                    },
+                    "commentTranslate.translationAli.accessKeySecret": {
+                        "type": "string",
+                        "description": "accessKeySecret"
+                    }
+                }
+            },
+            {
+                "title": "Google Translate Configuration",
                 "type": "Object",
                 "order": 12,
                 "properties": {
-					"commentTranslate.googleTranslate.tld": {
-						"type": "string",
-                        "enum": ["cn","com"],
+                    "commentTranslate.googleTranslate.tld": {
+                        "type": "string",
+                        "enum": [
+                            "cn",
+                            "com"
+                        ],
                         "enumDescriptions": [
                             "Will request 'translate.google.cn' api",
-                            "Will request 'translate.google.com' api"],
-                        "default":"com",
-						"description": "Determine the requested server address"
-					}
-				}
-			}
+                            "Will request 'translate.google.com' api"
+                        ],
+                        "default": "com",
+                        "description": "Determine the requested server address"
+                    }
+                }
+            }
         ],
         "translates": [
-			{
-				"translate": "ali.cloud",
-				"title": "Ali Cloud Translate"
-			}
-		]
+            {
+                "translate": "ali.cloud",
+                "title": "Ali Cloud Translate"
+            }
+        ]
     },
     "scripts": {
         "vscode:prepublish": "npm run compile",
-		"compile": "tsc -b",
-		"watch": "tsc -b -w",
-		"postinstall": "cd client && npm install && cd ../server && npm install && cd ..",
+        "compile": "tsc -b",
+        "watch": "tsc -b -w",
+        "postinstall": "cd client && npm install && cd ../server && npm install && cd ..",
         "test": "sh ./scripts/e2e.sh"
     },
     "devDependencies": {

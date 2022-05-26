@@ -26,6 +26,10 @@ export async function getComment(textDocumentPosition: TextDocumentPositionParam
 	if(!comment) return null;
 	return comment.getComment(textDocumentPosition);
 }
+export async function getAllComment({uri, type} :{uri: string, type:string}): Promise<ICommentBlock[] | null> {
+	if(!comment) return null;
+	return comment.getAllComment(uri,type);
+}
 
 // Create a connection for the server. The connection uses Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
@@ -112,6 +116,7 @@ connection.onInitialized(async () => {
 });
 
 connection.onRequest('getComment', getComment);
+connection.onRequest('getAllComment', getAllComment);
 // The example settings
 connection.onDidChangeConfiguration(changeConfiguration);
 

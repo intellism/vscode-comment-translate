@@ -27,7 +27,7 @@ import { TranslateManager } from 'comment-translate-manager';
 
 export let outputChannel = window.createOutputChannel('Comment Translate');
 export let client: LanguageClient;
-let canLanguages: string[] = [];
+let canLanguages: string[] = ['plaintext'];
 
 export interface TokenTypesContribution {
     [scopeName: string]: string;

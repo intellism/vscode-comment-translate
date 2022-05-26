@@ -52,8 +52,22 @@ function isComment(scopes: string[]) {
     })
 }
 
+function isStringValue(scopes: string[]) {
+    const scope = scopes[0];
+    //字符串和转义字符的token标记
+    const arr = [
+        'string.interpolated',  // dart语言兼容
+        'string.quoted',
+        'constant.character.escape'
+    ];
+
+    return arr.some(item => {
+        return scope.indexOf(item) === 0;
+    });
+}
+
 function skipComment(scopes: string[]) {
-    return scopes[0].indexOf('punctuation.whitespace.comment') === 0;
+    return isBlank(scopes) || (scopes[0].indexOf('punctuation.whitespace.comment') === 0);
 }
 
 function ignoreComment(scopes:string[]) {
@@ -64,6 +78,7 @@ function isString(scopes: string[]) {
     const scope = scopes[0];
     //字符串和转义字符的token标记
     const arr = [
+        'string.interpolated',  // dart语言兼容
         'string.quoted',
         'punctuation.definition.string',
         'constant.character.escape'
@@ -76,6 +91,10 @@ function isString(scopes: string[]) {
 
 function ignoreString(scopes: string[]) {
     return scopes[0].indexOf('punctuation.definition.string') === 0;
+}
+
+function isBlank(scopes:string[]) {
+    return scopes[0].indexOf('source') === 0;
 }
 
 function isBase(scopes: string[]) {
@@ -272,6 +291,52 @@ export class CommentParse {
             range,
             tokens
         }
+    }
+
+    public getAllText() : ICommentBlock[] | null {
+        // 遍历所以注释
+        let blocks = [];
+        for( let line = 0; line < this._model.length; line+=1 ) {
+            let {tokens1} = this._getTokensAtLine(line);
+            for(let index = 0; index<tokens1.length; index +=1) {
+                const { scopes,startIndex,endIndex,text } = this._posScopesParse(line,index);
+                if (scopes && isStringValue(scopes)) {
+                    const range = Range.create({
+                        line,
+                        character: startIndex
+                    }, {
+                            line,
+                            character: endIndex
+                        });
+                    blocks.push( {
+                        comment: text,
+                        range: range
+                    });
+                }
+            }
+        }
+        return blocks;
+    }
+
+    public getAllComment() : ICommentBlock[] | null {
+        // 遍历所以注释
+        let blocks = [];
+        for( let line = 0; line < this._model.length; line+=1 ) {
+            let {tokens1} = this._getTokensAtLine(line);
+            for(let index = 0; index<tokens1.length; index +=1) {
+                const { scopes,startIndex,endIndex,text } = this._posScopesParse(line,index);
+                if (scopes && isComment(scopes)) {
+                    let block = this.commentScopeParse(Position.create(line, startIndex+1),isComment,false,{
+                        ignoreHandle:ignoreComment,skipHandle:skipComment
+                    });
+                    blocks.push(block);
+                    line = block.range.end.line;
+                    tokens1 = this._getTokensAtLine(line).tokens1;
+                    index = this._posOffsetTokens(block.range.end);
+                }
+            }
+        }
+        return blocks;
     }
 
     public computeText(position: Position): ICommentBlock | null {

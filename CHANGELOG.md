@@ -4,14 +4,37 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ## [Unreleased]
 ### Added
+ * 支持翻译(选中)文件功能
+   * 注释
+   * 文本
  * 变量命名
     * 中文翻译到驼峰的变量命名
+
 ### Changed
 * 性能优化，按需加载语法文件，提升插件启动时间并减少内存占用
+* i18n 支持更多语言。 代码内支持
+* Readme优化
+  * 阿里云配置文档添加
+  * 自定义扩展翻译源文档添加
+  * 多语言支持
 
 ### Fixed
  * 内容中有 ")" 会与Markdown冲突。 hover command会出问题
 
+## [2.1.0]
+
+### Added
+ * 支持翻译(选中)文件功能
+   * 注释
+   * 文本
+
+### Changed
+ * 启动时机改为 “闲时”
+
+
+### Fixed
+ * dart语言注释识别错误优化。
+ * txt 选区翻译支持
 
 ## [2.0.1] 2022-1-27
   
