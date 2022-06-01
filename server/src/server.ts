@@ -12,6 +12,7 @@ import {
 	TextDocumentSyncKind,
 	DidChangeConfigurationNotification,
 	TextDocumentPositionParams,
+	Range,
 } from 'vscode-languageserver/node';
 import {
 	TextDocument
@@ -26,9 +27,9 @@ export async function getComment(textDocumentPosition: TextDocumentPositionParam
 	if(!comment) return null;
 	return comment.getComment(textDocumentPosition);
 }
-export async function getAllComment({uri, type} :{uri: string, type:string}): Promise<ICommentBlock[] | null> {
+export async function getAllComment({uri, type, range} :{uri: string, type:string, range:Range}): Promise<ICommentBlock[] | null> {
 	if(!comment) return null;
-	return comment.getAllComment(uri,type);
+	return comment.getAllComment(uri,type,range);
 }
 
 // Create a connection for the server. The connection uses Node's IPC as a transport.

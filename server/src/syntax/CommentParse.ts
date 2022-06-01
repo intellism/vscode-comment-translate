@@ -293,42 +293,23 @@ export class CommentParse {
         }
     }
 
-    public getAllText() : ICommentBlock[] | null {
+    public getAllCommentScope({start, end}:{start?:Position, end?:Position} = {},checkHandle: checkScopeFunction, single: boolean = false, opts?: { skipHandle?: checkScopeFunction,ignoreHandle?: checkScopeFunction } ) : ICommentBlock[] | null {
         // 遍历所以注释
         let blocks = [];
-        for( let line = 0; line < this._model.length; line+=1 ) {
-            let {tokens1} = this._getTokensAtLine(line);
-            for(let index = 0; index<tokens1.length; index +=1) {
-                const { scopes,startIndex,endIndex,text } = this._posScopesParse(line,index);
-                if (scopes && isStringValue(scopes)) {
-                    const range = Range.create({
-                        line,
-                        character: startIndex
-                    }, {
-                            line,
-                            character: endIndex
-                        });
-                    blocks.push( {
-                        comment: text,
-                        range: range
-                    });
-                }
+        let startLine = 0; 
+        let endLine = this._model.length - 1; 
+        if(start && end) {
+            if(start.line != end.line || start.character!= end.character) {
+                startLine = start.line;
+                endLine = end.line;
             }
-        }
-        return blocks;
-    }
-
-    public getAllComment() : ICommentBlock[] | null {
-        // 遍历所以注释
-        let blocks = [];
-        for( let line = 0; line < this._model.length; line+=1 ) {
+        } 
+        for( let line = startLine; line <= endLine; line+=1 ) {
             let {tokens1} = this._getTokensAtLine(line);
             for(let index = 0; index<tokens1.length; index +=1) {
-                const { scopes,startIndex,endIndex,text } = this._posScopesParse(line,index);
-                if (scopes && isComment(scopes)) {
-                    let block = this.commentScopeParse(Position.create(line, startIndex+1),isComment,false,{
-                        ignoreHandle:ignoreComment,skipHandle:skipComment
-                    });
+                const { scopes,startIndex} = this._posScopesParse(line,index);
+                if (scopes && checkHandle(scopes)) {
+                    let block = this.commentScopeParse(Position.create(line, startIndex+1),checkHandle,single,opts);
                     blocks.push(block);
                     line = block.range.end.line;
                     tokens1 = this._getTokensAtLine(line).tokens1;
@@ -337,6 +318,16 @@ export class CommentParse {
             }
         }
         return blocks;
+    }
+
+    public computeAllText(type = 'comment', range:{start?:Position, end?:Position} = {}){
+        if(type === 'text') {
+            return this.getAllCommentScope(range, isString,false,{ignoreHandle:ignoreString});
+        } else {
+            return this.getAllCommentScope(range,isComment,false,{
+                ignoreHandle:ignoreComment,skipHandle:skipComment
+            });
+        }
     }
 
     public computeText(position: Position): ICommentBlock | null {

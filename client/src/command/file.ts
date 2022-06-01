@@ -1,4 +1,4 @@
-import { Selection, window } from "vscode";
+import { Range, Selection, window } from "vscode";
 import { client } from "../extension";
 import { compileBlock, ICommentBlock } from "../languageFeature/compile";
 
@@ -6,7 +6,10 @@ import { compileBlock, ICommentBlock } from "../languageFeature/compile";
 export async function selectAllForType(type = 'comment') {
     let editor = window.activeTextEditor;
     if (editor) {
-        let blocks = await client.sendRequest<ICommentBlock[] | null>('getAllComment',{uri: editor.document.uri.toString(),type});
+        let blocks = await client.sendRequest<ICommentBlock[] | null>('getAllComment',{uri: editor.document.uri.toString(),type, range:{
+            start: editor.selections[0].start, 
+            end: editor.selections[0].end
+        }});
 
         if (!blocks || blocks.length === 0) return;
         let selections = blocks.map((block => {
@@ -36,7 +39,10 @@ export async function translateAllComment() {
 export async function translateAllForType(type = 'comment') {
     let editor = window.activeTextEditor;
     if (editor) {
-        let blocks = await client.sendRequest<ICommentBlock[] | null>('getAllComment',{uri: editor.document.uri.toString(),type});
+        let blocks = await client.sendRequest<ICommentBlock[] | null>('getAllComment',{uri: editor.document.uri.toString(),type,range:{
+            start: editor.selections[0].start, 
+            end: editor.selections[0].end
+        }});
 
         if (!blocks || blocks.length === 0) return;
 
