@@ -1,0 +1,20 @@
+{
+    "commentTranslate.displayName": "댓글 번역",
+    "commentTranslate.description": "이 플러그인은 Google 번역 API를 사용하여 VSCode 프로그래밍 언어에 대한 주석을 번역합니다.",
+    "commentTranslate.command.select": "마지막 번역 영역을 빠르게 선택",
+    "commentTranslate.command.clipboard": "클립보드 번역",
+    "commentTranslate.command.selectAllText": "파일의 모든 문자열을 빠르게 선택하십시오.",
+    "commentTranslate.command.selectAllComment": "파일의 모든 메모를 빠르게 선택하십시오.",
+    "commentTranslate.command.translateAllText": "파일의 모든 문자열을 빠르게 번역",
+    "commentTranslate.command.translateAllComment": "파일의 모든 댓글을 빠르게 번역",
+    "commentTranslate.command.changeTargetLanguage": "번역 대상 언어 변경",
+    "commentTranslate.command.changeTranslateSource": "번역 소스 변경",
+    "commentTranslate.command.replaceSelections": "선택 영역 번역 및 바꾸기",
+    "commentTranslate.configuration.concise": "간결한 모드. 켜진 경우 Ctrl 또는 Command 만 누르면 부동 변환이 트리거됩니다.",
+    "commentTranslate.configuration.targetLanguage": "대상 언어로 번역",
+    "commentTranslate.configuration.source": "servcie 소스를 번역합니다. Google, Bing, Baidu가 내장되어 있습니다.",
+    "commentTranslate.configuration.openHover": "오픈 호버 번역",
+    "commentTranslate.configuration.stringHover": "가리키기 변환 문자열",
+    "commentTranslate.configuration.variableHover": "가리키기 변환 변수",
+    "commentTranslate.configuration.MultilineMerge": "여러 줄 병합 주석 달기"
+}

@@ -1,0 +1,20 @@
+{
+    "commentTranslate.displayName": "Traducir comentario",
+    "commentTranslate.description": "Este plugin utiliza la API de Google Translate para traducir comentarios para el lenguaje de programación VSCode.",
+    "commentTranslate.command.select": "Seleccione rápidamente la última área de traducción",
+    "commentTranslate.command.clipboard": "Traducir Portapapeles",
+    "commentTranslate.command.selectAllText": "Seleccione rápidamente todas las cadenas en el archivo",
+    "commentTranslate.command.selectAllComment": "Seleccione rápidamente todos los comentarios en el archivo",
+    "commentTranslate.command.translateAllText": "Traduce rápidamente todas las cadenas en el archivo",
+    "commentTranslate.command.translateAllComment": "Traduce rápidamente todos los comentarios en el archivo",
+    "commentTranslate.command.changeTargetLanguage": "Cambiar el idioma de destino de traducción",
+    "commentTranslate.command.changeTranslateSource": "Cambiar el origen de la traducción",
+    "commentTranslate.command.replaceSelections": "Traducir y reemplazar selecciones",
+    "commentTranslate.configuration.concise": "Modo conciso. Si está activado, solo presionando Ctrl o Comando se activará la traducción flotante",
+    "commentTranslate.configuration.targetLanguage": "Traducción al idioma de destino",
+    "commentTranslate.configuration.source": "Traducir fuente de servcie. Google, Bing, Baidu han sido incorporados.",
+    "commentTranslate.configuration.openHover": "Abrir traducción flotante",
+    "commentTranslate.configuration.stringHover": "Cadena de traducción flotante",
+    "commentTranslate.configuration.variableHover": "Variable de traducción flotante",
+    "commentTranslate.configuration.MultilineMerge": "Comentario Combinación multilínea"
+}

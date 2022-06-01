@@ -14,6 +14,7 @@
 2. 任意选择区域翻译（划词翻译）
 3. 翻译并快速替换文本
 4. 快速选中最后一次翻译区域命令
+5. 翻译并替换文件中所有"字符串"或"注释"
 
 ## 配置
 * `commentTranslate.hover.enabled`: 开启/关闭悬停翻译（可以通过状态快速设置）
@@ -22,3 +23,7 @@
 * `commentTranslate.multilineMerge`: 合并多行注释
 * `commentTranslate.targetLanguage`: 翻译目标语言，没有设置的情况下使用vscode本地语言。（可以通过状态快速设置）
 * `commentTranslate.source`: 翻译服务源配置。建议通过命令完成设置。 支持插件扩展翻译服务源。 [example](https://github.com/intellism/deepl-translate)
+
+## 翻译源
+* 支持外部“翻译源”扩展。目前外部插件已支持 [DeepL](https://marketplace.visualstudio.com/items?itemName=intellsmi.deepl-translate) & [tencent cloud](https://marketplace.visualstudio.com/items?itemName=Kaiqun.tencent-cloud-translate) 翻译源. 
+* 已内置Ali翻译源。 可以通过 [开通阿里云机器翻译](https://www.aliyun.com/product/ai/alimt) 生成 accessKeyId & accessKeySecret ,并配置到插件中。切换对应翻译源，获得更稳定的翻译服务

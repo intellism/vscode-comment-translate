@@ -1,0 +1,20 @@
+{
+    "commentTranslate.displayName": "Комментарий Перевести",
+    "commentTranslate.description": "Этот плагин использует API Google Translate для перевода комментариев для языка программирования VSCode.",
+    "commentTranslate.command.select": "Быстрый выбор последней области перевода",
+    "commentTranslate.command.clipboard": "Перевести буфер обмена",
+    "commentTranslate.command.selectAllText": "Быстрое выделение всех строк в файле",
+    "commentTranslate.command.selectAllComment": "Быстрый выбор всех комментариев в файле",
+    "commentTranslate.command.translateAllText": "Быстрый перевод всех строк в файл",
+    "commentTranslate.command.translateAllComment": "Быстро перевести все комментарии в файл",
+    "commentTranslate.command.changeTargetLanguage": "Изменить язык перевода",
+    "commentTranslate.command.changeTranslateSource": "Изменить источник перевода",
+    "commentTranslate.command.replaceSelections": "Перевод и замена выделенных фрагментов",
+    "commentTranslate.configuration.concise": "Лаконичный режим. Если он включен, только нажатие Ctrl или Command вызовет плавающий перевод",
+    "commentTranslate.configuration.targetLanguage": "Перевод на целевой язык",
+    "commentTranslate.configuration.source": "Перевести servcie source. Google, Bing, Baidu были встроены.",
+    "commentTranslate.configuration.openHover": "Открытый перевод наведения",
+    "commentTranslate.configuration.stringHover": "Строка перевода наведение указателя",
+    "commentTranslate.configuration.variableHover": "Переменная приведения наведение курсора",
+    "commentTranslate.configuration.MultilineMerge": "Комментарий Многострочное слияние"
+}

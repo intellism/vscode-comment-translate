@@ -4,9 +4,6 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ## [Unreleased]
 ### Added
- * 支持翻译(选中)文件功能
-   * 注释
-   * 文本
  * 变量命名
     * 中文翻译到驼峰的变量命名
 

@@ -1,0 +1,20 @@
+{
+    "commentTranslate.displayName": "Commenta Traduci",
+    "commentTranslate.description": "Questo plugin utilizza l'API di Google Translate per tradurre i commenti per il linguaggio di programmazione VSCode.",
+    "commentTranslate.command.select": "Seleziona rapidamente l'ultima area di traduzione",
+    "commentTranslate.command.clipboard": "Traduci Appunti",
+    "commentTranslate.command.selectAllText": "Seleziona rapidamente tutte le stringhe nel file",
+    "commentTranslate.command.selectAllComment": "Seleziona rapidamente tutti i commenti nel file",
+    "commentTranslate.command.translateAllText": "Traduci rapidamente tutte le stringhe in file",
+    "commentTranslate.command.translateAllComment": "Traduci rapidamente tutti i commenti in file",
+    "commentTranslate.command.changeTargetLanguage": "Modificare la lingua di destinazione di traduzione",
+    "commentTranslate.command.changeTranslateSource": "Modificare l'origine della traduzione",
+    "commentTranslate.command.replaceSelections": "Tradurre e sostituire le selezioni",
+    "commentTranslate.configuration.concise": "Modalità concisa. Se attivato, solo premendo Ctrl o Comando verrà attivata la traduzione mobile",
+    "commentTranslate.configuration.targetLanguage": "Traduzione nella lingua di destinazione",
+    "commentTranslate.configuration.source": "Traduci servcie source. Google, Bing, Baidu sono stati integrati.",
+    "commentTranslate.configuration.openHover": "Apri la traduzione al passaggio del mouse",
+    "commentTranslate.configuration.stringHover": "Stringa di traduzione al passaggio del mouse",
+    "commentTranslate.configuration.variableHover": "Variabile di conversione al passaggio del mouse",
+    "commentTranslate.configuration.MultilineMerge": "Commento Unione su più righe"
+}
