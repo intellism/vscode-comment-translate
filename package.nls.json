@@ -16,5 +16,6 @@
     "commentTranslate.configuration.openHover": "Open hover translation",
     "commentTranslate.configuration.stringHover": "Hover translation string",
     "commentTranslate.configuration.variableHover": "Hover translation variable",
+    "commentTranslate.configuration.selectTargetLanguageWhenReplacing": "Select TargetLanguage when replacing",
     "commentTranslate.configuration.MultilineMerge": "Comment Multi-line merge"
 }

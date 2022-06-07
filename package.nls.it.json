@@ -16,5 +16,6 @@
     "commentTranslate.configuration.openHover": "Apri la traduzione al passaggio del mouse",
     "commentTranslate.configuration.stringHover": "Stringa di traduzione al passaggio del mouse",
     "commentTranslate.configuration.variableHover": "Variabile di conversione al passaggio del mouse",
+    "commentTranslate.configuration.selectTargetLanguageWhenReplacing": "Selezionare TargetLanguage durante la sostituzione",
     "commentTranslate.configuration.MultilineMerge": "Commento Unione su più righe"
 }

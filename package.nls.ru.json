@@ -16,5 +16,6 @@
     "commentTranslate.configuration.openHover": "Открытый перевод наведения",
     "commentTranslate.configuration.stringHover": "Строка перевода наведение указателя",
     "commentTranslate.configuration.variableHover": "Переменная приведения наведение курсора",
+    "commentTranslate.configuration.selectTargetLanguageWhenReplacing": "Выберите TargetLanguage при замене",
     "commentTranslate.configuration.MultilineMerge": "Комментарий Многострочное слияние"
 }

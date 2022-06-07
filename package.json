@@ -45,6 +45,16 @@
                 "category": "Comment Translate"
             },
             {
+                "command": "commentTranslate.selectAllText",
+                "title": "%commentTranslate.command.selectAllText%",
+                "category": "Comment Translate"
+            },
+            {
+                "command": "commentTranslate.selectAllComment",
+                "title": "%commentTranslate.command.selectAllComment%",
+                "category": "Comment Translate"
+            },
+            {
                 "command": "commentTranslate.translateAllText",
                 "title": "%commentTranslate.command.translateAllText%",
                 "category": "Comment Translate"
@@ -331,6 +341,12 @@
                         "default": false,
                         "order": 25,
                         "description": "%commentTranslate.configuration.MultilineMerge%"
+                    },
+                    "commentTranslate.selectTargetLanguageWhenReplacing": {
+                        "type": "boolean",
+                        "default": false,
+                        "order": 27,
+                        "description": "%commentTranslate.configuration.selectTargetLanguageWhenReplacing%"
                     },
                     "commentTranslate.hover.concise": {
                         "type": "boolean",

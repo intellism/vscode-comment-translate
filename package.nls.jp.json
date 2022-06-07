@@ -16,5 +16,6 @@
     "commentTranslate.configuration.openHover": "オープンホバー翻訳",
     "commentTranslate.configuration.stringHover": "翻訳文字列",
     "commentTranslate.configuration.variableHover": "翻訳変数",
+    "commentTranslate.configuration.selectTargetLanguageWhenReplacing": "置換時にターゲット言語を選択",
     "commentTranslate.configuration.MultilineMerge": "コメント複数行マージ"
 }

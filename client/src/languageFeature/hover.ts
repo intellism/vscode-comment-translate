@@ -1,4 +1,4 @@
-import { ExtensionContext, Hover, languages, MarkdownString, Position, window } from "vscode";
+import { commands, ExtensionContext, Hover, languages, MarkdownString, Position, window } from "vscode";
 import { getConfig } from "../configuration";
 import { client } from "../extension";
 import { ShortLive } from "../util/short-live";
@@ -10,6 +10,9 @@ export function registerHover(context: ExtensionContext, canLanguages:string[] =
 
     let hoverProviderDisposable = languages.registerHoverProvider(canLanguages, {
         async provideHover(document, position) {
+
+            // let res = await commands.executeCommand<Hover[]>('vscode.executeHoverProvider',document.uri+':', position);
+            // console.log(res);
 
             const uri = document.uri.toString();
             const concise = getConfig<boolean>('hover.concise');
@@ -37,10 +40,11 @@ export function registerHover(context: ExtensionContext, canLanguages:string[] =
             const replace = `[$(replace)](command:commentTranslate._replaceRange?${encodeURIComponent(JSON.stringify({uri,range,text:base64TranslatedText}))} "Replace")`;
             const multiLine = getConfig<boolean>('multiLineMerge');
             const combine = `[$(${multiLine?'selection':'remove'})](command:commentTranslate._toggleMultiLineMerge "Toggle Combine Multi Line")`;
+            const addSelection = `[$(heart)](command:commentTranslate._addSelection?${encodeURIComponent(JSON.stringify({range}))} "Add Selection")`;
 
             const translate = `[$(sync)](command:commentTranslate.changeTranslateSource "Change translate source")`;
 
-            const header = new MarkdownString(`[Comment Translate]${space}${replace}${space}${combine}${separator}${translate}${space}${translateLink}`,true);
+            const header = new MarkdownString(`[Comment Translate]${space}${replace}${space}${combine}${space}${addSelection}${separator}${translate}${space}${translateLink}`,true);
             header.isTrusted = true;
 
             let showText = translatedText;

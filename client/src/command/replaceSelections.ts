@@ -1,6 +1,6 @@
 import { Selection, window, Range, Position } from "vscode";
-import { selectTargetLanguage } from "../configuration";
-import { client, translateManager } from "../extension";
+import { getConfig, selectTargetLanguage } from "../configuration";
+import { client, translateManager, userLanguage } from "../extension";
 async function translateSelection(text: string, selection: Selection, targetLanguage: string) {
     // let translation = await client.sendRequest<string>('translate', { text, targetLanguage });
     let translatedText = await translateManager.translate(text, {to:targetLanguage});
@@ -51,8 +51,15 @@ export async function replaceSelections() {
         return client.outputChannel.append(`No selection！\n`);
     }
 
-    let targetLanguage = await selectTargetLanguage();
+    let targetLanguage = getConfig<string>('targetLanguage') || userLanguage;
     if (!targetLanguage) return;
+
+    let selectTarget = getConfig<boolean>('selectTargetLanguageWhenReplacing');
+    if(selectTarget) {
+        targetLanguage = await selectTargetLanguage();
+        if (!targetLanguage) return;
+    }
+
     let translates = validSelections.map(selection => {
             // @ts-ignore
             let text = editor.document.getText(selection);

@@ -1,6 +1,12 @@
 # VSCode 注释翻译
 
+[![](https://vsmarketplacebadge.apphb.com/version-short/intellsmi.comment-translate.svg)](https://marketplace.visualstudio.com/items?itemName=intellsmi.comment-translate)
+[![](https://vsmarketplacebadge.apphb.com/downloads-short/intellsmi.comment-translate.svg)](https://marketplace.visualstudio.com/items?itemName=intellsmi.comment-translate)
+[![](https://vsmarketplacebadge.apphb.com/rating-short/intellsmi.comment-translate.svg)](https://marketplace.visualstudio.com/items?itemName=intellsmi.comment-translate)
+[![Licence](https://img.shields.io/github/license/intellism/vscode-comment-translate.svg)](https://github.com/intellism/vscode-comment-translate)
+
 ## 简介
+
 [【English】](./doc/README.md) [【日本語の文書】](./doc/README_JA.md)
 
 许多优秀的项目，都有丰富的注释，使用者可以快速理解代码意图。但是如果使用者并不熟习注释的语言，会带来理解困难。
@@ -10,11 +16,11 @@
 
 
 ## 功能
-1. 识别并翻译代码中注释部分。支持不同语言，单行、多行注释。
-2. 任意选择区域翻译（划词翻译）
-3. 翻译并快速替换文本
-4. 快速选中最后一次翻译区域命令
-5. 翻译并替换文件中所有"字符串"或"注释"
+1. Hover识别并翻译代码中注释部分。支持不同语言，单行、多行注释。
+2. Hover翻译选中区域文本（划词翻译）
+3. 翻译并快速替换选中文本
+4. 翻译并替换文件中所有"字符串"或"注释"
+   * 如果有选中的文本区域，只识别并翻译替换选中区域的“字符串”或“注释”
 
 ## 配置
 * `commentTranslate.hover.enabled`: 开启/关闭悬停翻译（可以通过状态快速设置）

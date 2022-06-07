@@ -16,5 +16,6 @@
     "commentTranslate.configuration.openHover": "오픈 호버 번역",
     "commentTranslate.configuration.stringHover": "가리키기 변환 문자열",
     "commentTranslate.configuration.variableHover": "가리키기 변환 변수",
+    "commentTranslate.configuration.selectTargetLanguageWhenReplacing": "바꿀 때 대상 언어 선택",
     "commentTranslate.configuration.MultilineMerge": "여러 줄 병합 주석 달기"
 }

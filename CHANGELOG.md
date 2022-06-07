@@ -6,6 +6,16 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 ### Added
  * 变量命名
     * 中文翻译到驼峰的变量命名
+ * 独立Pannel
+   * 剪贴板翻译结果
+   * 翻译历史
+   * 多翻译源对比
+   * i18n
+   * 翻译详情
+     * 核心单词
+     * 例句
+   * 生词本
+ * `vscode.executeHoverProvider` 尝试翻译hover内容
 
 ### Changed
 * 性能优化，按需加载语法文件，提升插件启动时间并减少内存占用
@@ -18,7 +28,17 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 ### Fixed
  * 内容中有 ")" 会与Markdown冲突。 hover command会出问题
 
-## [2.1.0]
+## [2.1.1] 2022-6-7
+
+### Changed
+* 翻译替换时，目标语言默认使用系统阅读的配置，如需要单独选择，可以通过 `commentTranslate.selectTargetLanguageWhenReplacing` 配置开启
+* 添加插件点亮  Download Rate MIT
+* 放开快速选择所有“字符串”或“注释”命令入口
+
+### Fixed
+* 翻译替换修复 `.yaml .properties` 字符的支持
+
+## [2.1.0] 2022-6-1
 
 ### Added
  * 支持翻译(选中)文件功能

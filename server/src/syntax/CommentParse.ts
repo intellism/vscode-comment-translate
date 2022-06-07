@@ -52,20 +52,6 @@ function isComment(scopes: string[]) {
     })
 }
 
-function isStringValue(scopes: string[]) {
-    const scope = scopes[0];
-    //字符串和转义字符的token标记
-    const arr = [
-        'string.interpolated',  // dart语言兼容
-        'string.quoted',
-        'constant.character.escape'
-    ];
-
-    return arr.some(item => {
-        return scope.indexOf(item) === 0;
-    });
-}
-
 function skipComment(scopes: string[]) {
     return isBlank(scopes) || (scopes[0].indexOf('punctuation.whitespace.comment') === 0);
 }
@@ -78,6 +64,7 @@ function isString(scopes: string[]) {
     const scope = scopes[0];
     //字符串和转义字符的token标记
     const arr = [
+        'string.unquoted', // ymal等，无引号String
         'string.interpolated',  // dart语言兼容
         'string.quoted',
         'punctuation.definition.string',

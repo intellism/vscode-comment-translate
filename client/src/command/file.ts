@@ -1,4 +1,5 @@
 import { Range, Selection, window } from "vscode";
+import { getConfig, selectTargetLanguage } from "../configuration";
 import { client } from "../extension";
 import { compileBlock, ICommentBlock } from "../languageFeature/compile";
 
@@ -46,10 +47,16 @@ export async function translateAllForType(type = 'comment') {
 
         if (!blocks || blocks.length === 0) return;
 
-
+        let targetLanguage:string;
+        let selectTarget = getConfig<boolean>('selectTargetLanguageWhenReplacing');
+        if(selectTarget) {
+            targetLanguage = await selectTargetLanguage();
+            if (!targetLanguage) return;
+        }
+    
         // const translatedBlock = await compileBlock(block,document.languageId);
         let translates = await Promise.all(blocks.map((block => {
-            return compileBlock(block,  editor?.document.languageId!);
+            return compileBlock(block,  editor?.document.languageId!, targetLanguage);
         })));
         let selections = blocks.map((block => {
             const { start, end } = block.range;

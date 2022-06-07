@@ -16,5 +16,6 @@
     "commentTranslate.configuration.openHover": "Abrir traducción flotante",
     "commentTranslate.configuration.stringHover": "Cadena de traducción flotante",
     "commentTranslate.configuration.variableHover": "Variable de traducción flotante",
+    "commentTranslate.configuration.selectTargetLanguageWhenReplacing": "Seleccione TargetLanguage al reemplazar",
     "commentTranslate.configuration.MultilineMerge": "Comentario Combinación multilínea"
 }

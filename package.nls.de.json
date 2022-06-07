@@ -16,5 +16,6 @@
     "commentTranslate.configuration.openHover": "Offene Hover-Übersetzung",
     "commentTranslate.configuration.stringHover": "Übersetzungszeichenfolge für das Daraufzeigen",
     "commentTranslate.configuration.variableHover": "Variable für die Hover-Übersetzung",
+    "commentTranslate.configuration.selectTargetLanguageWhenReplacing": "TargetLanguage beim Ersetzen auswählen",
     "commentTranslate.configuration.MultilineMerge": "Kommentar Mehrzeilige Zusammenführung"
 }

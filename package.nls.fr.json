@@ -16,5 +16,6 @@
     "commentTranslate.configuration.openHover": "Ouvrir la traduction par survol",
     "commentTranslate.configuration.stringHover": "Chaîne de traduction survolée",
     "commentTranslate.configuration.variableHover": "Variable de translation Hover",
+    "commentTranslate.configuration.selectTargetLanguageWhenReplacing": "Sélectionnez TargetLanguage lors du remplacement",
     "commentTranslate.configuration.MultilineMerge": "Commentaire Fusion multiligne"
 }

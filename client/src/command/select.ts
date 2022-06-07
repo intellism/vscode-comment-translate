@@ -1,4 +1,4 @@
-import {env, commands, ExtensionContext, Position, Selection, TextEditorSelectionChangeKind, window } from "vscode";
+import {env, commands, ExtensionContext, Position, Selection, TextEditorSelectionChangeKind, window, Range, Hover } from "vscode";
 import { getConfig } from "../configuration";
 import { outputChannel, translateManager, userLanguage } from "../extension";
 import { lastHover } from "../languageFeature/hover";
@@ -28,6 +28,15 @@ export async function selectLastHover() {
         // 会复用对象？必须重新构建
         // editor.selections = [new Selection(start,end)]; 
         editor.selections = [new Selection(start.line,start.character,end.line,end.character)];
+    }
+}
+
+export async function addSelection({range}:{range:Range}) {
+    let editor = window.activeTextEditor;
+    if (editor) {
+        const {start,end} = range;
+        editor.selections = [new Selection(start.line,start.character,end.line,end.character),...editor.selections];
+        window.showTextDocument(editor.document); // 文档获取焦点
     }
 }
 
