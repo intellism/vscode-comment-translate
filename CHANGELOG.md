@@ -15,7 +15,9 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
      * 核心单词
      * 例句
    * 生词本
- * `vscode.executeHoverProvider` 尝试翻译hover内容
+ * Markdown翻译
+   * Hover 段落翻译
+   * 一键翻译并替换整个文档
 
 ### Changed
 * 性能优化，按需加载语法文件，提升插件启动时间并减少内存占用
@@ -27,8 +29,22 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ### Fixed
  * 内容中有 ")" 会与Markdown冲突。 hover command会出问题
+ * Hover翻译内容，处理Markdown使用单行处理方法，在 链接中包含 \n 会出现格式错误
 
-## [2.1.1] 2022-6-7
+## [2.2.0] 2022-6-15
+### Added
+ * 翻译Hover弹出层内容
+   * 注：忽略只有代码片段内容
+   * 注：翻译跳过，链接、图片、代码块
+
+### Changed
+* 翻译限制3000字符调整到10000字符
+
+### Fixed
+* 修复分段翻译超值maxLen限制bug
+
+
+## [2.1.1] 未发布
 
 ### Changed
 * 翻译替换时，目标语言默认使用系统阅读的配置，如需要单独选择，可以通过 `commentTranslate.selectTargetLanguageWhenReplacing` 配置开启

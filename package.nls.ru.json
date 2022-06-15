@@ -11,6 +11,7 @@
     "commentTranslate.command.changeTranslateSource": "Изменить источник перевода",
     "commentTranslate.command.replaceSelections": "Перевод и замена выделенных фрагментов",
     "commentTranslate.configuration.concise": "Лаконичный режим. Если он включен, только нажатие Ctrl или Command вызовет плавающий перевод",
+    "commentTranslate.configuration.contentHover": "Перевод содержимого наведения",
     "commentTranslate.configuration.targetLanguage": "Перевод на целевой язык",
     "commentTranslate.configuration.source": "Перевести servcie source. Google, Bing, Baidu были встроены.",
     "commentTranslate.configuration.openHover": "Открытый перевод наведения",

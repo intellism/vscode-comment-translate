@@ -11,6 +11,7 @@
     "commentTranslate.command.changeTranslateSource": "Modifier la source de traduction",
     "commentTranslate.command.replaceSelections": "Traduire et remplacer des sélections",
     "commentTranslate.configuration.concise": "Mode concis. Si cette option est activée, seule la pression sur Ctrl ou Commande déclenchera une traduction flottante",
+    "commentTranslate.configuration.contentHover": "Traduire le contenu Hover",
     "commentTranslate.configuration.targetLanguage": "Traduction vers la langue cible",
     "commentTranslate.configuration.source": "Traduire la source de service. Google, Bing, Baidu ont été intégrés.",
     "commentTranslate.configuration.openHover": "Ouvrir la traduction par survol",

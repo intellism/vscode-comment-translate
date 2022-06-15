@@ -2,6 +2,7 @@ import {env, commands, ExtensionContext, Position, Selection, TextEditorSelectio
 import { getConfig } from "../configuration";
 import { outputChannel, translateManager, userLanguage } from "../extension";
 import { lastHover } from "../languageFeature/hover";
+import { isCode } from "../util/string";
 
 
 export async function clipboard() {
@@ -68,43 +69,3 @@ export function mouseToSelect(context: ExtensionContext) {
 }
 
 
-function hasCode(text:string,symbols:string) {
-    for(let symbol of symbols) {
-        if(text.indexOf(symbol)>=0) return true;
-    }
-    return false;
-}
-
-function isCode(text:string) {
-
-    let score = 0;
-    if(hasCode(text, '=')){
-        score += 10;
-    }
-    if(hasCode(text, ',')){
-        score += 10;
-    }
-    if(hasCode(text, '{}')){
-        score += 10;
-    }
-    if(hasCode(text, '()')){
-        score += 10;
-    }
-    if(hasCode(text, '<>')){
-        score += 10;
-    }
-    if(hasCode(text, ':.;')){
-        score += 10;
-    }
-    if(hasCode(text, '"\'')) {
-        score += 20;
-    }
-    
-    if(text.length >200 && score>40) {
-        return true;
-    } else if(score>20) {
-        return true;
-    }
-
-    return false;
-}

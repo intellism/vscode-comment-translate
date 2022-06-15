@@ -2,7 +2,7 @@
     "name": "comment-translate",
     "displayName": "%commentTranslate.displayName%",
     "description": "%commentTranslate.description%",
-    "version": "2.1.0",
+    "version": "2.2.0",
     "publisher": "intellsmi",
     "author": {
         "name": "Zheng MaoWei",
@@ -353,6 +353,12 @@
                         "default": false,
                         "order": 22,
                         "description": "%commentTranslate.configuration.concise%"
+                    },
+                    "commentTranslate.hover.content": {
+                        "type": "boolean",
+                        "default": true,
+                        "order": 22,
+                        "description": "%commentTranslate.configuration.contentHover%"
                     },
                     "commentTranslate.hover.variable": {
                         "type": "boolean",

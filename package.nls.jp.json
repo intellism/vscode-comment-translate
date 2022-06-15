@@ -11,6 +11,7 @@
     "commentTranslate.command.changeTranslateSource": "ソースを変える",
     "commentTranslate.command.replaceSelections": "選択の翻訳と置換",
     "commentTranslate.configuration.concise": "簡潔なモード.オンにするとctrlまたはcommandを押すだけで懸濁翻訳がトリガーされます",
+    "commentTranslate.configuration.contentHover": "ホバーコンテンツを翻訳する",
     "commentTranslate.configuration.targetLanguage": "ターゲット言語への翻訳",
     "commentTranslate.configuration.source": "サービスソースの翻訳",
     "commentTranslate.configuration.openHover": "オープンホバー翻訳",

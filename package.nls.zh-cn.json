@@ -11,6 +11,7 @@
     "commentTranslate.command.changeTranslateSource": "更改翻译源",
     "commentTranslate.command.replaceSelections": "翻译并替换选区",
     "commentTranslate.configuration.concise": "简洁模式.开启后只有按住ctrl或command才会触发悬浮翻译",
+    "commentTranslate.configuration.contentHover": "翻译悬停内容",
     "commentTranslate.configuration.targetLanguage": "翻译成目标语言",
     "commentTranslate.configuration.source": "翻译服务源",
     "commentTranslate.configuration.openHover": "开启悬停翻译",

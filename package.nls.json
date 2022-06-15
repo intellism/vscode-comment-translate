@@ -11,6 +11,7 @@
     "commentTranslate.command.changeTranslateSource": "Change translate source",
     "commentTranslate.command.replaceSelections": "Translate and replace selections",
     "commentTranslate.configuration.concise": "Concise mode.If on, only pressing Ctrl or Command will trigger floating translation",
+    "commentTranslate.configuration.contentHover": "Translate Hover Content",
     "commentTranslate.configuration.targetLanguage": "Translation to target language",
     "commentTranslate.configuration.source": "Translate servcie source. Google, Bing, Baidu have been built-in.",
     "commentTranslate.configuration.openHover": "Open hover translation",

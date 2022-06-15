@@ -152,7 +152,8 @@ export async function activate(context: ExtensionContext) {
     await client.onReady();
     mouseToSelect(context);
 
-    translateManager = new TranslateManager(context.workspaceState);
+    // 最多单次可以翻译10000字符。 内部会分拆请求翻译服务。
+    translateManager = new TranslateManager(context.workspaceState, 10000);
     translateManager.onTranslate(e => {
         outputChannel.append(e);
     });

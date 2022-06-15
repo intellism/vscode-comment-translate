@@ -11,6 +11,7 @@
     "commentTranslate.command.changeTranslateSource": "번역 소스 변경",
     "commentTranslate.command.replaceSelections": "선택 영역 번역 및 바꾸기",
     "commentTranslate.configuration.concise": "간결한 모드. 켜진 경우 Ctrl 또는 Command 만 누르면 부동 변환이 트리거됩니다.",
+    "commentTranslate.configuration.contentHover": "호버 콘텐츠 번역",
     "commentTranslate.configuration.targetLanguage": "대상 언어로 번역",
     "commentTranslate.configuration.source": "servcie 소스를 번역합니다. Google, Bing, Baidu가 내장되어 있습니다.",
     "commentTranslate.configuration.openHover": "오픈 호버 번역",

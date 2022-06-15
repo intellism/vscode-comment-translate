@@ -11,6 +11,7 @@
     "commentTranslate.command.changeTranslateSource": "Ändern der Übersetzungsquelle",
     "commentTranslate.command.replaceSelections": "Übersetzen und Ersetzen von Auswahlen",
     "commentTranslate.configuration.concise": "Prägnanter Modus. Wenn diese Option aktiviert ist, löst nur das Drücken von Strg oder Befehl eine schwebende Übersetzung aus",
+    "commentTranslate.configuration.contentHover": "Übertragen von Hover-Inhalten",
     "commentTranslate.configuration.targetLanguage": "Übersetzung in die Zielsprache",
     "commentTranslate.configuration.source": "Servcie Quelle übersetzen. Google, Bing, Baidu wurden eingebaut.",
     "commentTranslate.configuration.openHover": "Offene Hover-Übersetzung",
