@@ -38,7 +38,7 @@ export type checkScopeFunction = (scopes: string[]) => boolean;
 
 
 function isComment(scopes: string[]) {
-    //评论的token标记
+    //评论的token标记 XX
     const arr = [
         'punctuation.definition.comment',
         'comment.block',
