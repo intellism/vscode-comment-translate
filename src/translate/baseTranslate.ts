@@ -15,7 +15,7 @@ export abstract class BaseTranslate implements ITranslate {
         return '';
     }
 
-    isSupported(src: string) {
+    isSupported() {
         return true;
     }
 

@@ -11,19 +11,9 @@
                 "--extensionDevelopmentPath=${workspaceRoot}"
             ],
             "outFiles": [
-                "${workspaceRoot}/client/out/**/*.js"
+                "${workspaceRoot}/out/**/*.js"
             ],
             "preLaunchTask": "${defaultBuildTask}"
-        },
-        {
-            "type": "node",
-            "request": "attach",
-            "name": "Attach to Server",
-            "port": 16009,
-            "restart": true,
-            "outFiles": [
-                "${workspaceRoot}/server/out/**/*.js"
-            ]
         },
         {
             "name": "Language Server E2E Test",
@@ -44,8 +34,7 @@
         {
             "name": "Client + Server",
             "configurations": [
-                "Launch Client",
-                "Attach to Server"
+                "Launch Client"
             ]
         }
     ]

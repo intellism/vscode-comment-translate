@@ -1,9 +1,7 @@
-import { Position, Range } from "vscode-languageserver";
-import {
-	TextDocument
-} from 'vscode-languageserver-textdocument';
+import { Position, Range,TextDocument } from "vscode";
 import { IGrammar, StackElement, IToken, IGrammarExtensions } from "./TextMateService";
-import { getConfig } from "../server";
+import { getConfig } from "../configuration";
+
 export interface ITokenState {
     startState: StackElement | null;
     tokens1: IToken[];
@@ -263,13 +261,8 @@ export class CommentParse {
             });
         }
 
-        const range = Range.create({
-            line: startLine,
-            character: startIndex
-        }, {
-            line: endLine,
-            character: endIndex
-        });
+        const range = new Range(
+            new Position(startLine, startIndex),new Position(endLine, endIndex));
 
         return {
             comment: tokens.map(((item)=>{
@@ -296,7 +289,7 @@ export class CommentParse {
             for(let index = 0; index<tokens1.length; index +=1) {
                 const { scopes,startIndex} = this._posScopesParse(line,index);
                 if (scopes && checkHandle(scopes)) {
-                    let block = this.commentScopeParse(Position.create(line, startIndex+1),checkHandle,single,opts);
+                    let block = this.commentScopeParse(new Position(line, startIndex+1),checkHandle,single,opts);
                     blocks.push(block);
                     line = block.range.end.line;
                     tokens1 = this._getTokensAtLine(line).tokens1;
@@ -320,7 +313,8 @@ export class CommentParse {
     public computeText(position: Position): ICommentBlock | null {
         const index = this._posOffsetTokens(position);
         const { scopes,startIndex,endIndex,text } = this._posScopesParse(position.line,index);
-        const { hover:{string:stringHover,variable:variableHover} } = getConfig();
+        const stringHover = getConfig<boolean>('hover.string');
+        const variableHover = getConfig<boolean>('hover.variable');
         if (scopes && isComment(scopes)) {
             return this.commentScopeParse(position,isComment,false,{
                 ignoreHandle:ignoreComment,skipHandle:skipComment
@@ -332,13 +326,7 @@ export class CommentParse {
         }
         
         if (variableHover && scopes && isBase(scopes)) {
-            const range = Range.create({
-                line: position.line,
-                character: startIndex
-            }, {
-                    line: position.line,
-                    character: endIndex
-                });
+            const range = new Range(new Position(position.line,startIndex), new Position(position.line,endIndex));
 
             return {
                 comment: text,

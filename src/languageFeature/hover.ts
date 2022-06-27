@@ -1,6 +1,6 @@
 import { CancellationToken, commands, ExtensionContext, Hover, languages, MarkdownString, Position, Range, TextDocument, window } from "vscode";
 import { getConfig } from "../configuration";
-import { client, translateManager, userLanguage } from "../extension";
+import { /* client,*/ comment, translateManager, userLanguage } from "../extension";
 import { IMarkdownReplceToken, markdownRecovery, markdownReplace } from "../util/markdown";
 import { ShortLive } from "../util/short-live";
 import { compileBlock, ICommentBlock } from "./compile";
@@ -11,7 +11,7 @@ let last: Map<string, Hover> = new Map();
 let working: Set<String> = new Set();
 
 
-async function commentProvideHover(document: TextDocument, position: Position, token: CancellationToken): Promise<Hover | null> {
+async function commentProvideHover(document: TextDocument, position: Position, _token: CancellationToken): Promise<Hover | null> {
 
     const uri = document.uri.toString();
 
@@ -23,8 +23,9 @@ async function commentProvideHover(document: TextDocument, position: Position, t
 
     let block: ICommentBlock | null = selectionContains(uri, position);
     if (!block) {
-        const textDocumentPosition = { textDocument: { uri }, position };
-        block = await client.sendRequest<ICommentBlock | null>('getComment', textDocumentPosition);
+        // const textDocumentPosition = { textDocument: { uri }, position };
+        // block = await client.sendRequest<ICommentBlock | null>('getComment', textDocumentPosition);
+        block = await comment.getComment(document, position);
     }
     if (!block) {
         return null;
@@ -62,13 +63,11 @@ async function commentProvideHover(document: TextDocument, position: Position, t
     return hover;
 }
 
-async function translateTypeLanguageProvideHover(document: TextDocument, position: Position, token: CancellationToken): Promise<Hover | null> {
+async function translateTypeLanguageProvideHover(document: TextDocument, position: Position, _token: CancellationToken): Promise<Hover | null> {
     
-    // translateTypeLanguage的开关，默认关闭
+    // translateTypeLanguage的开关，默认开启
     const typeLanguae = getConfig<boolean>('hover.content');
-    if(!typeLanguae) {
-        return null;
-    }
+    if(!typeLanguae) return null;
 
     let hoverId = getHoverId(document,position);
     working.add(hoverId); // 标识当前位置进行处理中。  当前Provider将忽略当次请求，规避循环调用。
@@ -133,7 +132,7 @@ export function registerHover(context: ExtensionContext, canLanguages:string[] =
     let hoverProviderDisposable = languages.registerHoverProvider(canLanguages, {
         async provideHover(document, position, token) {
 
-            const uri = document.uri.toString();
+            // const uri = document.uri.toString();
             let hoverId = getHoverId(document,position);
             // 如果已经当前Hover进行中，则忽略本次请求
             if(working.has(hoverId)) {

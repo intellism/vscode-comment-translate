@@ -1,16 +1,19 @@
-import { Range, Selection, window } from "vscode";
+import { Selection, window } from "vscode";
 import { getConfig, selectTargetLanguage } from "../configuration";
-import { client } from "../extension";
-import { compileBlock, ICommentBlock } from "../languageFeature/compile";
+import { comment, outputChannel } from "../extension";
+// import { client } from "../extension";
+import { compileBlock } from "../languageFeature/compile";
 
 
 export async function selectAllForType(type = 'comment') {
     let editor = window.activeTextEditor;
     if (editor) {
-        let blocks = await client.sendRequest<ICommentBlock[] | null>('getAllComment',{uri: editor.document.uri.toString(),type, range:{
-            start: editor.selections[0].start, 
-            end: editor.selections[0].end
-        }});
+        // let blocks = await client.sendRequest<ICommentBlock[] | null>('getAllComment',{uri: editor.document.uri.toString(),type, range:{
+        //     start: editor.selections[0].start, 
+        //     end: editor.selections[0].end
+        // }});
+
+        let blocks = await comment.getAllComment(editor.document,type, editor.selections[0]);
 
         if (!blocks || blocks.length === 0) return;
         let selections = blocks.map((block => {
@@ -40,10 +43,13 @@ export async function translateAllComment() {
 export async function translateAllForType(type = 'comment') {
     let editor = window.activeTextEditor;
     if (editor) {
-        let blocks = await client.sendRequest<ICommentBlock[] | null>('getAllComment',{uri: editor.document.uri.toString(),type,range:{
-            start: editor.selections[0].start, 
-            end: editor.selections[0].end
-        }});
+        // let blocks = await client.sendRequest<ICommentBlock[] | null>('getAllComment',{uri: editor.document.uri.toString(),type,range:{
+        //     start: editor.selections[0].start, 
+        //     end: editor.selections[0].end
+        // }});
+
+        let blocks = await comment.getAllComment(editor.document,type, editor.selections[0]);
+
 
         if (!blocks || blocks.length === 0) return;
 
@@ -85,7 +91,7 @@ export async function translateAllForType(type = 'comment') {
             });
         } catch (e:any) {
             decoration.dispose();
-            client.outputChannel.append(e.toString());
+            outputChannel.append(e.toString());
         }
 
     }

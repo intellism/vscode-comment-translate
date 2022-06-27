@@ -1,4 +1,4 @@
-import {env, commands, ExtensionContext, Position, Selection, TextEditorSelectionChangeKind, window, Range, Hover } from "vscode";
+import {env, commands, ExtensionContext, Selection, TextEditorSelectionChangeKind, window, Range } from "vscode";
 import { getConfig } from "../configuration";
 import { outputChannel, translateManager, userLanguage } from "../extension";
 import { lastHover } from "../languageFeature/hover";

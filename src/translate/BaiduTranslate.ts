@@ -43,7 +43,7 @@ export class BaiduTranslate extends BaseTranslate {
         return `[Baidu](${str})`;
     }
 
-    static isSupported(src:string) {
+    static isSupported() {
         // const found = LANGS.find(item => item === convertLang(src));
         // return new Boolean(found);
         return true;

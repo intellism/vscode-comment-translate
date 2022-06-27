@@ -68,7 +68,7 @@ export async function selectTargetLanguage(placeHolder: string = 'Select target 
 }
 
 
-export async function showHoverStatusBar(userLanguage: string) {
+export async function showHoverStatusBar() {
     let bar = window.createStatusBarItem();
     bar.command = 'commentTranslate.toggleEnableHover';
     bar.tooltip = 'Comment translate toggle enable hover.';

@@ -1,21 +1,18 @@
 {
 	"compilerOptions": {
-		"module": "commonjs",
-		"target": "es2019",
-		"lib": ["ES2019"],
+		"noImplicitAny": true,
+		"noUnusedLocals": true,
+		"noUnusedParameters": true,
+		"module": "CommonJS",
+		"target": "ES2020",
+		"lib": [
+			"ES2020"
+		],
 		"outDir": "out",
 		"rootDir": "src",
+		"strict": true,
 		"sourceMap": true
 	},
-	"include": [
-		"src"
-	],
-	"exclude": [
-		"node_modules",
-		".vscode-test"
-	],
-	"references": [
-		{ "path": "./client" },
-		{ "path": "./server" }
-	]
+	"include": ["src"],
+	"exclude": ["node_modules", ".vscode-test"]
 }

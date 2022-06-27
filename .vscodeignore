@@ -1,0 +1,3 @@
+.vscode
+./src/**
+./out/**/*.js.map

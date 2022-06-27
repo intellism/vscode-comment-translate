@@ -20,7 +20,10 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
    * 一键翻译并替换整个文档
 
 ### Changed
-* 性能优化，按需加载语法文件，提升插件启动时间并减少内存占用
+* 性能优化
+  * 按需加载语法文件，提升插件启动时间并减少内存占用
+  * 重构，移除server代码，迁移到client
+  * 插件捆绑依赖，减少文件加载
 * i18n 支持更多语言。 代码内支持
 * Readme优化
   * 阿里云配置文档添加

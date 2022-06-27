@@ -255,15 +255,12 @@ export class TextMateService implements ITextMateService {
     private _languageToScope: Map<string, string>;
 
     constructor(
-        extensions: IGrammarExtensions[],
-        tmPath: string
-    ) {
+        extensions: IGrammarExtensions[]    ) {
         this._scopeRegistry = new TMScopeRegistry();
         this._injections = {};
         this._injectedEmbeddedLanguages = {};
         this._languageToScope = new Map<string, string>();
         this._languages = new Map<string, number>();
-        console.log(tmPath);
         this._grammarRegistry = null;
         this._parseExtensions(extensions);
     }

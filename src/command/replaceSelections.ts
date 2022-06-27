@@ -1,6 +1,6 @@
 import { Selection, window, Range, Position } from "vscode";
 import { getConfig, selectTargetLanguage } from "../configuration";
-import { client, translateManager, userLanguage } from "../extension";
+import { outputChannel, translateManager, userLanguage } from "../extension";
 async function translateSelection(text: string, selection: Selection, targetLanguage: string) {
     // let translation = await client.sendRequest<string>('translate', { text, targetLanguage });
     let translatedText = await translateManager.translate(text, {to:targetLanguage});
@@ -11,7 +11,7 @@ export async function replaceRange({ uri, text, range }: { uri: string, text: st
     let editor = window.activeTextEditor;
     // 传入uri已经被decode了,所以都decode一下
     if (!(editor && editor.document && decodeURIComponent(editor.document.uri.toString()) === decodeURIComponent(uri))) {
-        return client.outputChannel.append(`Not active editor`);
+        return outputChannel.append(`Not active editor`);
     }
 
     text = Buffer.from(text , 'base64').toString();
@@ -30,7 +30,7 @@ export async function replaceRange({ uri, text, range }: { uri: string, text: st
         });
     } catch (e:any) {
         decoration.dispose();
-        client.outputChannel.append(e.toString());
+        outputChannel.append(e.toString());
     }
 
 }
@@ -41,14 +41,14 @@ export async function replaceSelections() {
 
 
     if (!editor || !editor.document || !editor.selections || editor.selections.length === 0) {
-        return client.outputChannel.append(`No selection！\n`);
+        return outputChannel.append(`No selection！\n`);
     }
 
     const validSelections = editor.selections
     .filter(selection => !selection.isEmpty);
 
     if(validSelections.length === 0) {
-        return client.outputChannel.append(`No selection！\n`);
+        return outputChannel.append(`No selection！\n`);
     }
 
     let targetLanguage = getConfig<string>('targetLanguage') || userLanguage;
@@ -86,6 +86,6 @@ export async function replaceSelections() {
         });
     } catch (e:any) {
         decoration.dispose();
-        client.outputChannel.append(e.toString());
+        outputChannel.append(e.toString());
     }
 }

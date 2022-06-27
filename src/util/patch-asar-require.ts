@@ -19,14 +19,3 @@ export function patchAsarRequire(appRoot: String) {
         return result;
     };
 }
-
-
-export function getNodeModule(appRoot: string, moduleName: string) {
-    try {
-        return require(`${appRoot}/node_modules.asar/${moduleName}`);
-    } catch (err) { }
-    try {
-        return require(`${appRoot}/node_modules/${moduleName}`);
-    } catch (err) { }
-    throw new Error(`Can not find module: ${moduleName}`)
-}
