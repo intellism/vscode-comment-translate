@@ -26,7 +26,7 @@ import { ITranslateConfig, ITranslateRegistry, TranslateExtensionProvider } from
 import { TranslateManager } from 'comment-translate-manager';
 import { Comment } from './syntax/Comment';
 import { TextMateService } from './syntax/TextMateService';
-import { patchAsarRequire } from './util/patch-asar-require';
+// import { patchAsarRequire } from './util/patch-asar-require';
 
 export let outputChannel = window.createOutputChannel('Comment Translate');
 // export let client: LanguageClient;
@@ -145,7 +145,7 @@ export async function activate(context: ExtensionContext) {
     // // Start the client. This will also launch the server
     // client.start();
 
-    patchAsarRequire(env.appRoot); // 引入bug修复
+    // patchAsarRequire(env.appRoot); // 引入bug修复
     const textMate = new TextMateService(grammarExtensions);
     comment = new Comment(textMate);
 

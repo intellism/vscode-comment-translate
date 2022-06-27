@@ -20,10 +20,6 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
    * 一键翻译并替换整个文档
 
 ### Changed
-* 性能优化
-  * 按需加载语法文件，提升插件启动时间并减少内存占用
-  * 重构，移除server代码，迁移到client
-  * 插件捆绑依赖，减少文件加载
 * i18n 支持更多语言。 代码内支持
 * Readme优化
   * 阿里云配置文档添加
@@ -33,6 +29,12 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 ### Fixed
  * 内容中有 ")" 会与Markdown冲突。 hover command会出问题
  * Hover翻译内容，处理Markdown使用单行处理方法，在 链接中包含 \n 会出现格式错误
+
+## [2.2.1] 2022-6-27
+### Change
+ * 性能优化
+  * 重构，移除server代码，迁移到client
+  * 插件捆绑依赖，减少文件加载. 插件发布版本廋包(20M到1.5M)
 
 ## [2.2.0] 2022-6-15
 ### Added

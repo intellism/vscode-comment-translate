@@ -1,6 +1,11 @@
 import * as path from 'path';
 import * as fs from 'fs';
-import * as onigasm from 'onigasm';
+import {
+    loadWASM,
+    OnigScanner,
+    OnigString
+} from 'onigasm';
+
 import { Registry, IOnigLib,parseRawGrammar,INITIAL } from 'vscode-textmate';
 // import { getNodeModule } from '../util/patch-asar-require';
 export interface ILocation {
@@ -223,25 +228,27 @@ export interface IGrammarExtensions {
 }
 
 async function doLoadOnigasm(): Promise<IOnigLib> {
-    const [wasmBytes] = await Promise.all([
-        loadOnigasmWASM()
-    ]);
+    // const [wasmBytes] = await Promise.all([
+    //     loadOnigasmWASM()
+    // ]);
     
     // debugger;
 
-	await onigasm.loadWASM(wasmBytes);
+    const wasmPath:string = require('onigasm/lib/onigasm.wasm').default;
+    const bytes = await fs.promises.readFile(path.join(__dirname,wasmPath));
+	await loadWASM(bytes.buffer);
 	return {
-		createOnigScanner(patterns: string[]) { return new onigasm.OnigScanner(patterns); },
-		createOnigString(s: string) { return new onigasm.OnigString(s); }
+		createOnigScanner(patterns: string[]) { return new OnigScanner(patterns); },
+		createOnigString(s: string) { return new OnigString(s); }
 	};
 }
 
-async function loadOnigasmWASM(): Promise<ArrayBuffer> {
-    let indexPath:string = require.resolve('onigasm');
-    const wasmPath = path.join(indexPath, '../onigasm.wasm');
-	const bytes = await fs.promises.readFile(wasmPath);
-	return bytes.buffer;
-}
+// async function loadOnigasmWASM(): Promise<ArrayBuffer> {
+//     let indexPath:string = require.resolve('onigasm');
+//     const wasmPath = path.join(indexPath, '../onigasm.wasm');
+// 	const bytes = await fs.promises.readFile(wasmPath);
+// 	return bytes.buffer;
+// }
 
 export class TextMateService implements ITextMateService {
     public _serviceBrand: any;

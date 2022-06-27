@@ -1,3 +1,5 @@
 .vscode
-./src/**
-./out/**/*.js.map
+src
+node_modules
+doc
+dist/**/*.js.map

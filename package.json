@@ -2,7 +2,7 @@
     "name": "comment-translate",
     "displayName": "%commentTranslate.displayName%",
     "description": "%commentTranslate.description%",
-    "version": "2.2.0",
+    "version": "2.2.1",
     "publisher": "intellsmi",
     "author": {
         "name": "Zheng MaoWei",
@@ -35,8 +35,8 @@
     "activationEvents": [
         "onStartupFinished"
     ],
-    "icon": "doc/image/icon.png",
-    "main": "./out/extension",
+    "icon": "icon.png",
+    "main": "./dist/extension",
     "contributes": {
         "commands": [
             {
@@ -458,27 +458,32 @@
         ]
     },
     "scripts": {
-        "vscode:prepublish": "npm run compile",
-        "compile": "tsc -b",
-        "watch": "tsc -b -w",
-        "test": "sh ./scripts/e2e.sh"
+        "watch": "npm run webpack-dev",
+        "vscode:prepublish": "npm run package",
+        "webpack": "webpack --mode development",
+        "webpack-dev": "webpack --mode development --watch",
+        "package": "webpack --mode production --devtool hidden-source-map",
+        "test-compile": "tsc -p ./"
     },
     "dependencies": {
-		"onigasm": "^2.2.5",
-		"vscode-textmate": "^4.3.0",
-		"@alicloud/pop-core": "^1.7.10",
-		"@vitalets/google-translate-token": "^1.2.0",
-		"baidu-translate-api-temp": "^0.4.4",
-		"bing-translate-api": "^2.2.1",
-		"comment-translate-manager": "^0.0.3",
-		"humanize-string": "2.1.0",
-		"request": "^2.88.2",
-		"vscode-languageclient": "^7.0.0"
-	},
+        "@alicloud/pop-core": "^1.7.10",
+        "@vitalets/google-translate-token": "^1.2.0",
+        "baidu-translate-api-temp": "^0.4.4",
+        "bing-translate-api": "^2.2.1",
+        "comment-translate-manager": "^0.0.3",
+        "humanize-string": "2.1.0",
+        "onigasm": "^2.2.5",
+        "request": "^2.88.2",
+        "vscode-languageclient": "^7.0.0",
+        "vscode-textmate": "^4.3.0"
+    },
     "devDependencies": {
-        "@types/vscode": "^1.52.0",
-		"@vscode/test-electron": "^1.6.1",
         "@types/node": "^12.12.0",
-        "typescript": "^4.3.5"
+        "@types/vscode": "^1.52.0",
+        "file-loader": "^6.2.0",
+        "ts-loader": "^9.3.1",
+        "typescript": "^4.3.5",
+        "webpack": "^5.73.0",
+        "webpack-cli": "^4.10.0"
     }
 }

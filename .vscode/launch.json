@@ -3,39 +3,31 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Launch Extension",
             "type": "extensionHost",
             "request": "launch",
-            "name": "Launch Client",
             "runtimeExecutable": "${execPath}",
             "args": [
-                "--extensionDevelopmentPath=${workspaceRoot}"
+                "--extensionDevelopmentPath=${workspaceFolder}"
             ],
             "outFiles": [
-                "${workspaceRoot}/out/**/*.js"
+                "${workspaceFolder}/dist/**/*.js"
             ],
-            "preLaunchTask": "${defaultBuildTask}"
+            "preLaunchTask": "npm: webpack"
         },
         {
-            "name": "Language Server E2E Test",
+            "name": "Extension Tests",
             "type": "extensionHost",
             "request": "launch",
             "runtimeExecutable": "${execPath}",
             "args": [
-                "--extensionDevelopmentPath=${workspaceRoot}",
-                "--extensionTestsPath=${workspaceRoot}/client/out/test",
-                "${workspaceRoot}/client/testFixture"
+                "--extensionDevelopmentPath=${workspaceFolder}",
+                "--extensionTestsPath=${workspaceFolder}/out/test"
             ],
             "outFiles": [
-                "${workspaceRoot}/client/out/test/**/*.js"
-            ]
-        }
-    ],
-    "compounds": [
-        {
-            "name": "Client + Server",
-            "configurations": [
-                "Launch Client"
-            ]
+                "${workspaceFolder}/out/test/**/*.js"
+            ],
+            "preLaunchTask": "npm: test-compile"
         }
     ]
 }
