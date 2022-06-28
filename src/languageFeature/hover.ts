@@ -38,10 +38,12 @@ async function commentProvideHover(document: TextDocument, position: Position, _
     const base64TranslatedText = Buffer.from(translatedText).toString('base64');
     const space = '&nbsp;&nbsp;';
     const separator = `${space}|${space}`;
-    const replace = `[$(replace)](command:commentTranslate._replaceRange?${encodeURIComponent(JSON.stringify({ uri, range, text: base64TranslatedText }))} "Replace")`;
+    const replace = `[$(replace)](command:commentTranslate._replaceRange?${encodeURIComponent(JSON.stringify({ uri, range:{ start: range.start, end: range.end}, text: base64TranslatedText }))} "Replace")`;
     const multiLine = getConfig<boolean>('multiLineMerge');
     const combine = `[$(${multiLine ? 'selection' : 'remove'})](command:commentTranslate._toggleMultiLineMerge "Toggle Combine Multi Line")`;
-    const addSelection = `[$(heart)](command:commentTranslate._addSelection?${encodeURIComponent(JSON.stringify({ range }))} "Add Selection")`;
+
+    // bugfix: JSON.stringify Range会变成数组。 传到下游会有问题。
+    const addSelection = `[$(heart)](command:commentTranslate._addSelection?${encodeURIComponent(JSON.stringify({ range:{start:range.start, end:range.end} }))} "Add Selection")`;
 
     const translate = `[$(sync)](command:commentTranslate.changeTranslateSource "Change translate source")`;
 
