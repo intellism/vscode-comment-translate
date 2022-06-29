@@ -3,13 +3,13 @@
     "tasks": [
         {
 			"type": "npm",
-			"script": "watch",
+			"script": "webpack-dev",
 			"group": {
 				"kind": "build",
 				"isDefault": true
 			},
 			"isBackground": true,
-			"problemMatcher": ["$tsc-watch"]
+			"problemMatcher": ["$ts-checker-webpack-watch"]
 		}
     ]
 }

@@ -94,7 +94,7 @@ export async function compileBlock(block:ICommentBlock,languageId:string,targetL
 	const { comment: originText } = block;
 	let { tokens } = block;
 
-	targetLanguage = targetLanguage || getConfig<string>('targetLanguage') || userLanguage;
+	targetLanguage = targetLanguage || getConfig<string>('targetLanguage', userLanguage);
 	if (!tokens) {
 		// 选取翻译&单个单词翻译的时候。无tokens的简单结果
 		humanizeText = humanize(originText);

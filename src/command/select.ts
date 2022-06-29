@@ -11,7 +11,7 @@ export async function clipboard() {
         outputChannel.appendLine('clipboard:The clipboard is empty');
         return;
     }
-    const targetLanguage = getConfig<string>('targetLanguage') || userLanguage;
+    const targetLanguage = getConfig<string>('targetLanguage',userLanguage);
     let translatedText = await translateManager.translate(text, {to:targetLanguage});
     outputChannel.appendLine('clipboard:' + translatedText);
     await window.showInformationMessage(translatedText,{detail: text, modal:false});
@@ -20,11 +20,10 @@ export async function clipboard() {
 export async function selectLastHover() {
     let editor = window.activeTextEditor;
     if (editor) {
-        // let hover = await client.sendRequest<Hover>('lastHover', { uri: editor.document.uri.toString() });
-        let hover = lastHover(editor.document.uri.toString());
-        if (!hover || !hover.range) return;
-        editor.revealRange(hover.range);
-        const {start,end} = hover.range;
+        let range = lastHover(editor.document.uri.toString());
+        if (!range) return;
+        editor.revealRange(range);
+        const {start,end} = range;
 
         // 会复用对象？必须重新构建
         // editor.selections = [new Selection(start,end)]; 

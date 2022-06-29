@@ -30,6 +30,16 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
  * 内容中有 ")" 会与Markdown冲突。 hover command会出问题
  * Hover翻译内容，处理Markdown使用单行处理方法，在 链接中包含 \n 会出现格式错误
 
+
+## [2.2.2] 2022-6-29
+### Change
+  * 优化代码
+    * 删除不必要的内容
+    * 移除request,切换到got
+  * Hover位置，调整为光标附近。可以通过配置 `hover.nearShow` 关闭 
+### Fixed
+  * 修复 Replace & Select 按钮命令失效问题
+
 ## [2.2.1] 2022-6-27
 ### Change
  * 性能优化

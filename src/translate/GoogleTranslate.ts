@@ -1,5 +1,5 @@
 import { BaseTranslate } from './baseTranslate';
-import request from '../util/request-promise';
+import got from 'got';
 import { ITranslateOptions } from 'comment-translate-manager';
 import { getConfig } from '../configuration';
 const querystring = require('querystring');
@@ -17,7 +17,7 @@ interface IGetToken {
 export class GoogleTranslate extends BaseTranslate {
     override readonly maxLen= 500;
     async _translate(content: string, { from = 'auto', to = 'auto' }: ITranslateOptions): Promise<string> {
-        let tld = getConfig<string>('googleTranslate.tld') || 'com';
+        let tld = getConfig<string>('googleTranslate.tld', 'com');
         let token = await GoogleToken.get(content, { tld });
         let url = 'https://translate.google.' + tld + '/translate_a/single';
         let data: any = {
@@ -36,11 +36,11 @@ export class GoogleTranslate extends BaseTranslate {
         };
         data[token.name] = token.value;
         url = url + '?' + querystring.stringify(data);
-        let res = await request(url, {
-            json: true, timeout: 10000, headers: {
+        let res:any = await got(url, {
+            timeout: {request:10000}, headers: {
                 'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.102 Safari/537.36'
             }
-        });
+        }).json();
 
         let sentences = res[0];
         if (!sentences || !(sentences instanceof Array)) {
@@ -63,7 +63,7 @@ export class GoogleTranslate extends BaseTranslate {
         //     last = last.toLocaleUpperCase();
         //     to = `${first}-${last}`;
         // }
-        let tld = getConfig<string>('googleTranslate.tld') || 'com';
+        let tld = getConfig<string>('googleTranslate.tld', 'com');
         let str = `https://translate.google.${tld}/#view=home&op=translate&sl=auto&tl=${to}&text=${encodeURIComponent(content)}`;
         return `[Google](${str})`;
         // return `<a href="${encodeURI(str)}">Google</a>`;

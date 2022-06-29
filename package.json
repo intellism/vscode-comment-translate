@@ -2,7 +2,7 @@
     "name": "comment-translate",
     "displayName": "%commentTranslate.displayName%",
     "description": "%commentTranslate.description%",
-    "version": "2.2.1",
+    "version": "2.2.2",
     "publisher": "intellsmi",
     "author": {
         "name": "Zheng MaoWei",
@@ -366,6 +366,12 @@
                         "order": 24,
                         "description": "%commentTranslate.configuration.variableHover%"
                     },
+                    "commentTranslate.hover.nearShow": {
+                        "type": "boolean",
+                        "default": true,
+                        "order": 25,
+                        "description": "Show hover overlay near cursor."
+                    },
                     "commentTranslate.hover.string": {
                         "type": "boolean",
                         "default": false,
@@ -458,7 +464,6 @@
         ]
     },
     "scripts": {
-        "watch": "npm run webpack-dev",
         "vscode:prepublish": "npm run package",
         "webpack": "webpack --mode development",
         "webpack-dev": "webpack --mode development --watch",
@@ -471,9 +476,9 @@
         "baidu-translate-api-temp": "^0.4.4",
         "bing-translate-api": "^2.2.1",
         "comment-translate-manager": "^0.0.3",
+        "got": "^12.1.0",
         "humanize-string": "2.1.0",
         "onigasm": "^2.2.5",
-        "request": "^2.88.2",
         "vscode-languageclient": "^7.0.0",
         "vscode-textmate": "^4.3.0"
     },

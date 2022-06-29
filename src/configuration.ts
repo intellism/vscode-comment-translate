@@ -14,7 +14,7 @@ export async function selectTargetLanguage(placeHolder: string = 'Select target 
     });
 
     if (!defaultLanguage) {
-        defaultLanguage = getConfig<string>('targetLanguage') || '';
+        defaultLanguage = getConfig<string>('targetLanguage', '');
     }
     let defaultTarget = languages.get(defaultLanguage);
     defaultTarget && items.unshift({
@@ -100,7 +100,7 @@ export async function showTargetLanguageStatusBarItem(userLanguage: string) {
 
 
     let setLanguageText = async () => {
-        let currentLanguage = getConfig<string>('targetLanguage') || userLanguage;
+        let currentLanguage = getConfig<string>('targetLanguage',userLanguage);
         let current = languages.get(currentLanguage);
         if (current) {
             targetBar.text = current;
@@ -116,10 +116,21 @@ export async function showTargetLanguageStatusBarItem(userLanguage: string) {
 
     return targetBar;
 }
+const PREFIXCONFIG = 'commentTranslate';
+export function getConfiguration() {
+    return workspace.getConfiguration(PREFIXCONFIG);
+}
 
-export function getConfig<T>(key: string) {
-    let configuration = workspace.getConfiguration('commentTranslate');
-    return configuration.get<T>(key);
+
+export function getConfig<T>(key: string):T | undefined;
+export function getConfig<T>(key: string, defaultValue: T):T;
+export function getConfig<T>(key: string, defaultValue?: T):T {
+    let configuration = getConfiguration();
+    let value:any = configuration.get<T>(key);
+    if (typeof value === 'undefined') {
+        value = defaultValue;
+    }
+    return value;
 }
 
 export async function selectTranslateSource(placeHolder: string = 'Select translate source.') {

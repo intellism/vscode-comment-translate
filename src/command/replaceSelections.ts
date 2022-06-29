@@ -51,7 +51,7 @@ export async function replaceSelections() {
         return outputChannel.append(`No selection！\n`);
     }
 
-    let targetLanguage = getConfig<string>('targetLanguage') || userLanguage;
+    let targetLanguage = getConfig<string>('targetLanguage',userLanguage);
     if (!targetLanguage) return;
 
     let selectTarget = getConfig<boolean>('selectTargetLanguageWhenReplacing');

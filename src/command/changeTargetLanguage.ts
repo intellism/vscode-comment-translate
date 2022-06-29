@@ -1,12 +1,12 @@
-import { window, workspace } from "vscode";
-import { selectTargetLanguage, selectTranslateSource } from "../configuration";
+import { window } from "vscode";
+import { getConfiguration, selectTargetLanguage, selectTranslateSource } from "../configuration";
 import { outputChannel, translateExtensionProvider } from "../extension";
 
 // 更改目标语言命令
 export async function changeTargetLanguage () {
     let target = await selectTargetLanguage();
     if (target) {
-        const configuration = workspace.getConfiguration('commentTranslate');
+        const configuration = getConfiguration();
         await configuration.update('targetLanguage', target);
     }
 }
@@ -16,7 +16,7 @@ export async function changeTranslateSource() {
     if(targetSource) {
         let success = await translateExtensionProvider.switchTranslate(targetSource);
         if(success) {
-            const configuration = workspace.getConfiguration('commentTranslate');
+            const configuration = getConfiguration();
             await configuration.update('source', targetSource);
             const msg = `Switch translate source to '${targetSource}'.`;
             outputChannel.appendLine(msg);
@@ -29,13 +29,13 @@ export async function changeTranslateSource() {
 }
 
 export async function toggleMultiLineMerge() {
-    let configuration = workspace.getConfiguration('commentTranslate');
+    let configuration = getConfiguration();
     let origin = await configuration.get<boolean>('multiLineMerge');
     await configuration.update('multiLineMerge', !origin);
 }
 
 export async function toggleEnableHover() {
-    let configuration = workspace.getConfiguration('commentTranslate');
+    let configuration = getConfiguration();
     let origin = await configuration.get<boolean>('hover.enabled');
     await configuration.update('hover.enabled', !origin);
 }

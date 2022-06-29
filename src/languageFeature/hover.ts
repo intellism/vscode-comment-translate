@@ -6,7 +6,7 @@ import { ShortLive } from "../util/short-live";
 import { compileBlock, ICommentBlock } from "./compile";
 
 export let shortLive = new ShortLive<string>((prev, curr) => prev === curr);
-let last: Map<string, Hover> = new Map();
+let last: Map<string, Range> = new Map();
 
 let working: Set<String> = new Set();
 
@@ -17,6 +17,7 @@ async function commentProvideHover(document: TextDocument, position: Position, _
 
     const concise = getConfig<boolean>('hover.concise');
     const open = getConfig<boolean>('hover.enabled');
+    const nearShow = getConfig<boolean>('hover.nearShow');
 
     if (!open) return null;
     if (concise && !shortLive.isLive(uri)) return null;
@@ -60,8 +61,15 @@ async function commentProvideHover(document: TextDocument, position: Position, _
         md = new MarkdownString(`**Translate Error**: Check [OutputPannel](command:commentTranslate._openOutputPannel "open output pannel") for details.`);
         md.isTrusted = true;
     }
-    const hover = new Hover([header, md], range);
-    last.set(uri, hover);
+
+    let showRange = range;
+    if(nearShow) {
+        const nearRange = new Range(new Position(position.line, Math.max(position.character-10,0)), new Position(position.line, position.character+10));
+        showRange = range.intersection(nearRange) || showRange;
+    }
+
+    const hover = new Hover([header, md], showRange);
+    last.set(uri, range);
     return hover;
 }
 
@@ -75,7 +83,7 @@ async function translateTypeLanguageProvideHover(document: TextDocument, positio
     working.add(hoverId); // 标识当前位置进行处理中。  当前Provider将忽略当次请求，规避循环调用。
     let res = await commands.executeCommand<Hover[]>('vscode.executeHoverProvider',document.uri, position);
     working.delete(hoverId); // 移除处理中的标识，使其他正常hover的响应
-    let targetLanguage = getConfig<string>('targetLanguage') || userLanguage;
+    let targetLanguage = getConfig<string>('targetLanguage', userLanguage);
 
     let contents:{tokens:IMarkdownReplceToken[]}[] = [];
     let contentTasks:Promise<string>[] = [];
