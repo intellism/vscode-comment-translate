@@ -2,7 +2,7 @@
     "name": "comment-translate",
     "displayName": "%commentTranslate.displayName%",
     "description": "%commentTranslate.description%",
-    "version": "2.2.2",
+    "version": "2.2.4",
     "publisher": "intellsmi",
     "author": {
         "name": "Zheng MaoWei",

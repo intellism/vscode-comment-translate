@@ -16,10 +16,8 @@ async function commentProvideHover(document: TextDocument, position: Position, _
     const uri = document.uri.toString();
 
     const concise = getConfig<boolean>('hover.concise');
-    const open = getConfig<boolean>('hover.enabled');
     const nearShow = getConfig<boolean>('hover.nearShow');
 
-    if (!open) return null;
     if (concise && !shortLive.isLive(uri)) return null;
 
     let block: ICommentBlock | null = selectionContains(uri, position);
@@ -141,8 +139,11 @@ export function registerHover(context: ExtensionContext, canLanguages:string[] =
 
     let hoverProviderDisposable = languages.registerHoverProvider(canLanguages, {
         async provideHover(document, position, token) {
-
-            // const uri = document.uri.toString();
+            
+            // hover开关配置，对typelanguage生效
+            const open = getConfig<boolean>('hover.enabled');
+            if (!open) return null;
+            
             let hoverId = getHoverId(document,position);
             // 如果已经当前Hover进行中，则忽略本次请求
             if(working.has(hoverId)) {
