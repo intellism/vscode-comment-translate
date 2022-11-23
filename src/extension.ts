@@ -11,13 +11,14 @@ import { getConfig, showHoverStatusBar, showTargetLanguageStatusBarItem } from '
 import { registerDefinition } from './languageFeature/definition';
 import { registerHover } from './languageFeature/hover';
 import { AliTranslate } from './plugin/translateAli';
-import { BaiduTranslate } from './translate/baiduTranslate';
-import { BingTranslate } from './translate/bingTranslate';
-import { GoogleTranslate } from './translate/googleTranslate';
+import { BaiduTranslate } from './translate/BaiduTranslate';
+import { BingTranslate } from './translate/BingTranslate';
+import { GoogleTranslate } from './translate/GoogleTranslate';
 import { ITranslateConfig, ITranslateRegistry, TranslateExtensionProvider } from './translate/translateExtension';
 import { TranslateManager } from 'comment-translate-manager';
 import { Comment } from './syntax/Comment';
 import { IGrammarExtensions, ITMLanguageExtensionPoint, TextMateService } from './syntax/TextMateService';
+import { readdirSync, readFileSync } from 'fs';
 
 export let outputChannel = window.createOutputChannel('Comment Translate');
 export let comment: Comment;
@@ -46,13 +47,34 @@ export async function activate(context: ExtensionContext) {
             extensionLocation: extensionPath
         }
     });
+    // 如果为远程环境，使用插件内置语法
+    if (env.remoteName) {
+        const inner = await readResources(context);
+        let innergrammarExtensions: IGrammarExtensions[] = inner.filter(({ packageJSON }) => {
+            return packageJSON.contributes && packageJSON.contributes.grammars;
+        }).map(({ packageJSON, extensionLocation }) => {
+            const contributesLanguages = packageJSON.contributes.languages || [];
+            const languages: ITMLanguageExtensionPoint[] = contributesLanguages.map((item: any) => {
+                return {
+                    id: languageId++,
+                    name: item.id
+                }
+            });
+            return {
+                languages,
+                value: packageJSON.contributes.grammars,
+                extensionLocation
+            }
+        });
+        grammarExtensions.push(...innergrammarExtensions);
+    }
 
     canLanguages = grammarExtensions.reduce<string[]>(((prev, item) => {
         let lang:string[] = item.value.map((grammar) => grammar.language).filter(v => v);
         return prev.concat(lang);
     }), canLanguages);
 
-
+    
     let BlackLanguage: string[] = ['log', 'Log', 'code-runner-output'];
     canLanguages = canLanguages.filter((v) => BlackLanguage.indexOf(v) < 0);
     userLanguage = env.language;
@@ -107,4 +129,15 @@ export async function activate(context: ExtensionContext) {
             registry('ali.cloud', AliTranslate);
         }
     }
+}
+
+
+async function readResources(context: ExtensionContext) {
+    const resources = await readdirSync(`${context.extensionPath}/resources`);
+    return Promise.all(resources.map(async extension => {
+        return {
+            packageJSON: JSON.parse(await readFileSync(`${context.extensionPath}/resources/${extension}/package.json`, 'utf-8')),
+            extensionLocation: `${context.extensionPath}/resources/${extension}`
+        }
+    })); 
 }
