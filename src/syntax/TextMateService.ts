@@ -213,7 +213,7 @@ export class TMLanguageRegistration {
 }
 
 export interface ITextMateService {
-    createGrammar(modeId: string): Promise<IGrammar>;
+    createGrammar(modeId: string): Promise<IGrammar | null>;
 }
 
 export interface ITMLanguageExtensionPoint {
@@ -367,17 +367,23 @@ export class TextMateService implements ITextMateService {
         return result;
     }
 
-    public async createGrammar(modeId: string): Promise<IGrammar> {
+    public async createGrammar(modeId: string): Promise<IGrammar | null> {
         const r = await this._createGrammar(modeId);
+        if (r === null)
+            return null;
         return r.grammar;
     }
 
-    private async _createGrammar(modeId: string): Promise<ICreateGrammarResult> {
+    private async _createGrammar(modeId: string): Promise<ICreateGrammarResult | null> {
         let scopeName = this._languageToScope.get(modeId) || '';
         let languageRegistration = this._scopeRegistry.getLanguageRegistration(scopeName);
         if (!languageRegistration) {
             // No TM grammar defined
-            throw new Error('No TM Grammar registered for this language.');
+            //throw new Error('No TM Grammar registered for this language.');
+            
+            //修改为返回null而不是throw，翻译正常执行
+            console.warn("No TM Grammar registered for this language.");
+            return null;
         }
         let embeddedLanguages = this._resolveEmbeddedLanguages(languageRegistration.embeddedLanguages);
         let rawInjectedEmbeddedLanguages = this._injectedEmbeddedLanguages[scopeName];
