@@ -34,13 +34,14 @@ export class Comment implements Disposable {
             return this._commentParseCache.get(key);
         }
         const grammar = await this._textMateService.createGrammar(languageId);
-
+        if (grammar == null)
+            return null;
         const parse = new CommentParse(textDocument, grammar);
         this._commentParseCache.set(key, parse);
         return parse;
     }
 
-    async getComment(textDocument:TextDocument, position:Position): Promise<ICommentBlock | null> {
+    async getComment(textDocument: TextDocument, position: Position): Promise<ICommentBlock | null> {
         const parse = await this._getCommentParse(textDocument);
         if (!parse) return null;
         return parse.computeText(position);

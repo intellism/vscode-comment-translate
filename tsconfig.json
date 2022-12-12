@@ -13,6 +13,6 @@
 		"strict": true,
 		"sourceMap": true
 	},
-	"include": ["src"],
+	"include": ["src","resources"],
 	"exclude": ["node_modules", ".vscode-test"]
 }
