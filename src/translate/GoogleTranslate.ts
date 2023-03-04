@@ -20,6 +20,10 @@ export class GoogleTranslate extends BaseTranslate {
         let tld = getConfig<string>('googleTranslate.tld', 'com');
         let token = await GoogleToken.get(content, { tld });
         let url = 'https://translate.google.' + tld + '/translate_a/single';
+        let mirror = getConfig<string>('googleTranslate.mirror', '');
+        if (mirror !== "") {
+            url = mirror + '/translate_a/single';
+        }
         let data: any = {
             client: 'gtx',
             sl: from,
@@ -65,6 +69,10 @@ export class GoogleTranslate extends BaseTranslate {
         // }
         let tld = getConfig<string>('googleTranslate.tld', 'com');
         let str = `https://translate.google.${tld}/#view=home&op=translate&sl=auto&tl=${to}&text=${encodeURIComponent(content)}`;
+        let mirror = getConfig<string>('googleTranslate.mirror', '');
+        if (mirror !== "") {
+            str = `${mirror}/#view=home&op=translate&sl=auto&tl=${to}&text=${encodeURIComponent(content)}`;
+        }
         return `[Google](${str})`;
         // return `<a href="${encodeURI(str)}">Google</a>`;
     }

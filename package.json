@@ -452,6 +452,10 @@
                         ],
                         "default": "com",
                         "description": "Determine the requested server address"
+                    },
+                    "commentTranslate.googleTranslate.mirror": {
+                        "type": "string",
+                        "markdownDescription": "Determine the requested server mirror address,more read [mirror docs](https://hcfy.app/blog/2022/09/28/ggg#%E6%96%B9%E6%A1%88-c%E4%BD%BF%E7%94%A8%E9%95%9C%E5%83%8F%E5%9C%B0%E5%9D%80%E6%9C%80%E7%AE%80%E5%8D%95)."
                     }
                 }
             }
