@@ -33,5 +33,5 @@
 * `commentTranslate.source`: 翻译服务源配置。建议通过命令完成设置。 支持插件扩展翻译服务源。 [example](https://github.com/intellism/deepl-translate)
 
 ## 翻译源
-* 支持外部“翻译源”扩展。目前外部插件已支持 [DeepL](https://marketplace.visualstudio.com/items?itemName=intellsmi.deepl-translate) & [tencent cloud](https://marketplace.visualstudio.com/items?itemName=Kaiqun.tencent-cloud-translate) 翻译源. 
+* 支持外部“翻译源”扩展。目前外部插件已支持 [ChatGPT](https://marketplace.visualstudio.com/items?itemName=kitiho.chatgpt-comment-translate) & [DeepL](https://marketplace.visualstudio.com/items?itemName=intellsmi.deepl-translate) & [tencent cloud](https://marketplace.visualstudio.com/items?itemName=Kaiqun.tencent-cloud-translate) 翻译源. 
 * 已内置Ali翻译源。 可以通过 [开通阿里云机器翻译](https://www.aliyun.com/product/ai/alimt) 生成 accessKeyId & accessKeySecret ,并配置到插件中。切换对应翻译源，获得更稳定的翻译服务
