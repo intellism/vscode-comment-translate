@@ -7,7 +7,7 @@
 
 ## 简介
 
-[【English】](./doc/README.md) [【日本語の文書】](./doc/README_JA.md)
+[【English】](./doc/README.md) [【日本語の文書】](./doc/README_JA.md) [【한국어】](./doc/README_KR.md)
 
 许多优秀的项目，都有丰富的注释，使用者可以快速理解代码意图。但是如果使用者并不熟习注释的语言，会带来理解困难。
 本插件使用 Google、Bing、Baidu、AliCloud、DeepL等的 Translate API 翻译 VSCode 的编程语言的注释。

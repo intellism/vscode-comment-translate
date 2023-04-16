@@ -1,7 +1,7 @@
 # VSCode Comment Translate
 
 ## Introduction
-[【中文文档】](../README.md) [【日本語の文書】](./README_JA.md)
+[【中文文档】](../README.md) [【日本語の文書】](./README_JA.md) [【한국어】](./README_KR.md)
 
 Many excellent projects have a lot of annotations, and users can quickly understand the code intent. However, if the user is not familiar with the annotated language, it will bring difficulties in understanding. This plugin uses the Google Translate API to translate comments for the VSCode programming language.
 ## v1.5.0 update
