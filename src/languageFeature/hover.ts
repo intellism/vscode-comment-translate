@@ -4,6 +4,7 @@ import { /* client,*/ comment, translateManager, userLanguage } from "../extensi
 import { IMarkdownReplceToken, markdownRecovery, markdownReplace } from "../util/markdown";
 import { ShortLive } from "../util/short-live";
 import { compileBlock, ICommentBlock } from "./compile";
+import { getMarkdownTextValue } from "../util/marked";
 
 export let shortLive = new ShortLive<string>((prev, curr) => prev === curr);
 let last: Map<string, Range> = new Map();
@@ -83,43 +84,45 @@ async function translateTypeLanguageProvideHover(document: TextDocument, positio
     working.delete(hoverId); // 移除处理中的标识，使其他正常hover的响应
     let targetLanguage = getConfig<string>('targetLanguage', userLanguage);
 
-    let contents:{tokens:IMarkdownReplceToken[]}[] = [];
+    // let contents:{tokens:IMarkdownReplceToken[]}[] = [];
     let contentTasks:Promise<string>[] = [];
     let range:Range|undefined;
+
     res.forEach(hover=>{
         range = range || hover.range;
-        hover.contents.forEach(c=>{
+        hover.contents.forEach(async c=>{
             // TODO 先全量翻译,后续特殊场景定制优化
             let markdownText:string;
-            let tokens:IMarkdownReplceToken[];
+            // let tokens:IMarkdownReplceToken[];
             if(typeof c === 'string') {
                 markdownText = c;
             } else {
                 markdownText = c.value;
             }
-            tokens = markdownReplace(markdownText);
+            contentTasks.push(getMarkdownTextValue(markdownText,targetLanguage));
 
-            let onlyEmbed = true;
-            tokens.forEach(token=>{
-                if(token.text.length>0 && !token.embed) {
-                    onlyEmbed = false;
-                    return;
-                }
-            });
-            if(!onlyEmbed) {
-                let msg = tokens.map(token=>token.text).filter(text=>text.length>0).join('\n');
-                contentTasks.push(translateManager.translate(msg, { to: targetLanguage }));
-                contents.push({
-                    tokens
-                });
-            }
+            // tokens = markdownReplace(markdownText);
+
+            // let onlyEmbed = true;
+            // tokens.forEach(token=>{
+            //     if(token.text.length>0 && !token.embed) {
+            //         onlyEmbed = false;
+            //         return;
+            //     }
+            // });
+            // if(!onlyEmbed) {
+            //     let msg = tokens.map(token=>token.text).filter(text=>text.length>0).join('\n');
+            //     contentTasks.push(translateManager.translate(msg, { to: targetLanguage }));
+            //     contents.push({
+            //         tokens
+            //     });
+            // }
             
         });
     });
 
     let translateds = await Promise.all(contentTasks);
-    let markdownStrings =  translateds.map((translated,index)=>{
-        translated = markdownRecovery(translated.split('\n'), contents[index].tokens);
+    let markdownStrings =  translateds.map((translated)=>{
         let md = new MarkdownString(translated,true);
         md.isTrusted = true;
         return md;
