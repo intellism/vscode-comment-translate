@@ -1,7 +1,6 @@
 import { CancellationToken, commands, ExtensionContext, Hover, languages, MarkdownString, Position, Range, TextDocument, window } from "vscode";
 import { getConfig } from "../configuration";
-import { /* client,*/ comment, translateManager, userLanguage } from "../extension";
-import { IMarkdownReplceToken, markdownRecovery, markdownReplace } from "../util/markdown";
+import { /* client,*/ comment, userLanguage } from "../extension";
 import { ShortLive } from "../util/short-live";
 import { compileBlock, ICommentBlock } from "./compile";
 import { getMarkdownTextValue } from "../util/marked";
@@ -100,24 +99,6 @@ async function translateTypeLanguageProvideHover(document: TextDocument, positio
                 markdownText = c.value;
             }
             contentTasks.push(getMarkdownTextValue(markdownText,targetLanguage));
-
-            // tokens = markdownReplace(markdownText);
-
-            // let onlyEmbed = true;
-            // tokens.forEach(token=>{
-            //     if(token.text.length>0 && !token.embed) {
-            //         onlyEmbed = false;
-            //         return;
-            //     }
-            // });
-            // if(!onlyEmbed) {
-            //     let msg = tokens.map(token=>token.text).filter(text=>text.length>0).join('\n');
-            //     contentTasks.push(translateManager.translate(msg, { to: targetLanguage }));
-            //     contents.push({
-            //         tokens
-            //     });
-            // }
-            
         });
     });
 

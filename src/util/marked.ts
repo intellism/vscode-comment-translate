@@ -1,5 +1,6 @@
 import { marked, Renderer } from "marked";
 import { translateManager } from "../extension";
+import { unescape } from "querystring";
 const he = require("he");
 
 let renderer: Renderer = new Renderer();
@@ -54,8 +55,6 @@ renderer.paragraph = function (text) {
   return text + "\n\n";
 };
 
-let init = false;
-
 export async function getMarkdownTextValue(markStr: string, to: string) {
   const asyncText: string[] = [];
   let textArr: string[] = [];
@@ -72,7 +71,7 @@ export async function getMarkdownTextValue(markStr: string, to: string) {
   marked.parse(markStr, {
     walkTokens: (token) => {
       if (token.type === "text") {
-        let text = decodeURIComponent(token.text).trim();
+        let text = unescape(token.text).trim();
         if (text && text.indexOf(" ") >= 0) {
           textArr = textArr.concat(text.split("\n"));
         }
@@ -84,7 +83,7 @@ export async function getMarkdownTextValue(markStr: string, to: string) {
     renderer,
     walkTokens: async (token) => {
       if (token.type === "text") {
-        let text = decodeURIComponent(token.text).trim();
+        let text = unescape(token.text).trim();
         if (text && text.indexOf(" ") >= 0) {
           asyncText.push(text);
           let arr = text.split("\n");
