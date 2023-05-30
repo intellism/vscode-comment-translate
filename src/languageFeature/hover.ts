@@ -1,6 +1,6 @@
 import { CancellationToken, commands, ExtensionContext, Hover, languages, MarkdownString, Position, Range, TextDocument, window } from "vscode";
 import { getConfig } from "../configuration";
-import { /* client,*/ comment, userLanguage } from "../extension";
+import { /* client,*/ comment, outputChannel, userLanguage } from "../extension";
 import { ShortLive } from "../util/short-live";
 import { compileBlock, ICommentBlock } from "./compile";
 import { getMarkdownTextValue } from "../util/marked";
@@ -24,7 +24,12 @@ async function commentProvideHover(document: TextDocument, position: Position, _
     if (!block) {
         // const textDocumentPosition = { textDocument: { uri }, position };
         // block = await client.sendRequest<ICommentBlock | null>('getComment', textDocumentPosition);
-        block = await comment.getComment(document, position);
+        try{
+            block = await comment.getComment(document, position);
+        } catch(e) {
+            //@ts-ignore
+            outputChannel.append('\n'+(e.message));
+        }
     }
     if (!block) {
         return null;

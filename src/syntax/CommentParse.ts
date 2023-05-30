@@ -100,6 +100,7 @@ function isBase(scopes: string[]) {
 export class CommentParse {
     private _model: string[];
     private _lines: ITokenState[] = [];
+    public maxLineLength = 20000;
 
     constructor(textDocument: TextDocument, private _grammar: IGrammar) {
         this._model = textDocument.getText().split('\n');
@@ -113,6 +114,11 @@ export class CommentParse {
         }
         //重编译过的地方
         for (let i = lineLength; i <= lineNumber; i++) {
+
+            if(this._model[i].length > this.maxLineLength) {
+                throw new Error(`Single-line text exceeds the limit of ${this.maxLineLength} characters`);
+            }
+
             const tokenizationResult = this._grammar.tokenizeLine(this._model[i], state);
             this._lines.push({
                 startState: state,

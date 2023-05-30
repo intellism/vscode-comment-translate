@@ -7,7 +7,7 @@
 import { ExtensionContext, extensions, env, window } from 'vscode';
 import { registerCommands } from './command/command';
 import { mouseToSelect } from './command/select';
-import { getConfig, showHoverStatusBar, showTargetLanguageStatusBarItem } from './configuration';
+import { getConfig, onConfigChange, showHoverStatusBar, showTargetLanguageStatusBarItem } from './configuration';
 import { registerDefinition } from './languageFeature/definition';
 import { registerHover } from './languageFeature/hover';
 import { AliTranslate } from './plugin/translateAli';
@@ -101,7 +101,11 @@ export async function activate(context: ExtensionContext) {
     mouseToSelect(context);
 
     // 最多单次可以翻译10000字符。 内部会分拆请求翻译服务。
-    translateManager = new TranslateManager(context.workspaceState, 10000);
+    translateManager = new TranslateManager(context.workspaceState, getConfig<number>('maxTranslationLength',10000));
+    onConfigChange('maxTranslationLength', (maxLen:number)=>{
+        translateManager.maxLen = maxLen;
+    });
+
     translateManager.onTranslate(e => {
         outputChannel.append(e);
     });

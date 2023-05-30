@@ -390,6 +390,12 @@
                         "order": 27,
                         "description": "%commentTranslate.configuration.source%"
                     },
+                    "commentTranslate.maxTranslationLength": {
+                        "type": "number",
+                        "default": "10000",
+                        "order": 28,
+                        "description": "%commentTranslate.configuration.maxTranslationLength%"
+                    },
                     "commentTranslate.ignore": {
                         "type": "array",
                         "title": "Ignore text",
@@ -479,7 +485,7 @@
         "@vitalets/google-translate-token": "^1.2.0",
         "baidu-translate-api-temp": "^0.4.4",
         "bing-translate-api": "^2.2.1",
-        "comment-translate-manager": "^0.0.3",
+        "comment-translate-manager": "^0.0.4",
         "got": "^12.1.0",
         "he": "^1.2.0",
         "humanize-string": "2.1.0",

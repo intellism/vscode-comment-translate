@@ -18,5 +18,6 @@
     "commentTranslate.configuration.stringHover": "Hover translation string",
     "commentTranslate.configuration.variableHover": "Hover translation variable",
     "commentTranslate.configuration.selectTargetLanguageWhenReplacing": "Select TargetLanguage when replacing",
+    "commentTranslate.configuration.maxTranslationLength": "Max translation length",
     "commentTranslate.configuration.MultilineMerge": "Comment Multi-line merge"
 }

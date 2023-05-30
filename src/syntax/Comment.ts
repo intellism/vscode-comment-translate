@@ -37,6 +37,7 @@ export class Comment implements Disposable {
         if (grammar == null)
             return null;
         const parse = new CommentParse(textDocument, grammar);
+        parse.maxLineLength = workspace.getConfiguration('editor').get('maxTokenizationLineLength',20000) as number;
         this._commentParseCache.set(key, parse);
         return parse;
     }

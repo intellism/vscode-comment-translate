@@ -3,6 +3,11 @@ import { translateManager } from "../extension";
 import { unescape } from "querystring";
 const he = require("he");
 
+marked.setOptions({
+  mangle: false,
+  headerIds: false
+});
+
 let renderer: Renderer = new Renderer();
 renderer.heading = function (text, level) {
   return `${"#".repeat(level)} ${text}`;

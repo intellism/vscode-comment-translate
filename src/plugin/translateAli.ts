@@ -2,7 +2,7 @@
 
 import * as RPCClient from '@alicloud/pop-core';
 import { workspace } from 'vscode';
-import { ITranslate, ITranslateOptions } from 'comment-translate-manager';
+import { ITranslate, ITranslateOptions,encodeMarkdownUriComponent } from 'comment-translate-manager';
 
 const PREFIXCONFIG = 'commentTranslate.translationAli';
 const PARAMS = {
@@ -302,7 +302,7 @@ export class AliTranslate implements ITranslate {
     }
 
     link(content: string, {  to = 'auto' }: ITranslateOptions) {
-        let str = `https://cn.bing.com/translator/?text=${encodeURIComponent(content)}&from=auto-detect&to=${convertLang(to)}`;
+        let str = `https://cn.bing.com/translator/?text=${encodeMarkdownUriComponent(content)}&from=auto-detect&to=${convertLang(to)}`;
         return `[AliCloud](${str})`;
     }
 
@@ -311,8 +311,5 @@ export class AliTranslate implements ITranslate {
         return found?true:false;
     }
 }
-
-
-
 
 

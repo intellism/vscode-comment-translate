@@ -133,6 +133,15 @@ export function getConfig<T>(key: string, defaultValue?: T):T {
     return value;
 }
 
+export function onConfigChange<T>(key:string,callback:(newValue:T)=>void) {
+    workspace.onDidChangeConfiguration((eventNames)=>{
+        if(eventNames.affectsConfiguration(`${PREFIXCONFIG}.${key}`)) {
+            let newValue:T = getConfig(key) as T;
+            callback(newValue);
+        }   
+    });
+}
+
 export async function selectTranslateSource(placeHolder: string = 'Select translate source.') {
     const allTranslaton = translateExtensionProvider.getAllTransationConfig();
     let items: QuickPickItem[] = [];
