@@ -17,11 +17,11 @@ renderer.code = function (code, language) {
 };
 
 renderer.link = function (href, title, text) {
-  return `[${text}](${href})`;
+  return `[${text}](${href} "${title}")`;
 };
 
 renderer.image = function (href, title, text) {
-  return `![${text}](${href})`;
+  return `![${text}](${href}  "${title})`;
 };
 
 renderer.blockquote = function (quote) {
@@ -49,11 +49,11 @@ renderer.br = function () {
   return "\n";
 };
 
-renderer.list = function (body, order, start) {
+renderer.list = function (body) {
   return "\n\n\n" + body + "\n\n\n";
 };
 
-renderer.listitem = function (text, task, checked) {
+renderer.listitem = function (text) {
   return `* ${text}\n`;
 };
 renderer.paragraph = function (text) {
