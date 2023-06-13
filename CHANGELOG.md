@@ -27,8 +27,18 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
   * 多语言支持
 
 ### Fixed
- * 内容中有 ")" 会与Markdown冲突。 hover command会出问题
  * Hover翻译内容，处理Markdown使用单行处理方法，在 链接中包含 \n 会出现格式错误
+
+## [2.3.0] 
+### Change
+  * 优化Hover Content翻译，格式尽可能保留，仅翻译显示文本信息。
+  * 新增配置最长翻译长度配置`commentTranslate.maxTranslationLength`， 规避过长字符翻译引起收费过多问题
+  * 新增google翻译代理配置 `commentTranslate.googleTranslate.mirror`，解决国内服务不可访问问题
+  * 内在场景 textmate 语法，解决wsl模式下不生效问题
+### Fixed
+  * 内容中有 ")" 会与Markdown冲突。 hover command会出问题
+  * 限制超长单行文本处理，与textmate配置相同。 解决内存消耗过多问题
+  * 修复bing翻译不可用问题
 
 
 ## [2.2.2] 2022-6-29
