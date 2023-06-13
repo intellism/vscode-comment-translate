@@ -1,5 +1,5 @@
 import { BaseTranslate } from './baseTranslate';
-import { ITranslateOptions } from 'comment-translate-manager';
+import { ITranslateOptions, encodeMarkdownUriComponent } from 'comment-translate-manager';
 const { translate } = require('bing-translate-api');
 
 
@@ -35,7 +35,7 @@ export class BingTranslate extends BaseTranslate {
         // }
 
         // https://cn.bing.com/translator/?ref=TThis&text=good&from=en&to=es
-        let str = `https://www.bing.com/translator/?text=${encodeURIComponent(content)}&from=auto-detect&to=${this._langMap(to)}`;
+        let str = `https://www.bing.com/translator/?text=${encodeMarkdownUriComponent(content)}&from=auto-detect&to=${this._langMap(to)}`;
         return `[Bing](${str})`;
     }
 }

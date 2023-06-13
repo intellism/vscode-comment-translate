@@ -1,6 +1,6 @@
 import { BaseTranslate } from './baseTranslate';
 import got from 'got';
-import { ITranslateOptions } from 'comment-translate-manager';
+import { ITranslateOptions,encodeMarkdownUriComponent } from 'comment-translate-manager';
 import { getConfig } from '../configuration';
 const querystring = require('querystring');
 const GoogleToken: IGetToken = require('@vitalets/google-translate-token');
@@ -68,10 +68,10 @@ export class GoogleTranslate extends BaseTranslate {
         //     to = `${first}-${last}`;
         // }
         let tld = getConfig<string>('googleTranslate.tld', 'com');
-        let str = `https://translate.google.${tld}/#view=home&op=translate&sl=auto&tl=${to}&text=${encodeURIComponent(content)}`;
+        let str = `https://translate.google.${tld}/#view=home&op=translate&sl=auto&tl=${to}&text=${encodeMarkdownUriComponent(content)}`;
         let mirror = getConfig<string>('googleTranslate.mirror', '');
         if (mirror !== "") {
-            str = `${mirror}/#view=home&op=translate&sl=auto&tl=${to}&text=${encodeURIComponent(content)}`;
+            str = `${mirror}/#view=home&op=translate&sl=auto&tl=${to}&text=${encodeMarkdownUriComponent(content)}`;
         }
         return `[Google](${str})`;
         // return `<a href="${encodeURI(str)}">Google</a>`;
