@@ -21,7 +21,7 @@ renderer.link = function (href, title, text) {
 };
 
 renderer.image = function (href, title, text) {
-  return `![${text}](${href}  "${title})`;
+  return `![${text}](${href}  "${title}")`;
 };
 
 renderer.blockquote = function (quote) {
@@ -61,7 +61,6 @@ renderer.paragraph = function (text) {
 };
 
 export async function getMarkdownTextValue(markStr: string) {
-  const asyncText: string[] = [];
   let textArr: string[] = [];
   let translatedTask: Promise<string>;
 
@@ -75,8 +74,17 @@ export async function getMarkdownTextValue(markStr: string) {
 
   marked.parse(markStr, {
     walkTokens: (token) => {
+
+      if(token.type === "link") {
+        let title = unescape(token.title).trim();
+        if (title) {
+          textArr = textArr.concat(title.split("\n"));
+        }
+      }
+
       if (token.type === "text") {
         let text = unescape(token.text).trim();
+        if(text.indexOf('$(') === 0) return ;
         if (text && text.indexOf(" ") >= 0) {
           textArr = textArr.concat(text.split("\n"));
         }
@@ -84,18 +92,36 @@ export async function getMarkdownTextValue(markStr: string) {
     },
   });
 
+  let hasTranslated = false;
+
   let result = await marked.parse(markStr, {
     renderer,
     walkTokens: async (token) => {
+
+      if(token.type === "link") {
+        let title = unescape(token.title).trim();
+        if (title) {
+          let arr = title.split("\n");
+          token.title = (
+            await Promise.all(
+              arr.map(async (txt) => {
+                return translate(txt);
+              })
+            )
+          ).join("\n");
+        }
+      }
+
       if (token.type === "text") {
         let text = unescape(token.text).trim();
-        if (text && text.indexOf(" ") >= 0) {
-          asyncText.push(text);
-          let arr = text.split("\n");
+        if(text.indexOf('$(') === 0) return ;
 
+        if (text && text.indexOf(" ") >= 0) {
+          let arr = text.split("\n");
           token.text = (
             await Promise.all(
               arr.map(async (txt) => {
+                hasTranslated = true;
                 return translate(txt);
               })
             )
@@ -107,5 +133,5 @@ export async function getMarkdownTextValue(markStr: string) {
     async: true,
   });
 
-  return result;
+  return {result, hasTranslated};
 }

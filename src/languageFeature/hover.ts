@@ -89,7 +89,7 @@ async function translateTypeLanguageProvideHover(document: TextDocument, positio
     // let targetLanguage = getConfig<string>('targetLanguage', userLanguage);
 
     // let contents:{tokens:IMarkdownReplceToken[]}[] = [];
-    let contentTasks:Promise<string>[] = [];
+    let contentTasks:Promise<{result:string, hasTranslated:boolean}>[] = [];
     let range:Range|undefined;
 
     res.forEach(hover=>{
@@ -108,11 +108,26 @@ async function translateTypeLanguageProvideHover(document: TextDocument, positio
     });
 
     let translateds = await Promise.all(contentTasks);
-    let markdownStrings =  translateds.map((translated)=>{
-        let md = new MarkdownString(translated,true);
-        md.isTrusted = true;
-        return md;
-    });
+
+    let markdownStrings:MarkdownString[] = [];
+    let i = 0;
+    // 如果Hover分组中，所有内容都没有翻译，忽略这部分片段内容。 
+    res.forEach(hover=>{
+        let hasTranslated = false;
+        let temp:MarkdownString[] = [];
+        for(let j=0; j<hover.contents.length; j+=1) {
+            let md = new MarkdownString(translateds[i].result,true);
+            md.isTrusted = true;
+            temp.push(md);
+            if(translateds[i].hasTranslated === true) {
+                hasTranslated = true;
+            }
+            i+=1;
+        }
+        if(hasTranslated) {
+            markdownStrings = markdownStrings.concat(...temp);
+        }
+    })
 
     if(markdownStrings.length>0) {
         return new Hover(markdownStrings,range);
