@@ -3,7 +3,7 @@ All notable changes to the "comment-translate" extension will be documented in t
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
 ## [Unreleased]
-### Added
+### Add
  * 变量命名
     * 中文翻译到驼峰的变量命名
  * 独立Pannel
@@ -24,21 +24,26 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
    * baidu for api
    * deepl for api
    * yadex for api
- * 添加配置
-   * 添加 sourceLanguage 选项，默认 'auto'
+ 
 
-### Changed
+### Change
 * i18n 支持更多语言。 代码内支持
 * Readme优化
   * 阿里云配置文档添加
   * 自定义扩展翻译源文档添加
   * 多语言支持
 
+## [2.3.1] 2023-7-11
+### Added
+* 添加配置
+   * 添加 `commentTranslate.sourceLanguage` 选项，指定当前翻译语言，默认 'auto'交由翻译引擎判断
+
 ### Fixed
- * Hover翻译内容，处理Markdown使用单行处理方法，在 链接中包含 \n 会出现格式错误
+* Hover翻译内容，处理Markdown使用单行处理方法，在 链接中包含 \n 会出现格式错误
  * HoverContent 无翻译内容，直接忽略翻译提示.  https://github.com/intellism/vscode-comment-translate/issues/175
 
-## [2.3.0] 
+
+## [2.3.0] 2023-6-13
 ### Change
   * 优化Hover Content翻译，格式尽可能保留，仅翻译显示文本信息。
   * 新增配置最长翻译长度配置`commentTranslate.maxTranslationLength`， 规避过长字符翻译引起收费过多问题
