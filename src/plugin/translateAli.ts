@@ -301,8 +301,8 @@ export class AliTranslate implements ITranslate {
         return result.Data.Translated;
     }
 
-    link(content: string, {  to = 'auto' }: ITranslateOptions) {
-        let str = `https://cn.bing.com/translator/?text=${encodeMarkdownUriComponent(content)}&from=auto-detect&to=${convertLang(to)}`;
+    link(content: string, {  to = 'auto', from = 'auto' }: ITranslateOptions) {
+        let str = `https://cn.bing.com/translator/?text=${encodeMarkdownUriComponent(content)}&from=${convertLang(from)}&to=${convertLang(to)}`;
         return `[AliCloud](${str})`;
     }
 

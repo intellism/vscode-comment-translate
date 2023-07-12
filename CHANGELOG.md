@@ -18,6 +18,14 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
  * Markdown翻译
    * Hover 段落翻译
    * 一键翻译并替换整个文档
+ * 添加更多翻译源,for API版本的
+   * google for api
+   * bing for api
+   * baidu for api
+   * deepl for api
+   * yadex for api
+ * 添加配置
+   * 添加 sourceLanguage 选项，默认 'auto'
 
 ### Changed
 * i18n 支持更多语言。 代码内支持
@@ -28,6 +36,7 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ### Fixed
  * Hover翻译内容，处理Markdown使用单行处理方法，在 链接中包含 \n 会出现格式错误
+ * HoverContent 无翻译内容，直接忽略翻译提示.  https://github.com/intellism/vscode-comment-translate/issues/175
 
 ## [2.3.0] 
 ### Change

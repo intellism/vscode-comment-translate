@@ -60,14 +60,14 @@ renderer.paragraph = function (text) {
   return text + "\n\n";
 };
 
-export async function getMarkdownTextValue(markStr: string, to: string) {
+export async function getMarkdownTextValue(markStr: string) {
   const asyncText: string[] = [];
   let textArr: string[] = [];
   let translatedTask: Promise<string>;
 
   async function translate(text: string) {
     if (!translatedTask) {
-      translatedTask = translateManager.translate(textArr.join("\n"), { to });
+      translatedTask = translateManager.translate(textArr.join("\n"));
     }
     let translated = (await translatedTask).split("\n");
     return translated[textArr.indexOf(text)];

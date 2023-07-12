@@ -100,10 +100,18 @@ export async function activate(context: ExtensionContext) {
     context.subscriptions.push(targetBar, hoverBar, outputChannel,comment);
     mouseToSelect(context);
 
+    const targetLanguage = getConfig('targetLanguage', userLanguage);
+    const sourceLanguage = getConfig('sourceLanguage', 'auto');
     // 最多单次可以翻译10000字符。 内部会分拆请求翻译服务。
-    translateManager = new TranslateManager(context.workspaceState, getConfig<number>('maxTranslationLength',10000));
+    translateManager = new TranslateManager(context.workspaceState, getConfig<number>('maxTranslationLength',10000), {from:sourceLanguage, to:targetLanguage});
     onConfigChange('maxTranslationLength', (maxLen:number)=>{
         translateManager.maxLen = maxLen;
+    });
+    onConfigChange('targetLanguage', (targetLanguage:string)=>{
+        translateManager.opts.to = targetLanguage;
+    });
+    onConfigChange('sourceLanguage', (sourceLanguage:string)=>{
+        translateManager.opts.from = sourceLanguage;
     });
 
     translateManager.onTranslate(e => {

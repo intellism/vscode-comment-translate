@@ -38,8 +38,8 @@ export class BaiduTranslate extends BaseTranslate {
         return res.trans_result.dst;
     }
 
-    link(content: string, { to = 'auto' }: ITranslateOptions): string {
-        let str = `https://fanyi.baidu.com/#auto/${convertLang(to)}/${encodeURIComponent(content)}`;
+    link(content: string, { to = 'auto', from='auto' }: ITranslateOptions): string {
+        let str = `https://fanyi.baidu.com/#${convertLang(from)}/${convertLang(to)}/${encodeURIComponent(content)}`;
         return `[Baidu](${str})`;
     }
 

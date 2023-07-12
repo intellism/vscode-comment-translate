@@ -13,6 +13,7 @@
     "commentTranslate.configuration.concise": "Concise mode.If on, only pressing Ctrl or Command will trigger floating translation",
     "commentTranslate.configuration.contentHover": "Translate Hover Content",
     "commentTranslate.configuration.targetLanguage": "Translation to target language",
+    "commentTranslate.configuration.sourceLanguage": "Translation to source language",
     "commentTranslate.configuration.source": "Translate servcie source. Google, Bing, Baidu have been built-in.",
     "commentTranslate.configuration.openHover": "Open hover translation",
     "commentTranslate.configuration.stringHover": "Hover translation string",

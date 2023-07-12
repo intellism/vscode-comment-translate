@@ -26,7 +26,7 @@ export class BingTranslate extends BaseTranslate {
         return src;
     }
 
-    link(content: string, { to = 'auto' }: ITranslateOptions): string {
+    link(content: string, { to = 'auto',from='auto'}: ITranslateOptions): string {
         // [fix] 参数变化zh-cn -> zh-CN。
         // let [first, last] = to.split('-');
         // if (last) {
@@ -35,7 +35,7 @@ export class BingTranslate extends BaseTranslate {
         // }
 
         // https://cn.bing.com/translator/?ref=TThis&text=good&from=en&to=es
-        let str = `https://www.bing.com/translator/?text=${encodeMarkdownUriComponent(content)}&from=auto-detect&to=${this._langMap(to)}`;
+        let str = `https://www.bing.com/translator/?text=${encodeMarkdownUriComponent(content)}&from=${this._langMap(from)}&to=${this._langMap(to)}`;
         return `[Bing](${str})`;
     }
 }

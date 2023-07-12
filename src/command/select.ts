@@ -1,6 +1,5 @@
 import {env, commands, ExtensionContext, Selection, TextEditorSelectionChangeKind, window, Range } from "vscode";
-import { getConfig } from "../configuration";
-import { outputChannel, translateManager, userLanguage } from "../extension";
+import { outputChannel, translateManager } from "../extension";
 import { lastHover } from "../languageFeature/hover";
 import { isCode } from "../util/string";
 
@@ -11,8 +10,8 @@ export async function clipboard() {
         outputChannel.appendLine('clipboard:The clipboard is empty');
         return;
     }
-    const targetLanguage = getConfig<string>('targetLanguage',userLanguage);
-    let translatedText = await translateManager.translate(text, {to:targetLanguage});
+    // const targetLanguage = getConfig<string>('targetLanguage',userLanguage);
+    let translatedText = await translateManager.translate(text);
     outputChannel.appendLine('clipboard:' + translatedText);
     await window.showInformationMessage(translatedText,{detail: text, modal:false});
 }

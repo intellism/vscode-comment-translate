@@ -1,6 +1,6 @@
 import { CancellationToken, commands, ExtensionContext, Hover, languages, MarkdownString, Position, Range, TextDocument, window } from "vscode";
 import { getConfig } from "../configuration";
-import { /* client,*/ comment, outputChannel, userLanguage } from "../extension";
+import { /* client,*/ comment, outputChannel } from "../extension";
 import { ShortLive } from "../util/short-live";
 import { compileBlock, ICommentBlock } from "./compile";
 import { getMarkdownTextValue } from "../util/marked";
@@ -86,7 +86,7 @@ async function translateTypeLanguageProvideHover(document: TextDocument, positio
     working.add(hoverId); // 标识当前位置进行处理中。  当前Provider将忽略当次请求，规避循环调用。
     let res = await commands.executeCommand<Hover[]>('vscode.executeHoverProvider',document.uri, position);
     working.delete(hoverId); // 移除处理中的标识，使其他正常hover的响应
-    let targetLanguage = getConfig<string>('targetLanguage', userLanguage);
+    // let targetLanguage = getConfig<string>('targetLanguage', userLanguage);
 
     // let contents:{tokens:IMarkdownReplceToken[]}[] = [];
     let contentTasks:Promise<string>[] = [];
@@ -103,7 +103,7 @@ async function translateTypeLanguageProvideHover(document: TextDocument, positio
             } else {
                 markdownText = c.value;
             }
-            contentTasks.push(getMarkdownTextValue(markdownText,targetLanguage));
+            contentTasks.push(getMarkdownTextValue(markdownText));
         });
     });
 

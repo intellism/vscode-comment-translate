@@ -60,7 +60,7 @@ export class GoogleTranslate extends BaseTranslate {
         return result;
     }
 
-    link(content: string, { to = 'auto' }: ITranslateOptions): string {
+    link(content: string, { to = 'auto',from='auto' }: ITranslateOptions): string {
         // [fix] 参数变化zh-cn -> zh-CN。
         // let [first, last] = to.split('-');
         // if (last) {
@@ -68,7 +68,7 @@ export class GoogleTranslate extends BaseTranslate {
         //     to = `${first}-${last}`;
         // }
         let tld = getConfig<string>('googleTranslate.tld', 'com');
-        let str = `https://translate.google.${tld}/#view=home&op=translate&sl=auto&tl=${to}&text=${encodeMarkdownUriComponent(content)}`;
+        let str = `https://translate.google.${tld}/#view=home&op=translate&sl=${from}&tl=${to}&text=${encodeMarkdownUriComponent(content)}`;
         let mirror = getConfig<string>('googleTranslate.mirror', '');
         if (mirror !== "") {
             str = `${mirror}/#view=home&op=translate&sl=auto&tl=${to}&text=${encodeMarkdownUriComponent(content)}`;
