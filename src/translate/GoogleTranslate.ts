@@ -3,10 +3,11 @@ import got from 'got';
 import { ITranslateOptions,encodeMarkdownUriComponent } from 'comment-translate-manager';
 import { getConfig } from '../configuration';
 const querystring = require('querystring');
-const GoogleToken: IGetToken = require('@vitalets/google-translate-token');
+const GoogleToken: IGetToken = require('google-translate-token-with-mirror');
 interface IGetToken {
     get(text: string, opts: {
-        tld?: string
+        tld?: string,
+        mirror?: string
     }): Promise<{
         name: string,
         value: string
@@ -18,9 +19,9 @@ export class GoogleTranslate extends BaseTranslate {
     override readonly maxLen= 500;
     async _translate(content: string, { from = 'auto', to = 'auto' }: ITranslateOptions): Promise<string> {
         let tld = getConfig<string>('googleTranslate.tld', 'com');
-        let token = await GoogleToken.get(content, { tld });
-        let url = 'https://translate.google.' + tld + '/translate_a/single';
         let mirror = getConfig<string>('googleTranslate.mirror', '');
+        let token = await GoogleToken.get(content, { tld, mirror });
+        let url = 'https://translate.google.' + tld + '/translate_a/single';
         if (mirror !== "") {
             url = mirror + '/translate_a/single';
         }
