@@ -712,10 +712,10 @@
     },
     "dependencies": {
         "@alicloud/pop-core": "^1.7.10",
-        "@vitalets/google-translate-token": "^1.2.0",
         "baidu-translate-api-temp": "^0.4.4",
         "bing-translate-api": "^2.9.1",
         "comment-translate-manager": "^0.0.5",
+        "google-translate-token-with-mirror": "^1.3.1",
         "got": "^12.1.0",
         "he": "^1.2.0",
         "humanize-string": "2.1.0",
