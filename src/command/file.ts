@@ -1,4 +1,4 @@
-import { Selection, window } from "vscode";
+import { ProgressLocation, Selection, window } from "vscode";
 import { getConfig, selectTargetLanguage } from "../configuration";
 import { comment, outputChannel } from "../extension";
 // import { client } from "../extension";
@@ -42,12 +42,19 @@ export async function translateAllComment() {
 
 export async function translateAllForType(type = 'comment') {
     let editor = window.activeTextEditor;
-    if (editor) {
+    
+    window.withProgress({
+        location: ProgressLocation.Window,
+        title: 'Comment Translate'
+    },
+    async progress => {
+        if (!editor) return;
         // let blocks = await client.sendRequest<ICommentBlock[] | null>('getAllComment',{uri: editor.document.uri.toString(),type,range:{
         //     start: editor.selections[0].start, 
         //     end: editor.selections[0].end
         // }});
 
+        progress.report({ message: 'Parsing' });
         let blocks = await comment.getAllComment(editor.document,type, editor.selections[0]);
 
 
@@ -59,10 +66,19 @@ export async function translateAllForType(type = 'comment') {
             targetLanguage = await selectTargetLanguage();
             if (!targetLanguage) return;
         }
-    
+        let finishedRequests = 0
         // const translatedBlock = await compileBlock(block,document.languageId);
-        let translates = await Promise.all(blocks.map((block => {
-            return compileBlock(block,  editor?.document.languageId!, targetLanguage);
+
+        // 开始请求 到 有第一个请求完成 之间可能也会间隔相当长的时间，所以开始请求时也应 report 一下进度
+        progress.report({ message: 'Requesting' });
+
+        let translates = await Promise.all(blocks.map((async block => {
+            const result = await compileBlock(block,  editor?.document.languageId!, targetLanguage);
+            finishedRequests++;
+            progress.report({
+                message: `Translated ${finishedRequests} / ${blocks!.length}`
+            });
+            return result;
         })));
         let selections = blocks.map((block => {
             const { start, end } = block.range;
@@ -94,5 +110,5 @@ export async function translateAllForType(type = 'comment') {
             outputChannel.append(e.toString());
         }
 
-    }
+    })
 }
