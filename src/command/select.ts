@@ -60,7 +60,7 @@ export function mouseToSelect(context: ExtensionContext) {
             let selectionText = e.textEditor.document.getText(selections[0]);
             if(selectionText.length > 1000) return;
             if(isCode(selectionText)) return;
-            commands.executeCommand('editor.action.showHover');
+            commands.executeCommand('editor.action.showHover', { focus: "noAutoFocus" });
             lastShowHover = (new Date()).getTime();
         }, laterTime);
     }));
