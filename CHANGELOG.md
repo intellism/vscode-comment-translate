@@ -33,6 +33,13 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
   * 自定义扩展翻译源文档添加
   * 多语言支持
 
+## [2.3.3] 2023-12-10
+
+### Fixed
+* Hover划词翻译焦点Bug修复 https://github.com/intellism/vscode-comment-translate/issues/187
+* 全文翻译显示进度 https://github.com/intellism/vscode-comment-translate/issues/187
+
+
 ## [2.3.1] 2023-7-11
 ### Added
 * 添加配置
