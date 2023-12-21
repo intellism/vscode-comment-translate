@@ -694,6 +694,21 @@
                         "markdownDescription": "Determine the requested server mirror address,more read [mirror docs](https://hcfy.app/blog/2022/09/28/ggg#%E6%96%B9%E6%A1%88-c%E4%BD%BF%E7%94%A8%E9%95%9C%E5%83%8F%E5%9C%B0%E5%9D%80%E6%9C%80%E7%AE%80%E5%8D%95)."
                     }
                 }
+            },
+            {
+                "title": "Baidu Translate Configuration",
+                "type": "Object",
+                "order": 12,
+                "properties": {
+                    "commentTranslate.baiduTranslate.appid": {
+                        "type": "string",
+                        "description": "Baidu Translation Platform appid"
+                    },
+                    "commentTranslate.baiduTranslate.key": {
+                        "type": "string",
+                        "description": "Baidu Translation Platform key"
+                    }
+                }
             }
         ],
         "translates": [
@@ -704,6 +719,7 @@
         ]
     },
     "scripts": {
+        "vscode:build": "npx vsce package",
         "vscode:prepublish": "npm run package",
         "webpack": "webpack --mode development",
         "webpack-dev": "webpack --mode development --watch",
@@ -712,9 +728,11 @@
     },
     "dependencies": {
         "@alicloud/pop-core": "^1.7.10",
-        "baidu-translate-api-temp": "^0.4.4",
+        "@types/crypto-js": "^4.2.1",
+        "@vscode/vsce": "^2.22.0",
         "bing-translate-api": "^2.9.1",
         "comment-translate-manager": "^0.0.5",
+        "crypto-js": "^4.2.0",
         "google-translate-token-with-mirror": "^1.3.1",
         "got": "^12.1.0",
         "he": "^1.2.0",
