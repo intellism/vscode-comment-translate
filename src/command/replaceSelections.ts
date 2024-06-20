@@ -1,9 +1,9 @@
 import { Selection, window, Range, Position } from "vscode";
 import { getConfig, selectTargetLanguage } from "../configuration";
-import { outputChannel, translateManager } from "../extension";
+import { ctx, outputChannel, translateManager } from "../extension";
 async function translateSelection(text: string, selection: Selection, targetLanguage: string) {
     // let translation = await client.sendRequest<string>('translate', { text, targetLanguage });
-    let translatedText = await translateManager.translate(text, {to:targetLanguage});
+    let translatedText = await translateManager.translate(text, { to: targetLanguage });
     return { translatedText, selection };
 }
 
@@ -14,10 +14,13 @@ export async function replaceRange({ uri, text, range }: { uri: string, text: st
         return outputChannel.append(`Not active editor`);
     }
 
-    text = Buffer.from(text , 'base64').toString();
+    text = Buffer.from(text, 'base64').toString();
     let decoration = window.createTextEditorDecorationType({
         color: '#FF2D00',
-        backgroundColor: "transparent"
+        backgroundColor: "transparent", 
+        before: {
+            contentIconPath: ctx.asAbsolutePath('resources/icons/loading.svg'),
+        }
     });
     editor.setDecorations(decoration, [range]);
     setTimeout(() => {
@@ -28,7 +31,7 @@ export async function replaceRange({ uri, text, range }: { uri: string, text: st
         editor.edit(builder => {
             text && builder.replace(new Selection(new Position(range.start.line, range.start.character), new Position(range.end.line, range.end.character)), text);
         });
-    } catch (e:any) {
+    } catch (e: any) {
         decoration.dispose();
         outputChannel.append(e.toString());
     }
@@ -45,32 +48,35 @@ export async function replaceSelections() {
     }
 
     const validSelections = editor.selections
-    .filter(selection => !selection.isEmpty);
+        .filter(selection => !selection.isEmpty);
 
-    if(validSelections.length === 0) {
+    if (validSelections.length === 0) {
         return outputChannel.append(`No selection！\n`);
     }
 
     // let targetLanguage = getConfig<string>('targetLanguage',userLanguage);
     // if (!targetLanguage) return;
 
-    let targetLanguage:string;
+    let targetLanguage: string;
     let selectTarget = getConfig<boolean>('selectTargetLanguageWhenReplacing');
-    if(selectTarget) {
+    if (selectTarget) {
         targetLanguage = await selectTargetLanguage();
         if (!targetLanguage) return;
     }
 
     let translates = validSelections.map(selection => {
-            // @ts-ignore
-            let text = editor.document.getText(selection);
-            return translateSelection(text, selection, targetLanguage);
-        });
+        // @ts-ignore
+        let text = editor.document.getText(selection);
+        return translateSelection(text, selection, targetLanguage);
+    });
 
     //添加装饰，提醒用户正在翻译中。 部分内容会原样返回，避免用户等待
     let decoration = window.createTextEditorDecorationType({
         color: '#FF2D00',
-        backgroundColor: "transparent"
+        backgroundColor: "transparent",
+        before: {
+            contentIconPath: ctx.asAbsolutePath('resources/icons/loading.svg'),
+        }
     });
     editor.setDecorations(decoration, editor.selections);
     let beginTime = Date.now();
@@ -81,11 +87,11 @@ export async function replaceSelections() {
             decoration.dispose();
         }, 1000 - (Date.now() - beginTime));
         editor.edit(builder => {
-            results.forEach(({translatedText, selection}) => {
+            results.forEach(({ translatedText, selection }) => {
                 translatedText && builder.replace(selection, translatedText);
             });
         });
-    } catch (e:any) {
+    } catch (e: any) {
         decoration.dispose();
         outputChannel.append(e.toString());
     }

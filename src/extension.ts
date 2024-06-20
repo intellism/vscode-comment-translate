@@ -28,7 +28,10 @@ export let translateManager: TranslateManager;
 export let translateExtensionProvider: TranslateExtensionProvider
 export let userLanguage:string;
 
+export let ctx: ExtensionContext;
+
 export async function activate(context: ExtensionContext) {
+    ctx = context;
 
     let languageId = 2;
     let grammarExtensions: IGrammarExtensions[] = extensions.all.filter(({ packageJSON }) => {

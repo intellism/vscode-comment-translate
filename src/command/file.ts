@@ -1,6 +1,6 @@
 import { ProgressLocation, Selection, window } from "vscode";
 import { getConfig, selectTargetLanguage } from "../configuration";
-import { comment, outputChannel } from "../extension";
+import { comment, ctx, outputChannel } from "../extension";
 // import { client } from "../extension";
 import { compileBlock } from "../languageFeature/compile";
 
@@ -89,7 +89,10 @@ export async function translateAllForType(type = 'comment') {
         //添加装饰，提醒用户正在翻译中。 部分内容会原样返回，避免用户等待
         let decoration = window.createTextEditorDecorationType({
             color: '#FF2D00',
-            backgroundColor: "transparent"
+            backgroundColor: "transparent",
+            before: {
+                contentIconPath: ctx.asAbsolutePath('resources/icons/loading.svg'),
+            }
         });
         editor.setDecorations(decoration, selections);
         let beginTime = Date.now();
