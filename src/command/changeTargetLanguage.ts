@@ -43,3 +43,11 @@ export async function toggleEnableHover() {
 export async function openOutputPannel() {
     outputChannel.show(true);
 }
+
+export async function toggleBrowseMode() {
+    let configuration = getConfiguration();
+    let origin = await configuration.get<string>('browse.mode');
+    let targetMode = origin === 'contrast' ? 'inplace' : 'contrast';
+
+    await configuration.update('browse.mode', targetMode);
+}

@@ -26,6 +26,9 @@ interface IScopeLen {
 export interface ITranslatedText {
 	translatedText: string;
 	humanizeText?: string;
+	targets: string[];
+	texts:string[];
+	combined:boolean[];
 	translateLink: string;
 }
 
@@ -90,6 +93,9 @@ function getIgnoreRegular(languageId:string) {
 export async function compileBlock(block:ICommentBlock,languageId:string,targetLanguage?:string): Promise<ITranslatedText> {
 
 	let translatedText: string;
+	let targets:string[] = [];
+	let texts:string[] = [];
+	let combined: boolean[] = []; // 标记被合并行。 便于翻译后重新组合
 	let humanizeText: string = '';
 	const { comment: originText } = block;
 	let { tokens } = block;
@@ -109,12 +115,12 @@ export async function compileBlock(block:ICommentBlock,languageId:string,targetL
 		}
 
 		// 获取待翻译字符串。
-		let texts = tokens.map(({ text, ignoreStart = 0, ignoreEnd = 0 }) => {
+		texts = tokens.map(({ text, ignoreStart = 0, ignoreEnd = 0 }) => {
 			return text.slice(ignoreStart, text.length - ignoreEnd).trim();
 		});
 
 		// 开启多行合并的时候，合并有效字符串中的多行到同一行。
-		let combined: boolean[] = []; // 标记被合并行。 便于翻译后重新组合
+		
 		if (getConfig<boolean>('multiLineMerge')) {
 			let res = combineLine(texts);
 			combined = res.combined;
@@ -139,7 +145,7 @@ export async function compileBlock(block:ICommentBlock,languageId:string,targetL
 			translatedText = await translateManager.translate(humanizeText || validText, { to: targetLanguage });
 
 			// 重新组合翻译结果，还原被翻译时过滤的符合.  如 /* // 等
-			let targets = translatedText.split('\n');
+			targets = translatedText.split('\n');
 			if (translatedText && validTexts.length === targets.length) {
 				let translated = [];
 				for (let i = 0, j = 0; i < tokens.length; i++) {
@@ -166,6 +172,9 @@ export async function compileBlock(block:ICommentBlock,languageId:string,targetL
 	return {
 		translatedText,
 		humanizeText,
+		targets,
+		texts,
+		combined,
 		translateLink: translateManager.link(humanizeText || originText)
 	};
 }

@@ -19,6 +19,7 @@ import { TranslateManager } from 'comment-translate-manager';
 import { Comment } from './syntax/Comment';
 import { IGrammarExtensions, ITMLanguageExtensionPoint, TextMateService } from './syntax/TextMateService';
 import { readdirSync, readFileSync } from 'fs';
+import { showBrowseCommentTranslate } from './languageFeature/decoration';
 
 export let outputChannel = window.createOutputChannel('Comment Translate');
 export let comment: Comment;
@@ -97,6 +98,8 @@ export async function activate(context: ExtensionContext) {
     registerCommands(context);
     registerHover(context,canLanguages);
     registerDefinition(context,canLanguages);
+
+    context.subscriptions.push(...showBrowseCommentTranslate());
     // 注册状态图标
     let hoverBar = await showHoverStatusBar();
     let targetBar = await showTargetLanguageStatusBarItem(userLanguage);

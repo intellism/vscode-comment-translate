@@ -235,7 +235,12 @@ export class CommentParse {
                 current.text = current.text+comment;
                 current.scope = current.scope.concat(scope);
             } else {
-                comment&&tokens.push({
+                // comment&&tokens.push({
+                //     text:comment,
+                //     scope
+                // });
+
+                tokens.push({
                     text:comment,
                     scope
                 });

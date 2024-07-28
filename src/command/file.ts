@@ -72,24 +72,25 @@ export async function translateAllForType(type = 'comment') {
         // 开始请求 到 有第一个请求完成 之间可能也会间隔相当长的时间，所以开始请求时也应 report 一下进度
         progress.report({ message: 'Requesting' });
 
-        let translates = await Promise.all(blocks.map((async block => {
-            const result = await compileBlock(block,  editor?.document.languageId!, targetLanguage);
-            finishedRequests++;
-            progress.report({
-                message: `Translated ${finishedRequests} / ${blocks!.length}`
+        let translates = blocks.map((async block => {
+            const result = compileBlock(block,  editor?.document.languageId!, targetLanguage).then(res => {
+                finishedRequests++;
+                progress.report({
+                    message: `Translated ${finishedRequests} / ${blocks!.length}`
+                });
+                return res;
             });
             return result;
-        })));
+        }));
         let selections = blocks.map((block => {
             const { start, end } = block.range;
             return new Selection(start.line, start.character, end.line, end.character);
         }));
-        editor.selections = selections;
 
         //添加装饰，提醒用户正在翻译中。 部分内容会原样返回，避免用户等待
         let decoration = window.createTextEditorDecorationType({
-            color: '#FF2D00',
-            backgroundColor: "transparent",
+            // color: '#FF2D00',
+            // backgroundColor: "transparent",
             before: {
                 contentIconPath: ctx.asAbsolutePath('resources/icons/loading.svg'),
             }

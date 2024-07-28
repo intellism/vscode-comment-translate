@@ -1,5 +1,5 @@
 import { commands, ExtensionContext } from "vscode";
-import { changeTargetLanguage, changeTranslateSource, openOutputPannel, toggleEnableHover, toggleMultiLineMerge } from "./changeTargetLanguage";
+import { changeTargetLanguage, changeTranslateSource, openOutputPannel, toggleBrowseMode, toggleEnableHover, toggleMultiLineMerge } from "./changeTargetLanguage";
 import { selectAllComment, selectAllText, translateAllComment, translateAllText } from "./file";
 import { replaceRange, replaceSelections } from "./replaceSelections";
 import { addSelection, clipboard, selectLastHover } from "./select";
@@ -19,6 +19,7 @@ export function registerCommands(context: ExtensionContext) {
         commands.registerCommand('commentTranslate.changeTranslateSource', changeTranslateSource),
         commands.registerCommand('commentTranslate._openOutputPannel', openOutputPannel),
         commands.registerCommand('commentTranslate.toggleEnableHover', toggleEnableHover),
+        commands.registerCommand('commentTranslate.toggleBrowseMode', toggleBrowseMode),
         commands.registerCommand('commentTranslate.changeTargetLanguage', changeTargetLanguage)
     );
 }

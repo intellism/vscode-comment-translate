@@ -80,6 +80,11 @@
                 "category": "Comment Translate"
             },
             {
+                "command": "commentTranslate.toggleBrowseMode",
+                "title": "%commentTranslate.command.toggleBrowseMode%",
+                "category": "Comment Translate"
+            },
+            {
                 "command": "commentTranslate.replaceSelections",
                 "title": "%commentTranslate.command.replaceSelections%",
                 "category": "Comment Translate"
@@ -99,8 +104,13 @@
             },
             {
                 "command": "commentTranslate.clipboard",
-                "key": "alt+shiit+c",
-                "mac": "ctrl+shiit+c"
+                "key": "alt+shift+c",
+                "mac": "ctrl+shift+c"
+            },
+            {
+                "command": "commentTranslate.toggleBrowseMode",
+                "key": "alt+shift+b",
+                "mac": "ctrl+shift+b"
             }
         ],
         "configuration": [
@@ -613,6 +623,17 @@
                         "default": true,
                         "order": 21,
                         "description": "%commentTranslate.configuration.openHover%"
+                    },
+                    "commentTranslate.browse.enabled": {
+                        "type": "boolean",
+                        "default": true,
+                        "description": "%commentTranslate.configuration.browseEnabled%"
+                    },
+                    "commentTranslate.browse.mode": {
+                        "type": "string",
+                        "default": "contrast",
+                        "enum": ["contrast","inplace"],
+                        "description": "%commentTranslate.configuration.browseMode%"
                     },
                     "commentTranslate.source": {
                         "type": "string",

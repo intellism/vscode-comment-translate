@@ -1,6 +1,6 @@
 
-import { workspace, window, QuickPickItem, ThemeIcon, commands, MarkdownString } from 'vscode';
-import { translateExtensionProvider } from './extension';
+import { workspace, window, QuickPickItem, ThemeIcon, commands, MarkdownString, Selection, DecorationOptions, TextEditorDecorationType, Disposable } from 'vscode';
+import { comment, ctx, translateExtensionProvider } from './extension';
 import { LANGS } from './lang';
 
 let languages = new Map(LANGS);
@@ -133,13 +133,13 @@ export function getConfig<T>(key: string, defaultValue?: T):T {
     return value;
 }
 
-export function onConfigChange<T>(key:string,callback:(newValue:T)=>void) {
+export function onConfigChange<T>(key:string,callback:(newValue:T)=>void, thisArgs?: any, disposables?: Disposable[]) {
     workspace.onDidChangeConfiguration((eventNames)=>{
         if(eventNames.affectsConfiguration(`${PREFIXCONFIG}.${key}`)) {
             let newValue:T = getConfig(key) as T;
             callback(newValue);
         }   
-    });
+    },thisArgs, disposables);
 }
 
 export async function selectTranslateSource(placeHolder: string = 'Select translate source.') {
