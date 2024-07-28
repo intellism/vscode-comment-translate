@@ -116,7 +116,6 @@ class CommentDecoration {
               if(!this._inplace) {
                 for (let k = i + 1; k < tokens.length && combined[k]; k++) {
                     combinedIndex = k;
-                    // ignoreEnd = tokens[k].ignoreEnd || 0;
                 }
               }
               let originText = text.slice(ignoreStart, text.length - ignoreEnd);
@@ -133,13 +132,21 @@ class CommentDecoration {
                       renderOptions: this.genrateDecorationOptions(targetText),
                   });
               } else if(targetText && targetText !== originText) {
+
+                let showLineLen = curr_doc?.lineAt(range.start.line + combinedIndex+1).text.length || 0;
+                let gap = offset + ignoreStart - showLineLen;
+                if(gap > 0) {
+                    // contextText,空格会被去重只保留1个,这里使用 下划线 代替
+                    targetText = targetText.padStart(targetText.length + gap, gap === 1 ? ' ' : '_');
+                }
                 this._contentDecorations.push({
                     range: new Selection(
-                        range.start.line + combinedIndex,
+                        range.start.line + combinedIndex+1,
                         offset + ignoreStart,
-                        range.start.line + combinedIndex,
+                        range.start.line + combinedIndex+1,
                         offset + text.length - ignoreEnd
                     ),
+                    
                     renderOptions: this.genrateDecorationOptions(targetText),
                 });
               }
@@ -162,7 +169,7 @@ class CommentDecoration {
 
     return {
         before: {
-          textDecoration: `none; font-size: 1em; display: inline-block; position: relative; width: 0; bottom: ${-1.3 }em;`,
+          textDecoration: `none; font-size: 1em; display: inline-block; position: relative; width: 0; top: ${-1.3 }em;`,
           contentText: text,
           color: 'var(--vscode-editorCodeLens-foreground)',
         },
@@ -218,7 +225,7 @@ class CommentDecoration {
 
     if(!this._inplace) {
         let {append} = usePlaceholderCodeLensProvider();
-        let lines = this._contentDecorations.map((decoration) => decoration.range.start.line+1);
+        let lines = this._contentDecorations.map((decoration) => decoration.range.start.line);
         append(window.activeTextEditor?.document!, lines);
     }
 
