@@ -137,7 +137,7 @@ class CommentDecoration {
                 let gap = offset + ignoreStart - showLineLen;
                 if(gap > 0) {
                     // contextText,空格会被去重只保留1个,这里使用 下划线 代替
-                    targetText = targetText.padStart(targetText.length + gap, gap === 1 ? ' ' : '_');
+                    targetText = targetText.padStart(targetText.length + gap,'\u00a0');
                 }
                 this._contentDecorations.push({
                     range: new Selection(
@@ -214,6 +214,7 @@ class CommentDecoration {
       window.activeTextEditor?.setDecorations(this._loadingDecoration, [
         this._block.range,
       ]);
+      return;
     } else {
         window.activeTextEditor?.setDecorations(this._loadingDecoration, []);
     }

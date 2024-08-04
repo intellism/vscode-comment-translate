@@ -15,18 +15,12 @@ class PlaceholderCodeLensProvider implements CodeLensProvider {
       return codeLens
 
     lines.forEach((line) => {
-      codeLens.push(new CodeLens(new Range(
-        line,
-        0,
-        line,
-        0,
-      ), {
+      codeLens.push(new CodeLens(new Range(line,0,line,0), {
         title: ' ',
         command: '',
-        arguments: [document],
-      }))
-    })
-    return codeLens
+      }));
+    });
+    return codeLens;
   }
 }
 
