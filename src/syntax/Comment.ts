@@ -1,6 +1,7 @@
 import { Disposable, Position, Range, TextDocument,workspace } from "vscode";
-import { CommentParse, ICommentBlock } from "./CommentParse";
+import { CommentParse } from "./CommentParse";
 import { TextMateService } from "./TextMateService";
+import { ICommentBlock } from "../interface";
 
 export class Comment implements Disposable {
 
@@ -55,7 +56,7 @@ export class Comment implements Disposable {
     //     if (!parse) return null;
     //     return parse.computeAllText(type, range);
     // }
-    async getAllComment(textDocument:TextDocument, type = 'comment', range:Range):Promise<ICommentBlock[] | null> {
+    async getAllComment(textDocument:TextDocument, type = 'comment', range?:Range):Promise<ICommentBlock[] | null> {
         const parse = await this._getCommentParse(textDocument);
         if (!parse) return null;
         return parse.computeAllText(type, range);

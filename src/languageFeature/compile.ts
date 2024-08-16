@@ -1,36 +1,10 @@
 import humanizeString = require("humanize-string");
-import { Range } from "vscode";
 import { getConfig } from "../configuration";
 import { translateManager } from "../extension";
 import { hasEndMark, isLowerCase, isUpperCase } from "../util/string";
+import { ICommentBlock, ICommentToken, ITranslatedText } from "../interface";
 
-export interface ICommentBlock {
-	humanize?: boolean;
-	range: Range;
-	comment: string;
-	tokens?: ICommentToken[];
-}
 
-export interface ICommentToken {
-	ignoreStart?: number;
-	ignoreEnd?: number;
-	text: string;
-	scope: IScopeLen[];
-}
-
-interface IScopeLen {
-	scopes: string[];
-	len: number;
-}
-
-export interface ITranslatedText {
-	translatedText: string;
-	humanizeText?: string;
-	targets: string[];
-	texts:string[];
-	combined:boolean[];
-	translateLink: string;
-}
 
 function ignoreStringTag(tokens: ICommentToken[], regular: string) {
 	// const regular = '[\\*\\s]+';

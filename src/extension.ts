@@ -20,6 +20,7 @@ import { Comment } from './syntax/Comment';
 import { IGrammarExtensions, ITMLanguageExtensionPoint, TextMateService } from './syntax/TextMateService';
 import { readdirSync, readFileSync } from 'fs';
 import { showBrowseCommentTranslate } from './languageFeature/decoration';
+import { extractGrammarExtensions, readResources } from './util/ext';
 
 export let outputChannel = window.createOutputChannel('Comment Translate');
 export let comment: Comment;
@@ -34,42 +35,12 @@ export let ctx: ExtensionContext;
 export async function activate(context: ExtensionContext) {
     ctx = context;
 
-    let languageId = 2;
-    let grammarExtensions: IGrammarExtensions[] = extensions.all.filter(({ packageJSON }) => {
-        return packageJSON.contributes && packageJSON.contributes.grammars;
-    }).map(({ packageJSON, extensionPath }) => {
-        const contributesLanguages = packageJSON.contributes.languages || [];
-        const languages: ITMLanguageExtensionPoint[] = contributesLanguages.map((item: any) => {
-            return {
-                id: languageId++,
-                name: item.id
-            }
-        });
-        return {
-            languages,
-            value: packageJSON.contributes.grammars,
-            extensionLocation: extensionPath
-        }
-    });
+    // let languageId = 2;
+    let {grammarExtensions, languageId} = extractGrammarExtensions([...extensions.all], 2);
     // 如果为远程环境，使用插件内置语法
     if (env.remoteName) {
-        const inner = await readResources(context);
-        let innergrammarExtensions: IGrammarExtensions[] = inner.filter(({ packageJSON }) => {
-            return packageJSON.contributes && packageJSON.contributes.grammars;
-        }).map(({ packageJSON, extensionLocation }) => {
-            const contributesLanguages = packageJSON.contributes.languages || [];
-            const languages: ITMLanguageExtensionPoint[] = contributesLanguages.map((item: any) => {
-                return {
-                    id: languageId++,
-                    name: item.id
-                }
-            });
-            return {
-                languages,
-                value: packageJSON.contributes.grammars,
-                extensionLocation
-            }
-        });
+        const inner = await readResources(context.extensionPath);
+        let {grammarExtensions:innergrammarExtensions} = extractGrammarExtensions(inner, languageId);
         grammarExtensions.push(...innergrammarExtensions);
     }
 
@@ -150,12 +121,3 @@ export async function activate(context: ExtensionContext) {
 }
 
 
-async function readResources(context: ExtensionContext) {
-    const resources = await readdirSync(`${context.extensionPath}/resources`);
-    return Promise.all(resources.map(async extension => {
-        return {
-            packageJSON: JSON.parse(await readFileSync(`${context.extensionPath}/resources/${extension}/package.json`, 'utf-8')),
-            extensionLocation: `${context.extensionPath}/resources/${extension}`
-        }
-    })); 
-}

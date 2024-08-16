@@ -1,4 +1,4 @@
-import { compileBlock, ICommentBlock } from "./compile";
+import { compileBlock } from "./compile";
 
 import {
   window,
@@ -12,6 +12,7 @@ import {
 import { comment, ctx } from "../extension";
 import { usePlaceholderCodeLensProvider } from "./codelen";
 import { getConfig, onConfigChange } from "../configuration";
+import { ICommentBlock } from "../interface";
 
 const disposables: Disposable[] = []
 
@@ -122,6 +123,7 @@ class CommentDecoration {
   
               // 在对比模式下，翻译结果为空或与原文相同，忽略显示。在占位模式下，需要隐藏原有内容。
               if (this._inplace) {
+                let showLineLen = curr_doc?.lineAt(range.start.line + combinedIndex).text.length || 0;
                   this._contentDecorations.push({
                       range: new Selection(
                           range.start.line + combinedIndex,
@@ -129,7 +131,7 @@ class CommentDecoration {
                           range.start.line + combinedIndex,
                           offset + text.length - ignoreEnd
                       ),
-                      renderOptions: this.genrateDecorationOptions(targetText),
+                      renderOptions: this.genrateDecorationOptions(targetText,offset + ignoreStart),
                   });
               } else if(targetText && targetText !== originText) {
 
@@ -156,12 +158,13 @@ class CommentDecoration {
       }
   }
 
-  genrateDecorationOptions(text:string) {
+  genrateDecorationOptions(text:string, showLineLen:number = 0) {
 
     if(this._inplace) {
         return {
             before: {
               color: `var(--vscode-editorCodeLens-foreground)`,
+              // textDecoration: text.trim().length>0 ?`none;word-wrap: break-word; white-space: pre-wrap;display: inline-block; max-width:100%; position: relative;margin-right: ${-showLineLen}em;` : '',
               contentText: text,
             },
           };

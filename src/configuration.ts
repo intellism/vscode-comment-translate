@@ -1,6 +1,6 @@
 
-import { workspace, window, QuickPickItem, ThemeIcon, commands, MarkdownString, Selection, DecorationOptions, TextEditorDecorationType, Disposable } from 'vscode';
-import { comment, ctx, translateExtensionProvider } from './extension';
+import { workspace, window, QuickPickItem, ThemeIcon, commands, MarkdownString,  Disposable } from 'vscode';
+import {  translateExtensionProvider } from './extension';
 import { LANGS } from './lang';
 
 let languages = new Map(LANGS);
