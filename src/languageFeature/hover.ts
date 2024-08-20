@@ -2,8 +2,9 @@ import { CancellationToken, commands, ExtensionContext, Hover, languages, Markdo
 import { getConfig } from "../configuration";
 import { /* client,*/ comment, outputChannel } from "../extension";
 import { ShortLive } from "../util/short-live";
-import { compileBlock, ICommentBlock } from "./compile";
+import { compileBlock } from "./compile";
 import { getMarkdownTextValue } from "../util/marked";
+import { ICommentBlock } from "../interface";
 
 export let shortLive = new ShortLive<string>((prev, curr) => prev === curr);
 let last: Map<string, Range> = new Map();

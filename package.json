@@ -85,6 +85,11 @@
                 "category": "Comment Translate"
             },
             {
+                "command": "commentTranslate.toggleTempBrowseMode",
+                "title": "%commentTranslate.command.toggleTempBrowseMode%",
+                "category": "Comment Translate"
+            },
+            {
                 "command": "commentTranslate.replaceSelections",
                 "title": "%commentTranslate.command.replaceSelections%",
                 "category": "Comment Translate"
@@ -106,6 +111,11 @@
                 "command": "commentTranslate.clipboard",
                 "key": "alt+shift+c",
                 "mac": "ctrl+shift+c"
+            },
+            {
+                "command": "commentTranslate.toggleTempBrowseMode",
+                "key": "alt+shift+z",
+                "mac": "ctrl+shift+z"
             },
             {
                 "command": "commentTranslate.toggleBrowseMode",

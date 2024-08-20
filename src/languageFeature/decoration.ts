@@ -16,16 +16,45 @@ import { ICommentBlock } from "../interface";
 
 const disposables: Disposable[] = []
 
+let tempSet = new Set<string>();
+export function toggleBrowseCommentTranslate() {
+  let uriStr = window.activeTextEditor?.document.uri.toString();
+  if(!uriStr) return;
+  if(tempSet.has(uriStr)) {
+    tempSet.delete(uriStr);
+  } else {
+    tempSet.add(uriStr);
+  }
+  computeShowBrowser();
+  resetCommentDecoration();
+}
+
+
 let inplace = getConfig<string>('browse.mode', 'contrast') === 'inplace';
 let browseEnable = getConfig<boolean>('browse.enabled', true);
 let hoverEnable = getConfig<boolean>('hover.enabled', true);
 let showBrowser = browseEnable && hoverEnable;
 
+
+function computeShowBrowser() {
+  let uri = window.activeTextEditor?.document.uri.toString();
+  browseEnable = getConfig<boolean>('browse.enabled', true);
+  if(uri && tempSet.has(uri)) {
+    browseEnable = !browseEnable;
+  }
+  showBrowser = browseEnable && hoverEnable;
+}
 export function showBrowseCommentTranslate() {
 
   window.onDidChangeTextEditorVisibleRanges(showBrowseCommentTranslateImpl,null,disposables);
   window.onDidChangeTextEditorSelection(updateCommentDecoration,null, disposables);
   window.onDidChangeActiveTextEditor(resetCommentDecoration, null, disposables);
+  workspace.onDidCloseTextDocument((doc) => {
+    let uriStr = doc.uri.toString();
+    if(tempSet.has(uriStr)) {
+      tempSet.delete(uriStr);
+    }
+  });
   // TODO 状态过多，变更直接重新绘制好一些。
   onConfigChange('browse.mode', (value: string) => {
     inplace = value === 'inplace';
@@ -34,13 +63,14 @@ export function showBrowseCommentTranslate() {
 
   onConfigChange('browse.enabled', (value: boolean) => {
     browseEnable = value;
-    showBrowser = browseEnable && hoverEnable;
+
+    computeShowBrowser();
     resetCommentDecoration();
   }, null, disposables);
 
   onConfigChange('hover.enabled', (value: boolean) => {
     hoverEnable = value;
-    showBrowser = browseEnable && hoverEnable;
+    computeShowBrowser();
     resetCommentDecoration();
   }, null, disposables);
 
@@ -164,7 +194,7 @@ class CommentDecoration {
         return {
             before: {
               color: `var(--vscode-editorCodeLens-foreground)`,
-              // textDecoration: text.trim().length>0 ?`none;word-wrap: break-word; white-space: pre-wrap;display: inline-block; max-width:100%; position: relative;margin-right: ${-showLineLen}em;` : '',
+              // textDecoration: text.trim().length>0 ?`none;word-wrap: break-word; white-space: pre-wrap;display: inline-block; width:calc(100% - ${showLineLen}em); position: relative;` : '',
               contentText: text,
             },
           };

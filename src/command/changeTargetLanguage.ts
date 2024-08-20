@@ -1,6 +1,7 @@
 import { window } from "vscode";
 import { getConfiguration, selectTargetLanguage, selectTranslateSource } from "../configuration";
 import { outputChannel, translateExtensionProvider } from "../extension";
+import { toggleBrowseCommentTranslate } from "../languageFeature/decoration";
 
 // 更改目标语言命令
 export async function changeTargetLanguage () {
@@ -50,4 +51,8 @@ export async function toggleBrowseMode() {
     let targetMode = origin === 'contrast' ? 'inplace' : 'contrast';
 
     await configuration.update('browse.mode', targetMode);
+}
+
+export async function toggleTempBrowseMode() {
+    toggleBrowseCommentTranslate();
 }
