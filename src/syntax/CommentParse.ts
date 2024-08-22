@@ -3,7 +3,16 @@ import { IGrammar, StackElement } from "./TextMateService";
 import { getConfig } from "../configuration";
 import { checkScopeFunction, ICommentBlock, ICommentToken, ITokenState } from "../interface";
 
-
+function findLeadingWhitespaceOrUnpairedIndex(str: string): number {
+    const unpairedSymbols = new Set(['*', '+', '-', '#', '?', '!', '|', '&', '~','^',',','.',':',';']);
+    for (let i = 0; i < str.length; i++) {
+        const char = str[i];
+        if (!char.match(/\s/) && !unpairedSymbols.has(char)) {
+            return i;
+        }
+    }
+    return str.length;
+}
 
 export function isComment(scopes: string[]) {
     //评论的token标记
@@ -26,6 +35,8 @@ export function skipComment(scopes: string[]) {
 }
 
 export function ignoreComment(scopes: string[]) {
+    if(scopes[0].indexOf('.jsdoc') >= 0) return true;
+
     return scopes[0].indexOf('punctuation.definition.comment') === 0;
 }
 
@@ -276,6 +287,8 @@ export class CommentParse {
                 if (opts?.skipHandle && opts.skipHandle(res.scopes)) {
                     ignoreStart += res.text.length;
                 } else if (opts?.ignoreHandle && opts.ignoreHandle(res.scopes)) {
+                    ignoreStart += res.text.length;
+                } else if (findLeadingWhitespaceOrUnpairedIndex(res.text) === res.text.length) {
                     ignoreStart += res.text.length;
                 } else {
                     break;
