@@ -3,3 +3,5 @@ src
 node_modules
 doc
 dist/**/*.js.map
+coverage
+test

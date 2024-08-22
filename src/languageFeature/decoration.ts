@@ -134,6 +134,7 @@ class CommentDecoration {
   
       if (tokens) {
           let targetIndex = 0;
+          let tokensLength = tokens.length || 0;
   
           tokens.forEach((token, i) => {
               let { text, ignoreStart = 0, ignoreEnd = 0 } = token;
@@ -145,7 +146,7 @@ class CommentDecoration {
 
               // 在对比模式下，如果开启多行合并的时候，显示到最后一行
               if(!this._inplace) {
-                for (let k = i + 1; k < tokens.length && combined[k]; k++) {
+                for (let k = i + 1; k < tokensLength && combined[k]; k++) {
                     combinedIndex = k;
                 }
               }
@@ -153,7 +154,7 @@ class CommentDecoration {
   
               // 在对比模式下，翻译结果为空或与原文相同，忽略显示。在占位模式下，需要隐藏原有内容。
               if (this._inplace) {
-                let showLineLen = curr_doc?.lineAt(range.start.line + combinedIndex).text.length || 0;
+                // let showLineLen = curr_doc?.lineAt(range.start.line + combinedIndex).text.length || 0;
                   this._contentDecorations.push({
                       range: new Selection(
                           range.start.line + combinedIndex,
@@ -161,12 +162,14 @@ class CommentDecoration {
                           range.start.line + combinedIndex,
                           offset + text.length - ignoreEnd
                       ),
-                      renderOptions: this.genrateDecorationOptions(targetText,offset + ignoreStart),
+                      renderOptions: this.genrateDecorationOptions(targetText,/* offset + ignoreStart */),
                   });
               } else if(targetText && targetText !== originText) {
 
-                let showLineLen = curr_doc?.lineAt(range.start.line + combinedIndex+1).text.length || 0;
-                let gap = offset + ignoreStart - showLineLen;
+                // 处理tab, tabSize
+                let showLineLen = getTextLength(curr_doc?.lineAt(range.start.line + combinedIndex+1).text);
+                let offsetText = curr_doc?.lineAt(range.start.line + combinedIndex).text.substring(0, offset + ignoreStart);
+                let gap = getTextLength(offsetText) - showLineLen;
                 if(gap > 0) {
                     // contextText,空格会被去重只保留1个,这里使用 下划线 代替
                     targetText = targetText.padStart(targetText.length + gap,'\u00a0');
@@ -188,7 +191,7 @@ class CommentDecoration {
       }
   }
 
-  genrateDecorationOptions(text:string, showLineLen:number = 0) {
+  genrateDecorationOptions(text:string, /* showLineLen:number = 0 */) {
 
     if(this._inplace) {
         return {
@@ -285,7 +288,7 @@ async function showBrowseCommentTranslateImpl() {
   let editor = window.activeTextEditor;
   curr_doc = editor?.document;
 
-  if (!editor || !curr_doc) {
+  if (!editor || !editor.document || !curr_doc) {
     return;
   }
 
@@ -298,7 +301,8 @@ async function showBrowseCommentTranslateImpl() {
 
   blocks.map((block) => {
     let {start, end} = block.range;
-    let key = `${editor.document.uri}~${start.line}:${start.character}-${end.line}:${end.character}`;    
+    let uriStr = editor?.document?.uri.toString() || '';
+    let key = `${uriStr}~${start.line}:${start.character}-${end.line}:${end.character}`;    
     if(blockMaps.has(key)) {
       return blockMaps.get(key)!;
     }
@@ -324,4 +328,32 @@ function resetCommentDecoration() {
   cleanAll();
   curr_doc = undefined;
   showBrowseCommentTranslateImpl();
+}
+
+
+function countTabs(text: string): number {
+  let tabCount = 0;
+  for (let char of text) {
+      if (char === '\t') {
+          tabCount++;
+      }
+  }
+  return tabCount;
+}
+
+// 获取当前编辑器的 tabSize
+function getTabSize(): number {
+  const editor = window.activeTextEditor;
+  if (editor) {
+      const tabSize = editor.options.tabSize;
+      if (typeof tabSize === 'number') {
+          return tabSize;
+      }
+  }
+  // 默认 tabSize
+  return 4;
+}
+
+function getTextLength(text: string = ''): number {
+  return text.length + countTabs(text) * (getTabSize() - 1);
 }

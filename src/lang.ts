@@ -1,4 +1,6 @@
 
+import { LanguageIdentifier, loadModule } from 'cld3-asm';
+
 export const LANGS:[string,string][] = [
     ["en", "English"],
     ["zh-CN", "Chinese (Simplified)"],
@@ -110,3 +112,25 @@ export const LANGS:[string,string][] = [
     ["yo", "Yoruba"],
     ["zu", "Zulu"],
 ];
+
+let identifier:LanguageIdentifier;
+export async function detectLanguage(text: string): Promise<string> {
+    if(!identifier) {
+        let CldFactory = await loadModule();
+        identifier = CldFactory.create(0, 1000);
+    }
+    // 使用 cld3 库探测语言
+    const result = identifier.findLanguage(text);
+    return convertLang(result.language);
+}
+
+export function disposeIdentifier() {
+    if(identifier) {
+        identifier.dispose();
+    }
+}
+
+function convertLang( src:string ):string{
+    // 与google翻译编码的基本一致，只是多了部分拉丁结尾
+    return src.replace('-Latn', '');
+}

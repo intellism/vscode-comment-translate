@@ -1,6 +1,7 @@
 import { marked, Renderer } from "marked";
 import { translateManager } from "../extension";
 import { unescape } from "querystring";
+import { detectLanguage } from "../lang";
 const he = require("he");
 
 marked.setOptions({
@@ -121,6 +122,13 @@ export async function getMarkdownTextValue(markStr: string) {
           token.text = (
             await Promise.all(
               arr.map(async (txt) => {
+
+                // 如果原文是目标翻译语言，则不再进行翻译
+                let detected = await detectLanguage(txt);
+                if(translateManager.opts.to?.indexOf(detected) === 0) {
+                  return txt;
+                }
+
                 hasTranslated = true;
                 return translate(txt);
               })

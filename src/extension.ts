@@ -15,12 +15,12 @@ import { BaiduTranslate } from './translate/BaiduTranslate';
 import { BingTranslate } from './translate/BingTranslate';
 import { GoogleTranslate } from './translate/GoogleTranslate';
 import { ITranslateConfig, ITranslateRegistry, TranslateExtensionProvider } from './translate/translateExtension';
-import { TranslateManager } from 'comment-translate-manager';
+import { ITranslateOptions, TranslateManager } from 'comment-translate-manager';
 import { Comment } from './syntax/Comment';
-import { IGrammarExtensions, ITMLanguageExtensionPoint, TextMateService } from './syntax/TextMateService';
-import { readdirSync, readFileSync } from 'fs';
+import {  TextMateService } from './syntax/TextMateService';
 import { showBrowseCommentTranslate } from './languageFeature/decoration';
 import { extractGrammarExtensions, readResources } from './util/ext';
+import { detectLanguage } from './lang';
 
 export let outputChannel = window.createOutputChannel('Comment Translate');
 export let comment: Comment;
@@ -112,6 +112,11 @@ export async function activate(context: ExtensionContext) {
     }];
     translateExtensionProvider = new TranslateExtensionProvider(translateManager, buildInTranslate);
     translateExtensionProvider.init(getConfig<string>('source',''));
+
+    detectLanguage('你在跟進什麼').then((lang)=>{
+        outputChannel.append(`detect language: ${lang}`);
+    });
+
     // 暴露翻译插件
     return {
         extendTranslate: function (registry: ITranslateRegistry) {
@@ -120,4 +125,17 @@ export async function activate(context: ExtensionContext) {
     }
 }
 
-
+export async function translate(text:string,opts?: ITranslateOptions):Promise<string> {
+    let to = opts?.to;
+    let sourceLanguage = opts?.from || translateManager.opts.from || 'en';
+    if(!to) {
+        to = translateManager.opts.to || 'auto';
+    }
+    let detectedLanguage = await detectLanguage(text);
+    if(to.indexOf(detectedLanguage) === 0) {
+        to = sourceLanguage;
+        // 在自动检测的情况下，翻译的目标语言不能是 auto
+        if(to === 'auto') to = 'en';
+    }
+    return translateManager.translate(text, { from:opts?.from, to });
+}
