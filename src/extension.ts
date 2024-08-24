@@ -21,6 +21,7 @@ import {  TextMateService } from './syntax/TextMateService';
 import { showBrowseCommentTranslate } from './languageFeature/decoration';
 import { extractGrammarExtensions, readResources } from './util/ext';
 import { detectLanguage } from './lang';
+import { registerCompletion } from './languageFeature/completion';
 
 export let outputChannel = window.createOutputChannel('Comment Translate');
 export let comment: Comment;
@@ -69,6 +70,7 @@ export async function activate(context: ExtensionContext) {
     registerCommands(context);
     registerHover(context,canLanguages);
     registerDefinition(context,canLanguages);
+    registerCompletion(context,canLanguages);
 
     context.subscriptions.push(...showBrowseCommentTranslate());
     // 注册状态图标

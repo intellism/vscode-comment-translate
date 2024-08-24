@@ -61,4 +61,10 @@ export class Comment implements Disposable {
         if (!parse) return null;
         return parse.computeAllText(type, range);
     }
+
+    async getWordAtPosition(textDocument: TextDocument, position: Position){
+        const parse = await this._getCommentParse(textDocument);
+        if (!parse) return null;
+        return parse.getWordAtPosition(position);
+    }
 }

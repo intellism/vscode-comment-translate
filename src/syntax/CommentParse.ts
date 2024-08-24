@@ -378,4 +378,21 @@ export class CommentParse {
 
         return null;
     }
+
+    public getWordAtPosition(position: Position) {
+        const index = this._posOffsetTokens(position);
+        const { scopes, startIndex, endIndex, text } = this._posScopesParse(position.line, index);
+
+        if (scopes && isBase(scopes)) {
+            const range = new Range(new Position(position.line, startIndex), new Position(position.line, endIndex));
+
+            return {
+                comment: text,
+                scopes,
+                range: range
+            }
+        }
+
+        return null;
+    }
 }
