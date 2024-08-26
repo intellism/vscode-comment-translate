@@ -21,4 +21,5 @@
     "commentTranslate.hover.string": false,
     "commentTranslate.hover.enabled": true,
     "commentTranslate.source": "naomi233.comment-translate-transmart-transmart",
+    "commentTranslate.browse.mode": "inplace",
 }

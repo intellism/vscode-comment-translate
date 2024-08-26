@@ -14,7 +14,7 @@ import { getConfig } from "../../../src/configuration";
 //   import { commentData } from "../../fixtures/comment";
 
 
-describe("CommentParse", () => {
+describe("CommentParse TypeScript", () => {
   let textMateService: TextMateService;
   let commentParse: CommentParse;
   beforeAll(async () => {
@@ -105,4 +105,44 @@ describe("CommentParse", () => {
     expect(res.tokens?.length).toEqual(3);
 
   });
+});
+
+describe("CommentParse XML", () => {
+  let textMateService: TextMateService;
+  let commentParse: CommentParse;
+  beforeAll(async () => {
+    textMateService = await mockTextMateService();
+
+    let code = await getFixtureFile("background.xml");
+
+    let item = {
+      name: 'xml comment',
+      languageId: 'xml',
+      code,
+    };
+
+    let uri = Uri.file(item.name);
+    let curr_doc = createTextDocument(uri, item.code, item.languageId);
+
+    const grammar = await textMateService.createGrammar(item.languageId);
+    if (grammar == null) return null;
+
+    commentParse = new CommentParse(curr_doc, grammar);
+  });
+
+  test("Documents should be parsed string correctly:【xml】", async()=>{
+
+    (getConfig as jest.Mock).mockImplementation((key: string) => {
+      switch (key) {
+        case "hover.string":
+          return true;
+        default:
+          return;
+      }
+    });
+
+    let res = commentParse.computeText(new Position(9, 14));
+    expect(res?.comment).toEqual('<!-- <item>\n        <bitmap\n            android:gravity="center"\n            android:src="@mipmap/launch_image" />\n    </item> -->');
+  });
+
 });

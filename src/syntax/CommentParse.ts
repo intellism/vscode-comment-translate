@@ -290,6 +290,9 @@ export class CommentParse {
                     ignoreStart += res.text.length;
                 } else if (findLeadingWhitespaceOrUnpairedIndex(res.text) === res.text.length) {
                     ignoreStart += res.text.length;
+                } else if(i ===0 && ignoreStart === 0) {
+                    const match = res.text.match(/^\s+/);
+                    ignoreStart =  match ? match[0].length : ignoreStart;
                 } else {
                     break;
                 }

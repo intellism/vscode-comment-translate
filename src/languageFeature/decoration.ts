@@ -25,7 +25,6 @@ export function toggleBrowseCommentTranslate() {
   } else {
     tempSet.add(uriStr);
   }
-  computeShowBrowser();
   resetCommentDecoration();
 }
 
@@ -33,16 +32,14 @@ export function toggleBrowseCommentTranslate() {
 let inplace = getConfig<string>('browse.mode', 'contrast') === 'inplace';
 let browseEnable = getConfig<boolean>('browse.enabled', true);
 let hoverEnable = getConfig<boolean>('hover.enabled', true);
-let showBrowser = browseEnable && hoverEnable;
 
-
-function computeShowBrowser() {
+function shouldShowBrowser() {
   let uri = window.activeTextEditor?.document.uri.toString();
-  browseEnable = getConfig<boolean>('browse.enabled', true);
-  if(uri && tempSet.has(uri)) {
-    browseEnable = !browseEnable;
-  }
-  showBrowser = browseEnable && hoverEnable;
+  let docTemporarilyToggled = uri && tempSet.has(uri);
+  let docBrowseEnabled = docTemporarilyToggled? !browseEnable: browseEnable;
+  let ultimatelyBrowseEnable = docBrowseEnabled && hoverEnable;
+
+  return ultimatelyBrowseEnable;
 }
 export function showBrowseCommentTranslate() {
 
@@ -64,13 +61,11 @@ export function showBrowseCommentTranslate() {
   onConfigChange('browse.enabled', (value: boolean) => {
     browseEnable = value;
 
-    computeShowBrowser();
     resetCommentDecoration();
   }, null, disposables);
 
   onConfigChange('hover.enabled', (value: boolean) => {
     hoverEnable = value;
-    computeShowBrowser();
     resetCommentDecoration();
   }, null, disposables);
 
@@ -283,7 +278,7 @@ let blockMaps: Map<string, CommentDecoration> = new Map();
 let curr_doc:TextDocument|undefined;
 async function showBrowseCommentTranslateImpl() {
 
-  if(!showBrowser) return;
+  if(!shouldShowBrowser()) return;
 
   let editor = window.activeTextEditor;
   curr_doc = editor?.document;

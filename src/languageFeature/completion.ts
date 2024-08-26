@@ -5,7 +5,6 @@ import { getVariableCompletions, setCaseGuide } from "../command/replaceSelectio
 class VarTranslateCompletionItemProvider implements CompletionItemProvider {
     async provideCompletionItems(document: TextDocument, position: Position) {
         // 不需要触发字符
-        // if(context.triggerCharacter) return null;
         let coms = getVariableCompletions(document, new Position(position.line, position.character));
         if(!coms) {
             return null;

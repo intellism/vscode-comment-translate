@@ -73,8 +73,15 @@ export async function getMarkdownTextValue(markStr: string) {
     return translated[textArr.indexOf(text)];
   }
 
+  let skipTranslate = false;
+
   marked.parse(markStr, {
     walkTokens: (token) => {
+
+      // Part of the three-party plug-ins use html format to return, unable to accurately translate the content, directly skip.
+      if(token.type === "html") {
+        skipTranslate = true;
+      }
 
       if(token.type === "link") {
         let title = unescape(token.title).trim();
@@ -86,12 +93,15 @@ export async function getMarkdownTextValue(markStr: string) {
       if (token.type === "text") {
         let text = unescape(token.text).trim();
         if(text.indexOf('$(') === 0) return ;
-        if (text && text.indexOf(" ") >= 0) {
-          textArr = textArr.concat(text.split("\n"));
-        }
+        // if(text.indexOf(" ") < 0) return ;
+        textArr = textArr.concat(text.split("\n"));
       }
     },
   });
+
+  if(skipTranslate) {
+    return {result: markStr, hasTranslated: false};
+  }
 
   let hasTranslated = false;
 
@@ -116,30 +126,38 @@ export async function getMarkdownTextValue(markStr: string) {
       if (token.type === "text") {
         let text = unescape(token.text).trim();
         if(text.indexOf('$(') === 0) return ;
+        // if(text.indexOf(" ") < 0) return ;
 
-        if (text && text.indexOf(" ") >= 0) {
-          let arr = text.split("\n");
-          token.text = (
-            await Promise.all(
-              arr.map(async (txt) => {
+        let arr = text.split("\n");
+        token.text = (
+          await Promise.all(
+            arr.map(async (txt) => {
 
-                // 如果原文是目标翻译语言，则不再进行翻译
-                let detected = await detectLanguage(txt);
-                if(translateManager.opts.to?.indexOf(detected) === 0) {
-                  return txt;
-                }
+              // If the original text is in the target language, no more translation will be performed
+              let detected = await detectLanguage(txt);
+              if(translateManager.opts.to?.indexOf(detected) === 0) {
+                return txt;
+              }
 
-                hasTranslated = true;
-                return translate(txt);
-              })
-            )
-          ).join("\n");
-          //   token.text = await translateManager.translate(text,{to});
-        }
+              hasTranslated = true;
+              return translate(txt);
+            })
+          )
+        ).join("\n");
+
+        console.log(token.text);
+        //   token.text = await translateManager.translate(text,{to});
       }
     },
     async: true,
   });
-
+  result = removeTrailingNewlines(result);
   return {result, hasTranslated};
+}
+
+function removeTrailingNewlines(result: string): string {
+  if (result.endsWith('\n\n')) {
+      return result.slice(0, -2);
+  }
+  return result;
 }

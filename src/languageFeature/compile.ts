@@ -17,6 +17,13 @@ function ignoreStringTag(tokens: ICommentToken[], regular: string) {
 				ignoreStart += match[0].length;
 			}
 			item.ignoreStart = ignoreStart;
+
+			let endMatch = validText.match('\\s+$');
+			if (endMatch && endMatch.length) {
+				ignoreEnd += endMatch[0].length;
+			}
+			item.ignoreEnd = ignoreEnd;
+
 			return item;
 		});
 	}
@@ -84,10 +91,8 @@ export async function compileBlock(block:ICommentBlock,languageId:string,targetL
 		// 注释、文本，有tokens的语义翻译处理。
 		
 		// 正则忽略
-		let regular = getIgnoreRegular(languageId);
-		if(regular) {
-			tokens = ignoreStringTag(tokens,regular);
-		}
+		let regular = getIgnoreRegular(languageId) || '[\\s|/]+';
+		tokens = ignoreStringTag(tokens,regular);
 
 		// 获取待翻译字符串。
 		texts = tokens.map(({ text, ignoreStart = 0, ignoreEnd = 0 }) => {

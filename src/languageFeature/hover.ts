@@ -1,10 +1,11 @@
-import { CancellationToken, commands, ExtensionContext, Hover, languages, MarkdownString, Position, Range, TextDocument, window } from "vscode";
+import { CancellationToken, commands, Diagnostic, ExtensionContext, Hover, languages, MarkdownString, Position, Range, TextDocument, window } from "vscode";
 import { getConfig } from "../configuration";
 import { /* client,*/ comment, outputChannel } from "../extension";
 import { ShortLive } from "../util/short-live";
 import { compileBlock } from "./compile";
 import { getMarkdownTextValue } from "../util/marked";
 import { ICommentBlock } from "../interface";
+import { MarkedString } from "vscode-languageclient";
 
 export let shortLive = new ShortLive<string>((prev, curr) => prev === curr);
 let last: Map<string, Range> = new Map();
@@ -136,6 +137,50 @@ async function translateTypeLanguageProvideHover(document: TextDocument, positio
     return null;
 }
 
+
+async function diagnosticsHoverContent(document: TextDocument, position: Position): Promise<Hover | null> {
+    const diagnostics: Diagnostic[] = languages.getDiagnostics(document.uri);
+    const contentTasks: Promise<{ result: string, hasTranslated: boolean }>[] = [];
+    const filteredDiagnostics: Diagnostic[] = [];
+
+    let range: Range | undefined;
+    diagnostics.forEach(diagnostic => {
+        if (diagnostic.range.contains(position)) {
+            range = range || diagnostic.range;
+            contentTasks.push(getMarkdownTextValue(diagnostic.message));
+            filteredDiagnostics.push(diagnostic);
+        }
+    });
+
+    const translateds = await Promise.all(contentTasks);
+    const markdownStrings: MarkdownString[] = [];
+    translateds.forEach((translated,index) => {
+        if(!translated.hasTranslated) return;
+        let diagnostic = filteredDiagnostics[index];
+        
+        let codeText:string = '';
+        if (typeof diagnostic.code === 'string' || typeof diagnostic.code === 'number') {
+            codeText = `${diagnostic.code}`;
+        } else if(diagnostic.code && diagnostic.code.value && diagnostic.code.target) { 
+            codeText = `[${diagnostic.code.value}](${diagnostic.code.target})`;
+        }
+
+        if(codeText) {
+            codeText = `(${codeText})`;
+        }
+        const sourceText = `\`${diagnostic.source}\`${codeText}`;
+        const md = new MarkdownString(translated.result + sourceText, true);
+        md.isTrusted = true;
+        markdownStrings.push(md);
+    });
+
+    if(markdownStrings.length>0) {
+        return new Hover(markdownStrings,range);
+    }
+
+    return null;
+}
+
 function getHoverId(document: TextDocument, position: Position) {
     return  `${document.uri.toString()}-${position.line}-${position.character}`;
 }
@@ -155,15 +200,8 @@ export function registerHover(context: ExtensionContext, canLanguages:string[] =
                 return null;
             }
             
-            let [typeLanguageHover, commentHover] = await Promise.all([translateTypeLanguageProvideHover(document,position,token), commentProvideHover(document,position,token)]);
-            if(commentHover) {
-                if(typeLanguageHover && typeLanguageHover.contents.length>0) {
-                    commentHover.contents = commentHover.contents.concat(typeLanguageHover.contents);
-                }
-                return commentHover;
-            } else {
-                return typeLanguageHover;
-            }
+            let [typeLanguageHover, commentHover, diagnosticsHover] = await Promise.all([translateTypeLanguageProvideHover(document,position,token), commentProvideHover(document,position,token),diagnosticsHoverContent(document,position)]);
+            return mergeHovers(commentHover, diagnosticsHover,typeLanguageHover);
         }
     });
     context.subscriptions.push(hoverProviderDisposable);
@@ -191,4 +229,26 @@ function selectionContains(url: string, position: Position): ICommentBlock | nul
 
 export function lastHover(uri:string) {
 	return last.get(uri);
+}
+
+function mergeHovers(...hovers: (Hover | null)[]): Hover | null {
+    const contents: (MarkdownString|MarkedString)[] = [];
+    let range: Range | undefined;
+
+    hovers.forEach(hover => {
+        if (hover) {
+            if (!range && hover.range) {
+                range = hover.range;
+            }
+            hover.contents.forEach(content => {
+                contents.push(content);
+            });
+        }
+    });
+
+    if (contents.length > 0) {
+        return new Hover(contents, range);
+    }
+
+    return null;
 }

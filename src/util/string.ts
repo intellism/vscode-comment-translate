@@ -52,3 +52,11 @@ export function isCode(text:string) {
 
     return false;
 }
+
+
+// TODO:This method needs to be optimized, or is it not accurate enough to accurately determine the code
+export function isCodeByFlourite(text:string) {
+
+    const flourite = require('flourite/dist/index.cjs');
+    return flourite(text);
+}

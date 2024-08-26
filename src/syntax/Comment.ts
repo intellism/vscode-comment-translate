@@ -8,7 +8,8 @@ export class Comment implements Disposable {
     private _disposable: Disposable;
     private _commentParseCache: Map<string, CommentParse> = new Map();
     constructor(private _textMateService:TextMateService) {
-        //关闭文档或内容变更，移除缓存
+        // 关闭文档或内容变更，移除缓存
+
         // _documents.onDidClose(e => this._removeCommentParse(e.document));
         // _documents.onDidChangeContent(e => this._removeCommentParse(e.document));
 
