@@ -10,7 +10,6 @@ export async function clipboard() {
         outputChannel.appendLine('clipboard:The clipboard is empty');
         return;
     }
-    // const targetLanguage = getConfig<string>('targetLanguage',userLanguage);
     let translatedText = await translateManager.translate(text);
     outputChannel.appendLine('clipboard:' + translatedText);
     await window.showInformationMessage(translatedText,{detail: text, modal:false});
@@ -23,9 +22,6 @@ export async function selectLastHover() {
         if (!range) return;
         editor.revealRange(range);
         const {start,end} = range;
-
-        // 会复用对象？必须重新构建
-        // editor.selections = [new Selection(start,end)]; 
         editor.selections = [new Selection(start.line,start.character,end.line,end.character)];
     }
 }
@@ -42,7 +38,7 @@ export async function addSelection({range}:{range:Range}) {
 export function mouseToSelect(context: ExtensionContext) {
     let lastShowHover: number;
     let showHoverTimer: NodeJS.Timeout;
-    // 正常编码的时候，大段代码选中也会触发。 可增加 isCode() 判断，减少不必要提醒
+    // During normal coding, it will also be triggered when a large section of code is selected. The isCode() judgment can be added to reduce unnecessary reminders.
     context.subscriptions.push(window.onDidChangeTextEditorSelection((e) => {
         // 只支持划词翻译
         if (e.kind !== TextEditorSelectionChangeKind.Mouse) return;

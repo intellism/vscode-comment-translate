@@ -1,37 +1,33 @@
 
-import { CompletionItem, CompletionItemKind, CompletionItemProvider, ExtensionContext, languages, Position, ProviderResult, TextDocument } from "vscode";
-import { getVariableCompletions, setCaseGuide } from "../command/replaceSelections";
+import { CompletionItem, CompletionItemKind, CompletionItemProvider, ExtensionContext, languages, MarkdownString, Position, ProviderResult, TextDocument } from "vscode";
+import { getVariableCompletionDatas, setCaseGuide } from "../command/replaceSelections";
 
 class VarTranslateCompletionItemProvider implements CompletionItemProvider {
     async provideCompletionItems(document: TextDocument, position: Position) {
-        // 不需要触发字符
-        let coms = getVariableCompletions(document, new Position(position.line, position.character));
-        if(!coms) {
+        let completionData = getVariableCompletionDatas(document, new Position(position.line, position.character));
+        if(!completionData) {
             return null;
         }
 
-
-        let {range, list,filterText,caseGuide,codeType} = coms;
-        let r = range;
-        
-        let res: CompletionItem[] = list.map((c, index) => {
-            let item = new CompletionItem(c.value);
+        let {range, list,filterText,caseGuide,codeType,value} = completionData;
+        let completionItems: CompletionItem[] = list.map((itemData, index) => {
+            let item = new CompletionItem(itemData.value);
             item.kind = convertKind(codeType);
-            item.range = r;
+            item.range = range;
             item.filterText = filterText;
-            item.insertText = c.value;
+            item.insertText = itemData.value;
             item.sortText = `${index}`;
-            item.detail = `${c.title}`;
-            item.documentation = "This is a variable completion item";
+            item.detail = `${itemData.title}`;
+            item.documentation =new MarkdownString(`Final: \`${itemData.value}\` \n\n ${filterText} => ${value}  `);
 
-            if(caseGuide[codeType] === c.title) {
+            if(caseGuide[codeType] === itemData.title) {
                 item.preselect = true;
             }
 
             return item;
         });
 
-        return res;
+        return completionItems;
     }
 
     resolveCompletionItem(item: CompletionItem): ProviderResult<CompletionItem> {
@@ -73,6 +69,6 @@ function convertCodeType(kind:CompletionItemKind) {
         case CompletionItemKind.Constant:
             return 'readonly';
         default:
-            return 'variable';
+            return 'text';
     }
 }

@@ -8,11 +8,7 @@ export class Comment implements Disposable {
     private _disposable: Disposable;
     private _commentParseCache: Map<string, CommentParse> = new Map();
     constructor(private _textMateService:TextMateService) {
-        // 关闭文档或内容变更，移除缓存
-
-        // _documents.onDidClose(e => this._removeCommentParse(e.document));
-        // _documents.onDidChangeContent(e => this._removeCommentParse(e.document));
-
+        // Close document or content changes, remove cache
         this._disposable = Disposable.from(
             workspace.onDidChangeTextDocument(e=>this._removeCommentParse(e.document))
         );
@@ -50,13 +46,6 @@ export class Comment implements Disposable {
         return parse.computeText(position);
     }
     
-    // async getAllComment(uri:string, type = 'comment', range:Range):Promise<ICommentBlock[] | null> {
-    //     const doc = this._documents.get(uri);
-    //     if (!doc) return null;
-    //     const parse = await this._getCommentParse(doc);
-    //     if (!parse) return null;
-    //     return parse.computeAllText(type, range);
-    // }
     async getAllComment(textDocument:TextDocument, type = 'comment', range?:Range):Promise<ICommentBlock[] | null> {
         const parse = await this._getCommentParse(textDocument);
         if (!parse) return null;

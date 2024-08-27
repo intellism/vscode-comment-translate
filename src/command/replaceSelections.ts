@@ -56,13 +56,14 @@ export function setCaseGuide(key:string , value:string) {
     caseGuide[key] = value;
 }
 
-export function getVariableCompletions(doc: TextDocument, position: Position) {
+export function getVariableCompletionDatas(doc: TextDocument, position: Position) {
     let key = doc.uri.toString() + ':' + position.line + ':' + position.character;
     if (variableCompletionMap.has(key)) {
         let { value, range,filterText,codeType } = variableCompletionMap.get(key)!;
         let r = new Range(range.start.line, range.start.character, range.end.line, range.end.character+1);
         return {
             caseGuide,
+            value,
             codeType,
             filterText,
             range:r,
@@ -91,7 +92,7 @@ export function getVariableCompletions(doc: TextDocument, position: Position) {
                     value: changeCase.kebabCase(value),
                 },
                 {
-                    ttle: 'trainCase',
+                    title: 'trainCase',
                     value: changeCase.trainCase(value),
                 },
             ]
@@ -157,7 +158,7 @@ async function replaceVariable(position: Position) {
 
     let codeType = getCodeType(scopes);
 
-    addVariableCompletion(editor.document, position, convertSentenceToVariable(translatedText), range,text,codeType);
+    addVariableCompletion(editor.document, position, translatedText, range,text,codeType);
     commands.executeCommand('editor.action.triggerSuggest');
 }
 

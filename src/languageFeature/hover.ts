@@ -5,7 +5,6 @@ import { ShortLive } from "../util/short-live";
 import { compileBlock } from "./compile";
 import { getMarkdownTextValue } from "../util/marked";
 import { ICommentBlock } from "../interface";
-import { MarkedString } from "vscode-languageclient";
 
 export let shortLive = new ShortLive<string>((prev, curr) => prev === curr);
 let last: Map<string, Range> = new Map();
@@ -232,23 +231,13 @@ export function lastHover(uri:string) {
 }
 
 function mergeHovers(...hovers: (Hover | null)[]): Hover | null {
-    const contents: (MarkdownString|MarkedString)[] = [];
-    let range: Range | undefined;
+  const filteredHovers = hovers.filter(hover => hover !== null) as Hover[];
+  const firstHover = filteredHovers.shift();
+  if (!firstHover) return null;
 
-    hovers.forEach(hover => {
-        if (hover) {
-            if (!range && hover.range) {
-                range = hover.range;
-            }
-            hover.contents.forEach(content => {
-                contents.push(content);
-            });
-        }
-    });
+  filteredHovers.forEach(hover => {
+    firstHover.contents = firstHover.contents.concat(hover.contents);
+  });
 
-    if (contents.length > 0) {
-        return new Hover(contents, range);
-    }
-
-    return null;
+  return firstHover;
 }

@@ -23,3 +23,16 @@ export class ShortLive<T> {
         return false;
     }
 }
+
+
+export function debounce(func: (...args: any[]) => void, delay: number=100) {
+    let timeoutId: NodeJS.Timeout | null = null;
+    return function (...args: any[]) {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+      timeoutId = setTimeout(() => {
+        func(...args);
+      }, delay);
+    };
+  }

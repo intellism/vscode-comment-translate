@@ -11,7 +11,6 @@ import { getConfig, onConfigChange, showHoverStatusBar, showTargetLanguageStatus
 import { registerDefinition } from './languageFeature/definition';
 import { registerHover } from './languageFeature/hover';
 import { AliTranslate } from './plugin/translateAli';
-import { BaiduTranslate } from './translate/BaiduTranslate';
 import { BingTranslate } from './translate/BingTranslate';
 import { GoogleTranslate } from './translate/GoogleTranslate';
 import { ITranslateConfig, ITranslateRegistry, TranslateExtensionProvider } from './translate/translateExtension';
@@ -72,7 +71,7 @@ export async function activate(context: ExtensionContext) {
     registerDefinition(context,canLanguages);
     registerCompletion(context,canLanguages);
 
-    context.subscriptions.push(...showBrowseCommentTranslate());
+    context.subscriptions.push(...showBrowseCommentTranslate(canLanguages));
     // 注册状态图标
     let hoverBar = await showHoverStatusBar();
     let targetBar = await showTargetLanguageStatusBarItem(userLanguage);
@@ -103,11 +102,6 @@ export async function activate(context: ExtensionContext) {
         translate: 'Google'
     },
     {
-        title: 'Baidu translate',
-        ctor: BaiduTranslate,
-        translate: 'Baidu'
-    },
-    {
         title: 'Bing translate',
         ctor: BingTranslate,
         translate: 'Bing'
@@ -127,17 +121,20 @@ export async function activate(context: ExtensionContext) {
     }
 }
 
-export async function translate(text:string,opts?: ITranslateOptions):Promise<string> {
-    let to = opts?.to;
+/**
+ * Automatic translation, which automatically detects languages based on source code
+ * @param text Text to be translated
+ * @param opts Select target and source languages for translation
+ */
+export async function autoMutualTranslate(text:string,opts?: ITranslateOptions):Promise<string> {
+    let targetLanguage = opts?.to || translateManager.opts.to || 'auto';
     let sourceLanguage = opts?.from || translateManager.opts.from || 'en';
-    if(!to) {
-        to = translateManager.opts.to || 'auto';
-    }
+  
     let detectedLanguage = await detectLanguage(text);
-    if(to.indexOf(detectedLanguage) === 0) {
-        to = sourceLanguage;
-        // 在自动检测的情况下，翻译的目标语言不能是 auto
-        if(to === 'auto') to = 'en';
+    if(targetLanguage.indexOf(detectedLanguage) === 0) {
+        targetLanguage = sourceLanguage;
+        // In the case of automatic detection, the target language for translation cannot be auto
+        if(targetLanguage === 'auto') targetLanguage = 'en';
     }
-    return translateManager.translate(text, { from:opts?.from, to });
+    return translateManager.translate(text, { from:opts?.from, to: targetLanguage });
 }

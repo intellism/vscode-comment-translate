@@ -747,7 +747,6 @@
     },
     "dependencies": {
         "@alicloud/pop-core": "^1.7.10",
-        "baidu-translate-api-temp": "^0.4.4",
         "bing-translate-api": "^2.9.1",
         "change-case": "^5.4.4",
         "cld3-asm": "^4.0.0",
@@ -760,7 +759,6 @@
         "humanize-string": "2.1.0",
         "marked": "^5.0.2",
         "onigasm": "^2.2.5",
-        "vscode-languageclient": "^7.0.0",
         "vscode-textmate": "^4.3.0"
     },
     "devDependencies": {

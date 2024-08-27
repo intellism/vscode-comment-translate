@@ -1,6 +1,6 @@
 import humanizeString = require("humanize-string");
 import { getConfig } from "../configuration";
-import { translate, translateManager } from "../extension";
+import { autoMutualTranslate, translateManager } from "../extension";
 import { hasEndMark, isLowerCase, isUpperCase } from "../util/string";
 import { ICommentBlock, ICommentToken, ITranslatedText } from "../interface";
 
@@ -86,7 +86,7 @@ export async function compileBlock(block:ICommentBlock,languageId:string,targetL
 		// 选取翻译&单个单词翻译的时候。无tokens的简单结果
 		humanizeText = humanize(originText);
 		// translatedText = await translateManager.translate(humanizeText || originText, { to: targetLanguage });
-		translatedText = await translate(humanizeText || originText, { to: targetLanguage });
+		translatedText = await autoMutualTranslate(humanizeText || originText, { to: targetLanguage });
 	} else {
 		// 注释、文本，有tokens的语义翻译处理。
 		
@@ -123,7 +123,7 @@ export async function compileBlock(block:ICommentBlock,languageId:string,targetL
 				humanizeText = humanize(validText);
 			}
 			// translatedText = await translateManager.translate(humanizeText || validText, { to: targetLanguage });
-			translatedText = await translate(humanizeText || validText, { to: targetLanguage });
+			translatedText = await autoMutualTranslate(humanizeText || validText, { to: targetLanguage });
 
 			// 重新组合翻译结果，还原被翻译时过滤的符合.  如 /* // 等
 			targets = translatedText.split('\n');

@@ -13,6 +13,7 @@ import { comment, ctx } from "../extension";
 import { usePlaceholderCodeLensProvider } from "./codelen";
 import { getConfig, onConfigChange } from "../configuration";
 import { ICommentBlock } from "../interface";
+import { debounce } from "../util/short-live";
 
 const disposables: Disposable[] = []
 
@@ -41,11 +42,14 @@ function shouldShowBrowser() {
 
   return ultimatelyBrowseEnable;
 }
-export function showBrowseCommentTranslate() {
-
-  window.onDidChangeTextEditorVisibleRanges(showBrowseCommentTranslateImpl,null,disposables);
-  window.onDidChangeTextEditorSelection(updateCommentDecoration,null, disposables);
-  window.onDidChangeActiveTextEditor(resetCommentDecoration, null, disposables);
+let BlackLanguage: string[] = ['markdown'];
+let canLanguages:string[] = [];
+export function showBrowseCommentTranslate(languages:string[]) {
+  canLanguages = languages.filter((v) => BlackLanguage.indexOf(v) < 0);
+  ;
+  window.onDidChangeTextEditorVisibleRanges(debounce(showBrowseCommentTranslateImpl),null,disposables);
+  window.onDidChangeTextEditorSelection(debounce(updateCommentDecoration),null, disposables);
+  window.onDidChangeActiveTextEditor(debounce(resetCommentDecoration), null, disposables);
   workspace.onDidCloseTextDocument((doc) => {
     let uriStr = doc.uri.toString();
     if(tempSet.has(uriStr)) {
@@ -287,11 +291,21 @@ async function showBrowseCommentTranslateImpl() {
     return;
   }
 
-  let blocks = await comment.getAllComment(
+  if(!canLanguages.includes(curr_doc.languageId)) {
+    return;
+  }
+
+  let blocks:ICommentBlock[]|null = null;
+  
+  try {
+    blocks = await comment.getAllComment(
     curr_doc,
     "comment",
     editor.visibleRanges[0]
   );
+  } catch (error) {
+    console.error(error);
+  }
   if (!blocks || blocks.length === 0) return;
 
   blocks.map((block) => {

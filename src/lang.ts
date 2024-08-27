@@ -119,7 +119,7 @@ export async function detectLanguage(text: string): Promise<string> {
         let CldFactory = await loadModule();
         identifier = CldFactory.create(0, 1000);
     }
-    // 使用 cld3 库探测语言
+    // Probing languages with cld3 library
     const result = identifier.findLanguage(text);
     return convertLang(result.language);
 }
@@ -131,6 +131,6 @@ export function disposeIdentifier() {
 }
 
 function convertLang( src:string ):string{
-    // 与google翻译编码的基本一致，只是多了部分拉丁结尾
+    // It is basically the same as Google Translate coding, except for some Latin endings.
     return src.replace('-Latn', '');
 }
