@@ -3,7 +3,7 @@ import { getConfig, selectTargetLanguage } from "../configuration";
 import { comment, ctx, outputChannel, translateManager } from "../extension";
 import * as changeCase from "change-case";
 import humanizeString = require("humanize-string");
-import {franc} from 'franc'
+import { franc } from 'franc'
 
 async function translateSelection(text: string, selection: Selection, targetLanguage: string) {
     // let translation = await client.sendRequest<string>('translate', { text, targetLanguage });
@@ -43,7 +43,7 @@ export async function replaceRange({ uri, text, range }: { uri: string, text: st
 }
 
 
-let variableCompletionMap = new Map<string, { value: string,filterText: string,codeType: string, range: Range }>();
+let variableCompletionMap = new Map<string, { value: string, filterText: string, codeType: string, range: Range }>();
 
 let caseGuide: { [key: string]: string } = {
     variable: 'camelCase',
@@ -52,21 +52,21 @@ let caseGuide: { [key: string]: string } = {
     readonly: 'constantCase',
 };
 
-export function setCaseGuide(key:string , value:string) {
+export function setCaseGuide(key: string, value: string) {
     caseGuide[key] = value;
 }
 
 export function getVariableCompletionDatas(doc: TextDocument, position: Position) {
     let key = doc.uri.toString() + ':' + position.line + ':' + position.character;
     if (variableCompletionMap.has(key)) {
-        let { value, range,filterText,codeType } = variableCompletionMap.get(key)!;
-        let r = new Range(range.start.line, range.start.character, range.end.line, range.end.character+1);
+        let { value, range, filterText, codeType } = variableCompletionMap.get(key)!;
+        let r = new Range(range.start.line, range.start.character, range.end.line, range.end.character + 1);
         return {
             caseGuide,
             value,
             codeType,
             filterText,
-            range:r,
+            range: r,
             list: [
                 {
                     title: 'camelCase',
@@ -101,9 +101,9 @@ export function getVariableCompletionDatas(doc: TextDocument, position: Position
     return null;
 }
 
-export function addVariableCompletion(doc: TextDocument, position: Position, value: string, range: Range,filterText:string,codeType:string) {
+export function addVariableCompletion(doc: TextDocument, position: Position, value: string, range: Range, filterText: string, codeType: string) {
     let key = doc.uri.toString() + ':' + position.line + ':' + position.character;
-    variableCompletionMap.set(key, { value, range,filterText,codeType });
+    variableCompletionMap.set(key, { value, range, filterText, codeType });
 }
 
 export function removeVariableCompletion(doc: TextDocument, position: Position) {
@@ -112,24 +112,23 @@ export function removeVariableCompletion(doc: TextDocument, position: Position) 
 }
 
 
-function convertSentenceToVariable(sentence: string): string {
-    // 去除标点符号
-    const cleanedSentence = sentence.replace(/[^\w\s]/g, '');
-    // 转换成小写
-    const lowerCaseSentence = cleanedSentence.toLowerCase();
-    // 分隔单词
-    const words = lowerCaseSentence.split(' ');
-    // 将每个单词的首字母大写（除了第一个单词）
-    const camelCaseWords = words.map((word, index) => {
-        if (index === 0) {
-            return word;
-        }
-        return word.charAt(0).toUpperCase() + word.slice(1);
-    });
-    // 连接成一个字符串
-    return camelCaseWords.join('');
-}
-
+// function convertSentenceToVariable(sentence: string): string {
+//     // 去除标点符号
+//     const cleanedSentence = sentence.replace(/[^\w\s]/g, '');
+//     // 转换成小写
+//     const lowerCaseSentence = cleanedSentence.toLowerCase();
+//     // 分隔单词
+//     const words = lowerCaseSentence.split(' ');
+//     // 将每个单词的首字母大写（除了第一个单词）
+//     const camelCaseWords = words.map((word, index) => {
+//         if (index === 0) {
+//             return word;
+//         }
+//         return word.charAt(0).toUpperCase() + word.slice(1);
+//     });
+//     // 连接成一个字符串
+//     return camelCaseWords.join('');
+// }
 async function replaceVariable(position: Position) {
     let editor = window.activeTextEditor;
     if (!editor || !editor.document) return;
@@ -145,11 +144,11 @@ async function replaceVariable(position: Position) {
     });
     editor.setDecorations(decoration, [range]);
 
-    let translatedText:string;
+    let translatedText: string;
 
     // 文本比较短，cld3很容易识别错误。 franc的限定语言效果更好
-    let languageId = franc(humanizeString(text),{minLength:1,only:['eng']});
-    if(languageId === 'eng') {
+    let languageId = franc(humanizeString(text), { minLength: 1, only: ['eng'] });
+    if (languageId === 'eng') {
         translatedText = humanizeString(text);
     } else {
         translatedText = await translateManager.translate(text, { to: 'en' });
@@ -158,7 +157,7 @@ async function replaceVariable(position: Position) {
 
     let codeType = getCodeType(scopes);
 
-    addVariableCompletion(editor.document, position, translatedText, range,text,codeType);
+    addVariableCompletion(editor.document, position, translatedText, range, text, codeType);
     commands.executeCommand('editor.action.triggerSuggest');
 }
 
@@ -223,20 +222,20 @@ export async function replaceSelections() {
     }
 }
 
-function getCodeType(scopes:string[]) {
-    if(scopes[0].indexOf('variable') === 0) {
-        if(scopes[0].indexOf('constant') >=0) {
+function getCodeType(scopes: string[]) {
+    if (scopes[0].indexOf('variable') === 0) {
+        if (scopes[0].indexOf('constant') >= 0) {
             return 'readonly';
         }
 
         return 'variable';
     }
 
-    if(scopes[0].indexOf('entity.name.function') === 0) {
+    if (scopes[0].indexOf('entity.name.function') === 0) {
         return 'function';
     }
 
-    if(scopes[0].indexOf('entity.name.class') === 0 ||
+    if (scopes[0].indexOf('entity.name.class') === 0 ||
         scopes[0].indexOf('entity.name.type.class') === 0) {
         return 'class';
     }

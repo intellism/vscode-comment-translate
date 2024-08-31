@@ -1,0 +1,26 @@
+# EditorConfig is awesome: https://EditorConfig.org
+
+# Top-level configuration applies to all files
+root = true
+
+# Common configuration for all files
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+# Configuration for specific file types
+[*.{js,ts,jsx,tsx}]
+indent_style = space
+indent_size = 4
+max_line_length = 80
+single_quote = true
+use_tabs = false
+
+[*.md]
+trim_trailing_whitespace = false
+
+[*.{json,yml}]
+indent_style = space
+indent_size = 4

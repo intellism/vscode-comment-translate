@@ -1,10 +1,10 @@
 import { window } from "vscode";
 import { getConfiguration, selectTargetLanguage, selectTranslateSource } from "../configuration";
 import { outputChannel, translateExtensionProvider } from "../extension";
-import { toggleBrowseCommentTranslate } from "../languageFeature/decoration";
+import { commentDecorationManager } from "../languageFeature/decoration";
 
 // 更改目标语言命令
-export async function changeTargetLanguage () {
+export async function changeTargetLanguage() {
     let target = await selectTargetLanguage();
     if (target) {
         const configuration = getConfiguration();
@@ -14,9 +14,9 @@ export async function changeTargetLanguage () {
 
 export async function changeTranslateSource() {
     let targetSource = await selectTranslateSource();
-    if(targetSource) {
+    if (targetSource) {
         let success = await translateExtensionProvider.switchTranslate(targetSource);
-        if(success) {
+        if (success) {
             const configuration = getConfiguration();
             await configuration.update('source', targetSource);
             const msg = `Switch translate source to '${targetSource}'.`;
@@ -54,5 +54,5 @@ export async function toggleBrowseMode() {
 }
 
 export async function toggleTempBrowseMode() {
-    toggleBrowseCommentTranslate();
+    commentDecorationManager.toggleBrowseCommentTranslate();
 }

@@ -5,6 +5,14 @@
     "search.exclude": {
         "out": true // set this to false to include "out" folder in search results
     },
+    "[typescript]": {
+		"editor.defaultFormatter": "vscode.typescript-language-features",
+		"editor.formatOnSave": true
+	},
+	"[javascript]": {
+		"editor.defaultFormatter": "vscode.typescript-language-features",
+		"editor.formatOnSave": true
+	},
     "typescript.tsdk": "./node_modules/typescript/lib",
     "typescript.tsc.autoDetect": "off",
     "npm.exclude": [
@@ -22,4 +30,6 @@
     "commentTranslate.hover.enabled": true,
     "commentTranslate.source": "naomi233.comment-translate-transmart-transmart",
     "commentTranslate.browse.mode": "inplace",
+    "prettier.singleQuote": true,
+    "prettier.tabWidth": 4,
 }
