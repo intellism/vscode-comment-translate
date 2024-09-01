@@ -1,18 +1,19 @@
-import {env, commands, ExtensionContext, Selection, TextEditorSelectionChangeKind, window, Range } from "vscode";
-import { outputChannel, translateManager } from "../extension";
+import { env, commands, ExtensionContext, Selection, TextEditorSelectionChangeKind, window, Range } from "vscode";
+import { outputChannel } from "../extension";
 import { lastHover } from "../languageFeature/hover";
 import { isCode } from "../util/string";
+import { translateManager } from "../translate/manager";
 
 
 export async function clipboard() {
     let text = await env.clipboard.readText();
-    if(!text) {
+    if (!text) {
         outputChannel.appendLine('clipboard:The clipboard is empty');
         return;
     }
     let translatedText = await translateManager.translate(text);
     outputChannel.appendLine('clipboard:' + translatedText);
-    await window.showInformationMessage(translatedText,{detail: text, modal:false});
+    await window.showInformationMessage(translatedText, { detail: text, modal: false });
 }
 
 export async function selectLastHover() {
@@ -21,16 +22,16 @@ export async function selectLastHover() {
         let range = lastHover(editor.document.uri.toString());
         if (!range) return;
         editor.revealRange(range);
-        const {start,end} = range;
-        editor.selections = [new Selection(start.line,start.character,end.line,end.character)];
+        const { start, end } = range;
+        editor.selections = [new Selection(start.line, start.character, end.line, end.character)];
     }
 }
 
-export async function addSelection({range}:{range:Range}) {
+export async function addSelection({ range }: { range: Range }) {
     let editor = window.activeTextEditor;
     if (editor) {
-        const {start,end} = range;
-        editor.selections = [new Selection(start.line,start.character,end.line,end.character),...editor.selections];
+        const { start, end } = range;
+        editor.selections = [new Selection(start.line, start.character, end.line, end.character), ...editor.selections];
         window.showTextDocument(editor.document); // 文档获取焦点
     }
 }
@@ -43,8 +44,8 @@ export function mouseToSelect(context: ExtensionContext) {
         // 只支持划词翻译
         if (e.kind !== TextEditorSelectionChangeKind.Mouse) return;
         let selections = e.selections.filter(selection => !selection.isEmpty);
-        if (selections.length === 0 || selections.length>1) return;
-        
+        if (selections.length === 0 || selections.length > 1) return;
+
 
         let laterTime = 300;
         if (lastShowHover) {
@@ -54,8 +55,8 @@ export function mouseToSelect(context: ExtensionContext) {
         clearTimeout(showHoverTimer);
         showHoverTimer = setTimeout(() => {
             let selectionText = e.textEditor.document.getText(selections[0]);
-            if(selectionText.length > 1000) return;
-            if(isCode(selectionText)) return;
+            if (selectionText.length > 1000) return;
+            if (isCode(selectionText)) return;
             commands.executeCommand('editor.action.showHover', { focus: "noAutoFocus" });
             lastShowHover = (new Date()).getTime();
         }, laterTime);

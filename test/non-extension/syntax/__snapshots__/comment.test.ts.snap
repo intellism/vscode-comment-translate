@@ -24,12 +24,12 @@ exports[`Comment Documents should be compiled comment correctly:【function comm
       },
       {
         "ignoreEnd": 0,
-        "ignoreStart": 0,
+        "ignoreStart": 3,
         "text": "	 * Represents an event describing the change in a {@link TextEditor.options text editor's options}.",
       },
       {
-        "ignoreEnd": 2,
-        "ignoreStart": 0,
+        "ignoreEnd": 0,
+        "ignoreStart": 4,
         "text": "	 */",
       },
     ],
@@ -56,63 +56,17 @@ exports[`Comment Documents should be compiled comment correctly:【function comm
       },
       {
         "ignoreEnd": 0,
-        "ignoreStart": 0,
+        "ignoreStart": 4,
         "text": "		 * The new value for the {@link TextEditor.options text editor's options}.",
       },
       {
-        "ignoreEnd": 2,
-        "ignoreStart": 0,
+        "ignoreEnd": 0,
+        "ignoreStart": 5,
         "text": "		 */",
       },
     ],
   },
 ]
-`;
-
-exports[`Comment Documents should be compiled comment correctly:【function comment】 2`] = `
-{
-  "combined": [
-    false,
-    false,
-    false,
-  ],
-  "humanizeText": "",
-  "targets": [
-    "表示描述{@link TextEditor.options文本编辑器的选项}中的更改的事件。",
-  ],
-  "texts": [
-    "",
-    "Represents an event describing the change in a {@link TextEditor.options text editor's options}.",
-    "",
-  ],
-  "translateLink": undefined,
-  "translatedText": "/**
-	 * 表示描述{@link TextEditor.options文本编辑器的选项}中的更改的事件。
-	 */",
-}
-`;
-
-exports[`Comment Documents should be compiled comment correctly:【function comment】 3`] = `
-{
-  "combined": [
-    false,
-    false,
-    false,
-  ],
-  "humanizeText": "",
-  "targets": [
-    "{@link TextEditor.options文本编辑器的选项}的新值。",
-  ],
-  "texts": [
-    "",
-    "The new value for the {@link TextEditor.options text editor's options}.",
-    "",
-  ],
-  "translateLink": undefined,
-  "translatedText": "/**
-		 * {@link TextEditor.options文本编辑器的选项}的新值。
-		 */",
-}
 `;
 
 exports[`Comment Documents should be compiled comment correctly:【head comment】 1`] = `
@@ -174,27 +128,27 @@ exports[`Comment Documents should be compiled comment correctly:【head comment�
     "tokens": [
       {
         "ignoreEnd": 0,
-        "ignoreStart": 2,
+        "ignoreStart": 95,
         "text": "/*---------------------------------------------------------------------------------------------",
       },
       {
         "ignoreEnd": 0,
-        "ignoreStart": 0,
+        "ignoreStart": 1,
         "text": " *  Copyright (c) Microsoft Corporation. All rights reserved.",
       },
       {
         "ignoreEnd": 0,
-        "ignoreStart": 0,
+        "ignoreStart": 1,
         "text": " *  Licensed under the MIT License.",
       },
       {
         "ignoreEnd": 0,
-        "ignoreStart": 0,
+        "ignoreStart": 1,
         "text": " *  See https://github.com/microsoft/vscode/blob/main/LICENSE.txt for license information.",
       },
       {
-        "ignoreEnd": 2,
-        "ignoreStart": 0,
+        "ignoreEnd": 0,
+        "ignoreStart": 96,
         "text": " *--------------------------------------------------------------------------------------------*/",
       },
     ],
@@ -222,111 +176,22 @@ exports[`Comment Documents should be compiled comment correctly:【head comment�
       },
       {
         "ignoreEnd": 0,
-        "ignoreStart": 0,
+        "ignoreStart": 2,
         "text": " * Type Definition for Visual Studio Code 1.68 Extension API",
       },
       {
         "ignoreEnd": 0,
-        "ignoreStart": 0,
+        "ignoreStart": 2,
         "text": " * See https://code.visualstudio.com/api for more information",
       },
       {
-        "ignoreEnd": 2,
-        "ignoreStart": 0,
+        "ignoreEnd": 0,
+        "ignoreStart": 3,
         "text": " */",
       },
     ],
   },
 ]
-`;
-
-exports[`Comment Documents should be compiled comment correctly:【head comment】 2`] = `
-{
-  "combined": [
-    false,
-    false,
-    false,
-    false,
-  ],
-  "humanizeText": "",
-  "targets": [
-    "Visual Studio Code 1.68的类型定义",
-    "项目：https://github.com/microsoft/vscode",
-    "定义：Microsoft Visual Studio Code Team <https://github.com/microsoft>",
-    "定义：https://github.com/DefinitelyTyped/DefinitelyTyped",
-  ],
-  "texts": [
-    "Type definitions for Visual Studio Code 1.68",
-    "Project: https://github.com/microsoft/vscode",
-    "Definitions by: Visual Studio Code Team, Microsoft <https://github.com/microsoft>",
-    "Definitions: https://github.com/DefinitelyTyped/DefinitelyTyped",
-  ],
-  "translateLink": undefined,
-  "translatedText": "// Visual Studio Code 1.68的类型定义
-// 项目：https://github.com/microsoft/vscode
-// 定义：Microsoft Visual Studio Code Team <https://github.com/microsoft>
-// 定义：https://github.com/DefinitelyTyped/DefinitelyTyped",
-}
-`;
-
-exports[`Comment Documents should be compiled comment correctly:【head comment】 3`] = `
-{
-  "combined": [
-    false,
-    false,
-    false,
-    false,
-    false,
-  ],
-  "humanizeText": "",
-  "targets": [
-    "---------------------------------------------------------------------------------------------",
-    "*  版权所有（c）Microsoft Corporation。 All rights reserved.",
-    "*  根据MIT许可证授权。",
-    "*  有关许可证信息，请参见https://github.com/microsoft/vscode/blob/main/LICENSE.txt。",
-    "*--------------------------------------------------------------------------------------------",
-  ],
-  "texts": [
-    "---------------------------------------------------------------------------------------------",
-    "Copyright (c) Microsoft Corporation. All rights reserved.",
-    "Licensed under the MIT License.",
-    "See https://github.com/microsoft/vscode/blob/main/LICENSE.txt for license information.",
-    "--------------------------------------------------------------------------------------------",
-  ],
-  "translateLink": undefined,
-  "translatedText": "/*---------------------------------------------------------------------------------------------
- *  *  版权所有（c）Microsoft Corporation。 All rights reserved.
- *  *  根据MIT许可证授权。
- *  *  有关许可证信息，请参见https://github.com/microsoft/vscode/blob/main/LICENSE.txt。
- **--------------------------------------------------------------------------------------------*/",
-}
-`;
-
-exports[`Comment Documents should be compiled comment correctly:【head comment】 4`] = `
-{
-  "combined": [
-    false,
-    false,
-    false,
-    false,
-  ],
-  "humanizeText": "",
-  "targets": [
-    "* Visual Studio Code 1.68扩展API的类型定义",
-    "* 有关详细信息，请访问https://code.visualstudio.com/api",
-  ],
-  "texts": [
-    "",
-    "Type Definition for Visual Studio Code 1.68 Extension API",
-    "See https://code.visualstudio.com/api for more information",
-    "",
-  ],
-  "translateLink": undefined,
-  "translatedText": "/**
- * * Visual Studio Code 1.68扩展API的类型定义
- * * 有关详细信息，请访问https://code.visualstudio.com/api
- */",
-}
 `;
 
 exports[`Comment Documents should be compiled comment correctly:【spaceInHead comment】 1`] = `
@@ -468,70 +333,4 @@ exports[`Comment Documents should be compiled comment correctly:【spaceInHead c
     ],
   },
 ]
-`;
-
-exports[`Comment Documents should be compiled comment correctly:【spaceInHead comment】 2`] = `
-{
-  "combined": [
-    false,
-    false,
-    false,
-    true,
-    true,
-    false,
-    false,
-    false,
-    true,
-  ],
-  "humanizeText": "",
-  "targets": [
-    "表示描述{@link TextEditor.options文本编辑器的选项}中的更改的事件。",
-  ],
-  "texts": [
-    "This is the theme of your application",
-    "",
-    "Try running your application with "flutter run". You'll see the application has a blue toolbar. Then, without quitting the app, try changing the primarySwatch below to Colors.green and then invoke",
-    "",
-    "",
-    ""hot reload" (press "r" in the console where you ran "flutter run",",
-    "or simply save your changes to "hot reload" in a Flutter IDE).",
-    "Notice that the counter didn't reset back to zero; the application is not restarted.",
-    "",
-  ],
-  "translateLink": undefined,
-  "translatedText": "表示描述{@link TextEditor.options文本编辑器的选项}中的更改的事件。",
-}
-`;
-
-exports[`Comment Documents should be compiled comment correctly:【spaceInHead comment】 3`] = `
-{
-  "combined": [
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-  ],
-  "humanizeText": "",
-  "targets": [
-    "{@link TextEditor.options文本编辑器的选项}的新值。",
-  ],
-  "texts": [
-    "/ This is the theme of your application",
-    "/",
-    "/ Try running your application with "flutter run". You'll see the",
-    "/ application has a blue toolbar. Then, without quitting the app, try",
-    "/ changing the primarySwatch below to Colors.green and then invoke",
-    "/ "hot reload" (press "r" in the console where you ran "flutter run",",
-    "/ or simply save your changes to "hot reload" in a Flutter IDE).",
-    "/ Notice that the counter didn't reset back to zero; the application",
-    "/ is not restarted.",
-  ],
-  "translateLink": undefined,
-  "translatedText": "{@link TextEditor.options文本编辑器的选项}的新值。",
-}
 `;

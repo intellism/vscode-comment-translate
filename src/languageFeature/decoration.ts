@@ -214,6 +214,7 @@ class CommentDecoration {
         return false;
     }
 
+    // Translate commentblock text and set decorative content
     async translate() {
         let { tokens, range } = this._block;
         if (!tokens || tokens.length === 0) return;
@@ -275,7 +276,7 @@ class CommentDecoration {
         this.reflash();
     }
 
-    // @ts-ignore
+    // Generate the text decoration styles
     genrateDecorationOptions(text: string) {
         if (this._inplace) {
             return {
@@ -295,6 +296,7 @@ class CommentDecoration {
         }
     }
 
+    // Get the text decoration type
     getTranslatedDecoration() {
         if (this._translatedDecoration) {
             return this._translatedDecoration;
@@ -311,6 +313,7 @@ class CommentDecoration {
         return this._translatedDecoration;
     }
 
+    // 重新渲染装饰内容
     reflash() {
         if (this._desposed) return;
         if (this._loading) {
@@ -322,8 +325,9 @@ class CommentDecoration {
             window.activeTextEditor?.setDecorations(this._loadingDecoration, []);
         }
 
-        if (this._inplace && this.editing()) {
-            this._translatedDecoration && window.activeTextEditor?.setDecorations(this._translatedDecoration, []);
+        // The current comment block is being edited, translation status is not displayed
+        if (this._inplace && this.editing() && this._translatedDecoration) {
+            window.activeTextEditor?.setDecorations(this._translatedDecoration, []);
             return;
         }
 

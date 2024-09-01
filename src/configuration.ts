@@ -1,11 +1,11 @@
 
-import { workspace, window, QuickPickItem, ThemeIcon, commands, MarkdownString,  Disposable } from 'vscode';
-import {  translateExtensionProvider } from './extension';
+import { workspace, window, QuickPickItem, ThemeIcon, commands, MarkdownString, Disposable } from 'vscode';
+import { translateExtensionProvider } from './translate/manager';
 import { LANGS } from './lang';
 
 let languages = new Map(LANGS);
 let defaultLanguage: string;
-export async function selectTargetLanguage(placeHolder: string = 'Select target language'):Promise<string> {
+export async function selectTargetLanguage(placeHolder: string = 'Select target language'): Promise<string> {
     let items: QuickPickItem[] = LANGS.map(item => {
         return {
             label: item[1],
@@ -38,7 +38,7 @@ export async function selectTargetLanguage(placeHolder: string = 'Select target 
                 tooltip: 'Change translate source.'
             }
 
-            quickPick.buttons = [changeTranslateSourceButton,button];
+            quickPick.buttons = [changeTranslateSourceButton, button];
             quickPick.onDidTriggerButton(async item => {
                 if (item === button) {
                     await commands.executeCommand('workbench.action.openWorkspaceSettings', {
@@ -100,7 +100,7 @@ export async function showTargetLanguageStatusBarItem(userLanguage: string) {
 
 
     let setLanguageText = async () => {
-        let currentLanguage = getConfig<string>('targetLanguage',userLanguage);
+        let currentLanguage = getConfig<string>('targetLanguage', userLanguage);
         let current = languages.get(currentLanguage);
         if (current) {
             targetBar.text = current;
@@ -122,35 +122,35 @@ export function getConfiguration() {
 }
 
 
-export function getConfig<T>(key: string):T | undefined;
-export function getConfig<T>(key: string, defaultValue: T):T;
-export function getConfig<T>(key: string, defaultValue?: T):T {
+export function getConfig<T>(key: string): T | undefined;
+export function getConfig<T>(key: string, defaultValue: T): T;
+export function getConfig<T>(key: string, defaultValue?: T): T {
     let configuration = getConfiguration();
-    let value:any = configuration.get<T>(key);
+    let value: any = configuration.get<T>(key);
     if (typeof value === 'undefined' || value === '') {
         value = defaultValue;
     }
     return value;
 }
 
-export function onConfigChange<T>(key:string,callback:(newValue:T)=>void, thisArgs?: any, disposables?: Disposable[]) {
-    workspace.onDidChangeConfiguration((eventNames)=>{
-        if(eventNames.affectsConfiguration(`${PREFIXCONFIG}.${key}`)) {
-            let newValue:T = getConfig(key) as T;
+export function onConfigChange<T>(key: string, callback: (newValue: T) => void, thisArgs?: any, disposables?: Disposable[]) {
+    workspace.onDidChangeConfiguration((eventNames) => {
+        if (eventNames.affectsConfiguration(`${PREFIXCONFIG}.${key}`)) {
+            let newValue: T = getConfig(key) as T;
             callback(newValue);
-        }   
-    },thisArgs, disposables);
+        }
+    }, thisArgs, disposables);
 }
 
 export async function selectTranslateSource(placeHolder: string = 'Select translate source.') {
     const allTranslaton = translateExtensionProvider.getAllTransationConfig();
     let items: QuickPickItem[] = [];
     const moreItem = {
-        label:'More...',
-        description:'Install more translate sources from Extensions Marketplace'
+        label: 'More...',
+        description: 'Install more translate sources from Extensions Marketplace'
     };
     for (let [id, conf] of allTranslaton) {
-        let {category='',title} = conf;
+        let { category = '', title } = conf;
         if (category) {
             category = category + ':';
         }
@@ -163,8 +163,8 @@ export async function selectTranslateSource(placeHolder: string = 'Select transl
     items.push(moreItem);
     let res: QuickPickItem | undefined = await window.showQuickPick(items, { placeHolder });
     if (res) {
-        if(res.description === moreItem.description) {
-            commands.executeCommand('workbench.extensions.search','@tag:translateSource');
+        if (res.description === moreItem.description) {
+            commands.executeCommand('workbench.extensions.search', '@tag:translateSource');
             return null;
         }
         return res.description;
