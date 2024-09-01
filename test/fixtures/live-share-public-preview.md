@@ -1,55 +1,87 @@
+<p align="center">
+  <img alt="vscode logo" src="images/logo-stable.png" width="100px" />
+  <h1 align="center">Visual Studio Code Documentation</h1>
+</p>
 
----
-Order: 2
-Area: getstarted
-TOCTitle: Extensions
-ContentId: 67f1421a-8e41-4f19-9275-bf5c33687813
-PageTitle:  Install Visual Studio Code extensions
-DateApproved: 10/22/2020
-MetaDescription: Install Visual Studio Code extensions
----
+You've found the Visual Studio Code documentation GitHub repository, which contains the content for the [Visual Studio Code documentation](https://code.visualstudio.com/docs).
 
+Topics submitted here will be published to the [Visual Studio Code](https://code.visualstudio.com) portal.
 
-# Visual Studio Live Share Public Preview
+If you are looking for the VS Code product GitHub repository, you can find it [here](https://github.com/microsoft/vscode).
 
-> May 7, 2018 Amanda Silver, [@amandaksilver](https://twitter.com/amandaksilver)
-> We are excited to announce the public preview of Visual Studio Live Share! At [Connect last November](https://code.visualstudio.com/blogs/2017/11/15/live-share), we showed how Live Share enables real-time collaborative editing and debugging from the comfort of your favorite tools. Since then, we’ve worked with thousands of developers worldwide, resolved hundreds of issues, and addressed top feature requests such as [adding support for Linux](https://github.com/MicrosoftDocs/live-share/issues/24). We’ve benefited greatly from all the feedback thus far, thank you! Today, we’re excited to announce that every developer using Visual Studio and Visual Studio Code can [get started with Live Share today](https://aka.ms/vsls)!
->    1. hello world
-> 2. goodbye world
+>**Note**: The vscode-docs repository uses [Git LFS](https://git-lfs.github.com/) (Large File Storage) for storing binary files such as images and `.gif`s. If you are contributing or updating images, please enable Git LFS per the instructions in the [Contributing](#cloning) section below.
 
-## Universal Collaboration
+## Index
 
-When talking with developers, the need for better collaboration tools is clear, and isn't limited to any particular programming language or app type. To empower the diverse and increasingly polyglot developer community, we’ve brought Live Share to all the languages and platforms.
+- [Index](#index)
+- [Visual Studio Code](#visual-studio-code)
+- [Feedback](#feedback)
+- [Documentation Issues](#documentation-issues)
+- [Contributing](#contributing)
+  - [Workflow](#workflow)
+  - [Cloning](#cloning)
+    - [Cloning without binary files](#cloning-without-binary-files)
+- [Publishing](#publishing)
 
-![Python-based IntelliSense](lsp.png)
+## Visual Studio Code
 
-Whether you’re building a Python web app, a Go microservice, a React Native mobile app or an Ethereum smart contract, you can use Live Share. Everything from Go to Definition, code fixes/refactorings ("lightbulbs"), build errors, and debugging sessions are shared with guests, which ensures that everyone stays productive no matter what you’re working on. Even better, all of this works without requiring guests to have any language extensions, dependencies, or SDKs installed! You can instantly invite others to work with you and allow them to share the context from your development environment.
+[VS Code](https://code.visualstudio.com/) is a lightweight source code editor and powerful development environment for building and debugging modern web, mobile, and cloud applications. It is free and available on your favorite platform - Linux, macOS, and Windows.
 
-## Shared Terminals
+If you landed here looking for other information about VS Code, head over to [our website](https://code.visualstudio.com) for additional information.
 
-Modern development commonly makes use of command-line tools to perform tasks such as build and running unit tests. Because the command line represents such a core component of the common developer workflow, it’s critical that participants within a Live Share session can use them, without requiring a separate tool. To further support your collaborative debugging sessions, and address one of our [top feature requests](https://github.com/MicrosoftDocs/live-share/issues/41), Live Share now allows hosts to share terminals with their guests.
+## Feedback
 
-![Shared terminal](shared-terminal.png)
+If you want to give documentation feedback, please use the feedback control located at the bottom of each documentation page.
 
-When you share a new terminal, it is read-only by default. This allows everyone to see the real-time results of any command you run without needing to expose access to your machine. Additionally, you can choose to make a shared terminal writable, which enables a fully collaborative experience between you and your guests which executes in your environment. This makes pair programming much easier, especially when seeking help with environment configuration.
+## Documentation Issues
 
-## Secure Sharing
+To enter documentation bugs, please create a [new GitHub issue](https://github.com/microsoft/vscode-docs/issues). Please check if there is an existing issue first.
 
-We want collaboration to become simpler and more natural for everyone so that ad-hoc interactions can occur more frequently. However, developers also need to be confident that when they share their source code, they have the necessary control and visibility into who has access, and what files they can see. To improve this balance between simplicity and security, Live Share provides two capabilities:
+If you think the issue is with the VS Code product itself, please enter issues in the VS Code product repo [here](https://github.com/microsoft/vscode/issues).
 
-1. You can require each guest to be explicitly approved by you before joining your collaboration session. This way, simply gaining access to the share URL (which is already unique for each session) isn't enough to join.
+## Contributing
 
-  ![User acceptance dialog](user-accept.png)
+To contribute new topics/information or make changes to existing documentation, please read the [Contributing Guideline](./CONTRIBUTING.md#contributing).
 
-2. You can exclude specific files from your sharing session, so guests can only view what you want them to. No surprises. By default, your .gitignore file is used to determine which files to exclude, but you can customize that behavior using a .vsls.json configuration file.
+### Workflow
 
-  ![VSLS configuration file](vsls.json.png)
+The two suggested workflows are:
 
-These enhancements represent some of our most [frequently requested](https://github.com/MicrosoftDocs/live-share/issues/52) items so you can collaborate with confidence, without adding unnecessary friction. For more information on how to share your projects securely, refer to the [Live Share documentation](https://learn.microsoft.com/visualstudio/liveshare/reference/security).
+- For small changes, use the "Edit" button on each page to edit the Markdown file directly on GitHub.
+- If you plan to make significant changes or preview the Markdown files in VS Code, [clone](#cloning) the repo to [edit and preview](https://code.visualstudio.com/docs/languages/markdown) the files directly in VS Code.
 
-## We need your feedback!
+![Markdown Preview Button](images/MDPreviewButton.png)
 
-We are excited for you to give [Visual Studio Live Share a try](https://aka.ms/vsls)! Please give us feedback how we might improve the experience for real-time collaborative development even further. If you'd like to learn more, you can refer to the Visual Studio Live Share [documentation](https://aka.ms/vsls-docs). Additionally, if you have any questions, encounter any issues, or have feature requests, please don’t hesitate to [let us know](https://github.com/microsoft/live-share).
+### Cloning
 
-Happy Collaborating!<br />
-Amanda, [@amandaksilver](https://twitter.com/amandaksilver)
+1. Install [Git LFS](https://git-lfs.github.com/).
+2. Run `git lfs install` to setup global git hooks. You only need to run this once per machine.
+3. SSH auth: `git clone git@github.com:microsoft/vscode-docs.git`<br>HTTPS auth: `git clone https://github.com/microsoft/vscode-docs.git`
+4. Now you can `git add` binary files and commit them. They'll be tracked in LFS.
+
+#### Cloning without binary files
+
+You might want to clone the repo without the 1.6GB images. Here are the steps:
+
+1. Install [Git LFS](https://git-lfs.github.com/).
+2. Run `git lfs install` to setup global git hooks. You only need to run this once per machine.
+3. Clone the repo without binary files.
+    - macOS / Linux:
+      - SSH auth: `GIT_LFS_SKIP_SMUDGE=1 git clone git@github.com:microsoft/vscode-docs.git`
+      - HTTPS auth: `GIT_LFS_SKIP_SMUDGE=1 git clone https://github.com/microsoft/vscode-docs.git`
+    - Windows:
+      - SSH auth: `$env:GIT_LFS_SKIP_SMUDGE="1"; git clone git@github.com:microsoft/vscode-docs.git`
+      - HTTPS auth: `$env:GIT_LFS_SKIP_SMUDGE="1"; git clone https://github.com/microsoft/vscode-docs.git`
+4. Now you can selectively checkout some binary files to work with. For example:
+    - `git lfs pull -I "docs/nodejs"` to only download images in `docs/nodejs`
+    - `git lfs pull -I "release-notes/images/1_4*/*"` to only download images in `release-notes/images/1_4*`
+    - `git lfs pull -I "docs,api"` to download all images in `docs` and in `api`
+    - `git lfs pull -I <PATTERN>`, as long as `<PATTERN>` is a valid [Git LFS Include and Exclude pattern](https://github.com/git-lfs/git-lfs/blob/main/docs/man/git-lfs-fetch.adoc#include-and-exclude).
+
+The history of this repo before we adopted LFS can be found at [microsoft/vscode-docs-archive](https://github.com/microsoft/vscode-docs-archive).
+
+## Publishing
+
+Steps for how to publish documentation changes can be found [here](https://github.com/microsoft/vscode-website#publishing-a-documentation-change) in the (private) repository of the VS Code website.
+
+Publishing merged pull requests is not automatic and is initiated manually after changes have been reviewed on an internal staging server. There is no specific time guarantee for when PR updates will be available on https://code.visualstudio.com but the intent is that they will usually be live within 24 hours.
