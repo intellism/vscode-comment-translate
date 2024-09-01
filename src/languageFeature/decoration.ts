@@ -1,4 +1,4 @@
-import { compileBlock } from "./compile";
+import { compileBlock } from "../syntax/compile";
 import {
     window,
     Selection,

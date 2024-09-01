@@ -14,7 +14,7 @@ import {
 import { getConfig } from "../configuration";
 import { /* client,*/ comment, outputChannel } from "../extension";
 import { ShortLive } from "../util/short-live";
-import { compileBlock } from "./compile";
+import { compileBlock } from "../syntax/compile";
 import { compileMarkdown, getMarkdownTextValue } from "../syntax/marked";
 import { ICommentBlock } from "../interface";
 

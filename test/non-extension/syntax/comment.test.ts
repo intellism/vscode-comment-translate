@@ -9,10 +9,10 @@ import { Comment } from "../../../src/syntax/Comment";
 import { Uri } from "vscode";
 import { createTextDocument } from "jest-mock-vscode";
 import { codeData } from "../../fixtures/codes";
-import { compileBlock } from "../../../src/languageFeature/compile";
+import { compileBlock } from "../../../src/syntax/compile";
 import { getConfig } from '../../../src/configuration';
 import { mockTextMateService } from '../mocks';
-import { translateManager } from "../../../src/translate/manager";
+import { autoMutualTranslate } from "../../../src/translate/manager";
 
 
 jest.mock("../../../src/translate/manager", () => {
@@ -20,7 +20,8 @@ jest.mock("../../../src/translate/manager", () => {
         translateManager: {
             translate: jest.fn(),
             link: jest.fn()
-        }
+        },
+        autoMutualTranslate: jest.fn()
     }
 });
 
@@ -69,7 +70,7 @@ describe("Comment", () => {
 
         if (blocks && blocks.length > 0) {
             let blocksTasks = blocks.map(async (block, index) => {
-                (translateManager.translate as jest.Mock).mockResolvedValueOnce(item.translated[index]);
+                (autoMutualTranslate as jest.Mock).mockResolvedValueOnce(item.translated[index]);
                 let res = await compileBlock(block, item.languageId);
                 expect(res).toMatchSnapshot();
             });

@@ -7,7 +7,6 @@ import { ICommentBlock, ICommentToken, ITranslatedText } from "../interface";
 
 
 function ignoreStringTag(tokens: ICommentToken[], regular: string) {
-    // const regular = '[\\*\\s]+';
     if (regular) {
         return tokens.map(item => {
             let { ignoreStart = 0, ignoreEnd = 0, text } = item;
@@ -33,7 +32,7 @@ function ignoreStringTag(tokens: ICommentToken[], regular: string) {
 function humanize(originText: string) {
     const needHumanize = originText.trim().indexOf(' ') < 0;
     if (needHumanize) {
-        // 转换为可以自然语言分割
+        // Converted to natural language
         return humanizeString(originText);
     }
     return '';
@@ -47,9 +46,9 @@ function combineLine(texts: string[]) {
         if (prev.length > 0) {
             let last = prev[lastIndex];
             if (isUpperCase(last) && hasEndMark(last) && isLowerCase(curr)) {
-                // 如果可以合并，合并到上一行
+                // If it can be merged, merge to the previous row
                 prev[lastIndex] = last + ' ' + curr;
-                //当前行空掉，但是保留空白占位符
+                //The current line is blank, but the blank placeholder remains
                 curr = '';
                 combined[index] = true;
             }
@@ -76,45 +75,42 @@ export async function compileBlock(block: ICommentBlock, languageId: string, tar
     let translatedText: string;
     let targets: string[] = [];
     let texts: string[] = [];
-    let combined: boolean[] = []; // 标记被合并行。 便于翻译后重新组合
+    let combined: boolean[] = []; // Marked as merged rows for easy regrouping after translation
     let humanizeText: string = '';
     const { comment: originText } = block;
     let { tokens } = block;
 
-    // targetLanguage = targetLanguage || getConfig<string>('targetLanguage', userLanguage);
     if (!tokens) {
-        // 选取翻译&单个单词翻译的时候。无tokens的简单结果
+        // No tokens means select translation or single word translation, only need to produce simple results
         humanizeText = humanize(originText);
-        // translatedText = await translateManager.translate(humanizeText || originText, { to: targetLanguage });
         translatedText = await autoMutualTranslate(humanizeText || originText, { to: targetLanguage });
     } else {
-        // 注释、文本，有tokens的语义翻译处理。
+        // Tokens represent comments, strings, and need to be structured
 
-        // 正则忽略
+        // Regular ignore partial structure content
         let regular = getIgnoreRegular(languageId) || '[\\s|/]+';
         tokens = ignoreStringTag(tokens, regular);
 
-        // 获取待翻译字符串。
+        // Get the string to be translated.
         texts = tokens.map(({ text, ignoreStart = 0, ignoreEnd = 0 }) => {
             return text.slice(ignoreStart, text.length - ignoreEnd).trim();
         });
 
-        // 开启多行合并的时候，合并有效字符串中的多行到同一行。
-
+        // When multiline merge is enabled, multiple lines in a valid string are merged into the same line.
         if (getConfig<boolean>('multiLineMerge')) {
             let res = combineLine(texts);
             combined = res.combined;
             texts = res.combinedTexts;
         }
 
-        // 过滤空白行，解决部分翻译源，多行空白会压缩问题。
+        // Filter blank lines to solve the problem of partial translation source, multi-line blank compression.
         let validTexts = texts.filter(text => {
             return text.length > 0;
         });
         let validText = validTexts.join('\n');
         let validTextLen = validText.length;
 
-        // 没有需要翻译的字符串，直接显示空字符串，跳过翻译过程。
+        // When there is no string to translate, the empty string is displayed directly, skipping the translation process.
         if (validTextLen === 0) {
             translatedText = originText;
         } else {
@@ -122,10 +118,9 @@ export async function compileBlock(block: ICommentBlock, languageId: string, tar
             if (tokens.length === 1) {
                 humanizeText = humanize(validText);
             }
-            // translatedText = await translateManager.translate(humanizeText || validText, { to: targetLanguage });
             translatedText = await autoMutualTranslate(humanizeText || validText, { to: targetLanguage });
 
-            // 重新组合翻译结果，还原被翻译时过滤的符合.  如 /* // 等
+            // Reassemble the translation results to restore the filtered matches when translated, such as/* //, etc.
             targets = translatedText.split('\n');
             if (translatedText && validTexts.length === targets.length) {
                 let translated = [];
@@ -137,7 +132,7 @@ export async function compileBlock(block: ICommentBlock, languageId: string, tar
                         targetText = targets[j];
                         j += 1;
                     }
-                    // 被合并的行跳过
+                    // Merged rows skipped
                     if (targetText === '' && combined[i]) {
                         continue;
                     }
