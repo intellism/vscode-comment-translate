@@ -1,7 +1,8 @@
 import { window } from "vscode";
 import { getConfiguration, selectTargetLanguage, selectTranslateSource } from "../configuration";
-import { outputChannel, translateExtensionProvider } from "../extension";
+import { outputChannel } from "../extension";
 import { commentDecorationManager } from "../languageFeature/decoration";
+import { translateExtensionProvider } from "../translate/manager";
 
 // 更改目标语言命令
 export async function changeTargetLanguage() {

@@ -2,7 +2,7 @@
     "name": "comment-translate",
     "displayName": "%commentTranslate.displayName%",
     "description": "%commentTranslate.description%",
-    "version": "3.0.0",
+    "version": "3.0.1",
     "publisher": "intellsmi",
     "author": {
         "name": "Zheng MaoWei",
@@ -38,6 +38,25 @@
     "icon": "icon.png",
     "main": "./dist/extension",
     "contributes": {
+        "chatParticipants": [
+			{
+				"id": "intellism.translate",
+				"fullName": "Translate",
+				"name": "translate",
+				"description": "I can help you translate into other languages.",
+				"isSticky": true,
+				"commands": [
+					{
+						"name": "word",
+						"description": "Key words explained in detail"
+					},
+                    {
+						"name": "var",
+						"description": "Translate description to variable naming"
+					}
+				]
+			}
+		],
         "commands": [
             {
                 "command": "commentTranslate.select",

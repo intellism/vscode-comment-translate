@@ -7,21 +7,18 @@
 import { ExtensionContext, extensions, env, window } from 'vscode';
 import { registerCommands } from './command/command';
 import { mouseToSelect } from './command/select';
-import { getConfig, onConfigChange, showHoverStatusBar, showTargetLanguageStatusBarItem } from './configuration';
+import { showHoverStatusBar, showTargetLanguageStatusBarItem } from './configuration';
 import { registerDefinition } from './languageFeature/definition';
 import { registerHover } from './languageFeature/hover';
 import { AliTranslate } from './plugin/translateAli';
-import { BingTranslate } from './translate/BingTranslate';
-import { GoogleTranslate } from './translate/GoogleTranslate';
-import { ITranslateConfig, ITranslateRegistry, TranslateExtensionProvider } from './translate/translateExtension';
-import { ITranslateOptions, TranslateManager } from 'comment-translate-manager';
+import { ITranslateRegistry } from 'comment-translate-manager';
 import { Comment } from './syntax/Comment';
 import { TextMateService } from './syntax/TextMateService';
 import { commentDecorationManager } from './languageFeature/decoration';
 import { extractGrammarExtensions, readResources } from './util/ext';
-import { detectLanguage } from './lang';
 import { registerCompletion } from './languageFeature/completion';
 import { initTranslate } from './translate/manager';
+import { registerChatParticipant } from './copilot/translate';
 
 export let outputChannel = window.createOutputChannel('Comment Translate');
 export let comment: Comment;
@@ -75,13 +72,14 @@ export async function activate(context: ExtensionContext) {
     registerHover(context, canLanguages);
     registerDefinition(context, canLanguages);
     registerCompletion(context, canLanguages);
+    registerChatParticipant(context);
 
     context.subscriptions.push(...commentDecorationManager.showBrowseCommentTranslate(canLanguages));
     // 注册状态图标
     let hoverBar = await showHoverStatusBar();
     let targetBar = await showTargetLanguageStatusBarItem(userLanguage);
     context.subscriptions.push(targetBar, hoverBar, outputChannel, comment);
-    mouseToSelect(context);
+    // mouseToSelect(context);
 
     // Exposing Translation Plugins
     return {
@@ -90,8 +88,6 @@ export async function activate(context: ExtensionContext) {
         }
     }
 }
-
-
 
 
 

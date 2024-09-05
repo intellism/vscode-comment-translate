@@ -7,13 +7,16 @@ import {
     Disposable,
     TextDocument,
     workspace,
+    Range,
 } from "vscode";
 import { comment, ctx } from "../extension";
 import { usePlaceholderCodeLensProvider } from "./codelen";
 import { getConfig, onConfigChange } from "../configuration";
-import { ICommentBlock } from "../interface";
+import { ICommentBlock, ICommentToken, ITranslatedText } from "../interface";
 import { debounce } from "../util/short-live";
 import { getTextLength } from "../util/string";
+import { textTranslate } from "../copilot/translate";
+import { translateManager } from "../translate/manager";
 
 class CommentDecorationManager {
     private static instance: CommentDecorationManager;
@@ -25,7 +28,7 @@ class CommentDecorationManager {
     private blockMaps: Map<string, { comment: string, commentDecoration: CommentDecoration }> = new Map();
     private currDocument: TextDocument | undefined;
     private canLanguages: string[] = [];
-    private BlackLanguage: string[] = ['markdown'];
+    private BlackLanguage: string[] = ['markdown']; // TODO markdown还未就绪，先不处理
 
     private constructor() {
         this.inplace = getConfig<string>('browse.mode', 'contrast') === 'inplace';
@@ -123,11 +126,24 @@ class CommentDecorationManager {
         let blocks: ICommentBlock[] | null = null;
 
         try {
-            blocks = await comment.getAllComment(
-                this.currDocument,
-                "comment",
-                editor.visibleRanges[0]
-            );
+            if (this.currDocument.languageId === 'markdown') {
+
+                let { start, end } = editor.visibleRanges[0];
+                for (let i = start.line; i <= end.line; i++) {
+                    let comment = this.currDocument.lineAt(i).text;
+                    if (!blocks) blocks = [];
+                    blocks.push({
+                        range: new Range(i, 0, i, comment.length),
+                        comment,
+                    });
+                }
+            } else {
+                blocks = await comment.getAllComment(
+                    this.currDocument,
+                    "comment",
+                    editor.visibleRanges[0]
+                );
+            }
         } catch (error) {
             console.error(error);
         }
@@ -147,7 +163,14 @@ class CommentDecorationManager {
                 value.commentDecoration.dispose();
                 this.blockMaps.delete(key);
             }
-            let commentDecoration = new CommentDecoration(block, this.currDocument!, this.inplace);
+            let commentDecoration: CommentDecoration;
+
+            if (this.currDocument!.languageId === 'markdown') {
+                commentDecoration = new MarkdownDecoration(block, this.currDocument!, this.inplace);
+            } else {
+                commentDecoration = new CommentDecoration(block, this.currDocument!, this.inplace)
+            }
+
             newBlockMaps.set(key, { comment: block.comment, commentDecoration });
             return commentDecoration;
         });
@@ -191,7 +214,7 @@ class CommentDecoration {
     private _translatedDecoration: TextEditorDecorationType | undefined;
     private _contentDecorations: DecorationOptions[] = [];
 
-    constructor(private _block: ICommentBlock, private _currDocument: TextDocument, private _inplace: boolean = false) {
+    constructor(protected _block: ICommentBlock, private _currDocument: TextDocument, private _inplace: boolean = false) {
         this._loadingDecoration = window.createTextEditorDecorationType({
             after: {
                 contentIconPath: ctx.asAbsolutePath("resources/icons/loading.svg"),
@@ -214,12 +237,19 @@ class CommentDecoration {
         return false;
     }
 
+    protected async _compile(): Promise<ITranslatedText | null> {
+        let { tokens } = this._block;
+        if (!tokens || tokens.length === 0) return null;
+        return compileBlock(this._block, this._currDocument.languageId);
+    }
+
     // Translate commentblock text and set decorative content
     async translate() {
+        let result = await this._compile();
         let { tokens, range } = this._block;
-        if (!tokens || tokens.length === 0) return;
+        if (!result) return;
+        if (!tokens || tokens.length === 0) return null;
 
-        let result = await compileBlock(this._block, this._currDocument.languageId);
         this._loading = false;
         let { targets, texts, combined } = result;
 
@@ -347,6 +377,53 @@ class CommentDecoration {
         this._desposed = true;
         this._loadingDecoration.dispose();
         this._translatedDecoration?.dispose();
+    }
+}
+
+
+class MarkdownDecoration extends CommentDecoration {
+    constructor(block: ICommentBlock, currDocument: TextDocument, inplace: boolean = false) {
+        super(block, currDocument, inplace);
+    }
+
+    private _getSameCount(str1: string, str2: string) {
+        let len = 0;
+        for (let i = 0; i < str1.length && i < str2.length; i++) {
+            if (str1[i] === str2[i]) {
+                len++;
+            } else {
+                break;
+            }
+        }
+        return len;
+    }
+
+    protected async _compile(): Promise<ITranslatedText | null> {
+
+        let result: ITranslatedText;
+
+        let block = this._block;
+        let translatedText = await textTranslate(block.comment, translateManager.opts.to || 'en') || '';
+
+        // 两个字符串，判断他们头部相同字符个数
+        let len = this._getSameCount(block.comment, translatedText);
+        let token: ICommentToken = {
+            text: block.comment.substring(len),
+            ignoreStart: len,
+            ignoreEnd: 0,
+        }
+
+        block.tokens = [token];
+
+        result = {
+            translatedText,
+            targets: [translatedText.substring(len)],
+            texts: [token.text],
+            combined: [],
+            translateLink: ''
+        }
+
+        return result;
     }
 }
 

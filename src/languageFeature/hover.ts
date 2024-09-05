@@ -42,7 +42,7 @@ async function commentProvideHover(
     if (!block) {
         if (document.languageId === "markdown") {
             if (document.languageId !== "markdown") return null;
-            let { translatedText, hasTranslated, range: MarkdwonRange } = await compileMarkdown(document, position);
+            let { translatedText, range: MarkdwonRange } = await compileMarkdown(document, position);
             res = createHoverMarkdownString(
                 translatedText,
                 '',
@@ -217,16 +217,6 @@ async function diagnosticsProvideHover(
     }
 
     return null;
-}
-
-async function markdownProvideHover(
-    document: TextDocument,
-    position: Position
-): Promise<Hover | null> {
-    if (document.languageId !== "markdown") return null;
-
-    let res = await compileMarkdown(document, position);
-    return new Hover(res.translatedText, res.range);
 }
 
 function getHoverId(document: TextDocument, position: Position) {

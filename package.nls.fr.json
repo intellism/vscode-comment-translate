@@ -18,5 +18,9 @@
     "commentTranslate.configuration.stringHover": "Chaîne de traduction survolée",
     "commentTranslate.configuration.variableHover": "Variable de translation Hover",
     "commentTranslate.configuration.selectTargetLanguageWhenReplacing": "Sélectionnez TargetLanguage lors du remplacement",
-    "commentTranslate.configuration.MultilineMerge": "Commentaire Fusion multiligne"
+    "commentTranslate.configuration.MultilineMerge": "Commentaire Fusion multiligne",
+    "commentTranslate.command.toggleBrowseMode": "Basculer le mode de navigation des commentaires",
+    "commentTranslate.command.toggleTempBrowseMode": "Basculer le mode de navigation des commentaires pour le document actuel",
+    "commentTranslate.configuration.browseEnabled": "Activer la traduction de navigation des commentaires",
+    "commentTranslate.configuration.browseMode": "Mode de navigation des commentaires"
 }

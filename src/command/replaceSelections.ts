@@ -160,6 +160,7 @@ async function replaceVariable(position: Position) {
 
     addVariableCompletion(editor.document, position, translatedText, range, text, codeType);
     commands.executeCommand('editor.action.triggerSuggest');
+    // commands.executeCommand('workbench.action.chat.open', { query: '@translate /var' + text });
 }
 
 //翻译选择区域并替换

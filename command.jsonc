@@ -1,0 +1,28 @@
+{
+
+
+    // 配置
+
+    "commentTranslate.command.changeTargetLanguage": "更改翻译目标语言",
+    "commentTranslate.command.changeTranslateSource": "更改翻译源",
+    "commentTranslate.command.toggleBrowseMode": "切换注释浏览模式",
+    "commentTranslate.command.toggleTempBrowseMode": "切换当前文档的注释浏览模式",
+
+
+    // 翻译
+    "commentTranslate.command.clipboard": "翻译剪贴板",// delete
+    "commentTranslate.command.translateAllText": "翻译文件中的所有字符串",
+    "commentTranslate.command.translateAllComment": "翻译文件中的所有注释",
+    "commentTranslate.command.replaceSelections": "翻译并替换选区", // 剪贴板翻译合并
+    "commentTranslate.command.replaceSelections1": "变量命名翻译",
+
+
+    // 选择
+    "commentTranslate.command.select": "快速选择最后一个翻译区域",
+    "commentTranslate.command.selectAllText": "快速选择文件中的所有字符串",
+    "commentTranslate.command.selectAllComment": "快速选择文件中的所有注释"
+
+
+
+
+}

@@ -18,5 +18,9 @@
     "commentTranslate.configuration.stringHover": "翻訳文字列",
     "commentTranslate.configuration.variableHover": "翻訳変数",
     "commentTranslate.configuration.selectTargetLanguageWhenReplacing": "置換時にターゲット言語を選択",
-    "commentTranslate.configuration.MultilineMerge": "コメント複数行マージ"
+    "commentTranslate.configuration.MultilineMerge": "コメント複数行マージ",
+    "commentTranslate.command.toggleBrowseMode": "コメント閲覧モードを切り替える",
+    "commentTranslate.command.toggleTempBrowseMode": "現在のドキュメントのコメント閲覧モードを切り替える",
+    "commentTranslate.configuration.browseEnabled": "コメント閲覧翻訳を有効にする",
+    "commentTranslate.configuration.browseMode": "コメント閲覧モード"
 }

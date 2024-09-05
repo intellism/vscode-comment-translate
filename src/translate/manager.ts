@@ -5,6 +5,7 @@ import { ITranslateConfig, TranslateExtensionProvider } from "./translateExtensi
 import { GoogleTranslate } from "./GoogleTranslate";
 import { BingTranslate } from "./BingTranslate";
 import { detectLanguage } from "../lang";
+import { CopilotTranslate } from "./CopilotTranslate";
 
 
 export let translateManager: TranslateManager;
@@ -34,6 +35,11 @@ export function initTranslate(context: ExtensionContext, userLanguage: string) {
         title: 'Bing translate',
         ctor: BingTranslate,
         translate: 'Bing'
+    },
+    {
+        title: 'Github Copilot translate',
+        ctor: CopilotTranslate,
+        translate: 'Copilot'
     }];
     translateExtensionProvider = new TranslateExtensionProvider(translateManager, buildInTranslate);
     translateExtensionProvider.init(getConfig<string>('source', ''));
