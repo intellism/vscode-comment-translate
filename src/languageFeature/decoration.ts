@@ -267,7 +267,8 @@ class CommentDecoration {
 
             let combinedIndex = i;
 
-            if (this._inplace && targetText) {
+            // TODO 翻译错误的时候，不需要显示装饰
+            if (this._inplace) {
                 this._contentDecorations.push({
                     range: new Selection(
                         range.start.line + combinedIndex,
