@@ -12,11 +12,12 @@ import {
     window,
 } from "vscode";
 import { getConfig } from "../configuration";
-import { /* client,*/ comment, outputChannel } from "../extension";
+import { /* client,*/  outputChannel } from "../extension";
 import { ShortLive } from "../util/short-live";
 import { compileBlock } from "../syntax/compile";
 import { compileMarkdown, getMarkdownTextValue } from "../syntax/marked";
 import { ICommentBlock } from "../interface";
+import { createComment } from "../syntax/Comment";
 
 export let shortLive = new ShortLive<string>((prev, curr) => prev === curr);
 let last: Map<string, Range> = new Map();
@@ -26,7 +27,8 @@ let working: Set<String> = new Set();
 async function commentProvideHover(
     document: TextDocument,
     position: Position,
-    _token: CancellationToken
+    _token: CancellationToken,
+    canLanguages: string[],
 ): Promise<Hover | null> {
     const uri = document.uri.toString();
 
@@ -52,8 +54,9 @@ async function commentProvideHover(
                 ''
             );
             range = MarkdwonRange;
-        } else {
+        } else if (canLanguages.includes(document.languageId)) {
             try {
+                let comment = await createComment();
                 block = await comment.getComment(document, position);
             } catch (e) {
                 //@ts-ignore
@@ -101,8 +104,13 @@ async function commentProvideHover(
 async function translateTypeLanguageProvideHover(
     document: TextDocument,
     position: Position,
-    _token: CancellationToken
+    _token: CancellationToken,
+    canLanguages: string[]
 ): Promise<Hover | null> {
+
+    // Return null if the current document does not support type language
+    if (canLanguages.indexOf(document.languageId) < 0) return null;
+
     // translateTypeLanguage的开关，默认开启
     const typeLanguae = getConfig<boolean>("hover.content");
     if (!typeLanguae) return null;
@@ -228,7 +236,7 @@ export function registerHover(
     canLanguages: string[] = []
 ) {
     let hoverProviderDisposable = languages.registerHoverProvider(
-        canLanguages,
+        '*',
         {
             async provideHover(document, position, token) {
                 // hover开关配置，对typelanguage生效
@@ -246,9 +254,10 @@ export function registerHover(
                         translateTypeLanguageProvideHover(
                             document,
                             position,
-                            token
+                            token,
+                            canLanguages,
                         ),
-                        commentProvideHover(document, position, token),
+                        commentProvideHover(document, position, token, canLanguages),
                         diagnosticsProvideHover(document, position),
                     ]);
                 return mergeHovers(

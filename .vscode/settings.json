@@ -27,7 +27,7 @@
     "commentTranslate.multiLineMerge": true,
     "commentTranslate.targetLanguage": "zh-CN",
     "commentTranslate.hover.string": false,
-    "commentTranslate.hover.enabled": false,
+    "commentTranslate.hover.enabled": true,
     "commentTranslate.source": "naomi233.comment-translate-transmart-transmart",
     "commentTranslate.browse.mode": "inplace",
     "prettier.singleQuote": true,

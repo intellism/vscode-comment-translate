@@ -1,16 +1,18 @@
-import { Disposable, Position, Range, TextDocument,workspace } from "vscode";
+import { Disposable, ExtensionContext, Position, Range, TextDocument, workspace } from "vscode";
 import { CommentParse } from "./CommentParse";
 import { TextMateService } from "./TextMateService";
 import { ICommentBlock } from "../interface";
+import { getGrammerExtensions } from "../util/ext";
+import { ctx } from "../extension";
 
 export class Comment implements Disposable {
 
     private _disposable: Disposable;
     private _commentParseCache: Map<string, CommentParse> = new Map();
-    constructor(private _textMateService:TextMateService) {
+    constructor(private _textMateService: TextMateService) {
         // Close document or content changes, remove cache
         this._disposable = Disposable.from(
-            workspace.onDidChangeTextDocument(e=>this._removeCommentParse(e.document))
+            workspace.onDidChangeTextDocument(e => this._removeCommentParse(e.document))
         );
     }
 
@@ -35,7 +37,7 @@ export class Comment implements Disposable {
         if (grammar == null)
             return null;
         const parse = new CommentParse(textDocument, grammar);
-        parse.maxLineLength = workspace.getConfiguration('editor').get('maxTokenizationLineLength',20000) as number;
+        parse.maxLineLength = workspace.getConfiguration('editor').get('maxTokenizationLineLength', 20000) as number;
         this._commentParseCache.set(key, parse);
         return parse;
     }
@@ -45,16 +47,28 @@ export class Comment implements Disposable {
         if (!parse) return null;
         return parse.computeText(position);
     }
-    
-    async getAllComment(textDocument:TextDocument, type = 'comment', range?:Range):Promise<ICommentBlock[] | null> {
+
+    async getAllComment(textDocument: TextDocument, type = 'comment', range?: Range): Promise<ICommentBlock[] | null> {
         const parse = await this._getCommentParse(textDocument);
         if (!parse) return null;
         return parse.computeAllText(type, range);
     }
 
-    async getWordAtPosition(textDocument: TextDocument, position: Position){
+    async getWordAtPosition(textDocument: TextDocument, position: Position) {
         const parse = await this._getCommentParse(textDocument);
         if (!parse) return null;
         return parse.getWordAtPosition(position);
     }
+
+}
+
+let comment: Comment;
+export async function createComment() {
+    if (comment) return comment;
+    let grammarExtensions = await getGrammerExtensions();
+    const textMate = new TextMateService(grammarExtensions);
+    comment = new Comment(textMate);
+
+    ctx.subscriptions.push(comment);
+    return comment;
 }

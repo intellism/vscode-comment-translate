@@ -62,41 +62,46 @@ export function getVariableCompletionDatas(doc: TextDocument, position: Position
     if (variableCompletionMap.has(key)) {
         let { value, range, filterText, codeType } = variableCompletionMap.get(key)!;
         let r = new Range(range.start.line, range.start.character, range.end.line, range.end.character + 1);
+        let list = [
+            {
+                title: 'camelCase',
+                value: changeCase.camelCase(value),
+            },
+            {
+                title: 'pascalCase',
+                value: changeCase.pascalCase(value),
+            },
+            {
+                title: 'constantCase',
+                value: changeCase.constantCase(value),
+            },
+            {
+                title: 'snakeCase',
+                value: changeCase.snakeCase(value),
+            }, {
+                title: 'pascalSnakeCase',
+                value: changeCase.pascalSnakeCase(value),
+            },
+            {
+                title: 'kebabCase',
+                value: changeCase.kebabCase(value),
+            },
+            {
+                title: 'trainCase',
+                value: changeCase.trainCase(value),
+            },
+        ];
+        list = Array.from(
+            new Map(list.map(item => [item.value, item])).values()
+        );
+
         return {
             caseGuide,
             value,
             codeType,
             filterText,
             range: r,
-            list: [
-                {
-                    title: 'camelCase',
-                    value: changeCase.camelCase(value),
-                },
-                {
-                    title: 'pascalCase',
-                    value: changeCase.pascalCase(value),
-                },
-                {
-                    title: 'constantCase',
-                    value: changeCase.constantCase(value),
-                },
-                {
-                    title: 'snakeCase',
-                    value: changeCase.snakeCase(value),
-                }, {
-                    title: 'pascalSnakeCase',
-                    value: changeCase.pascalSnakeCase(value),
-                },
-                {
-                    title: 'kebabCase',
-                    value: changeCase.kebabCase(value),
-                },
-                {
-                    title: 'trainCase',
-                    value: changeCase.trainCase(value),
-                },
-            ]
+            list,
         };
     }
     return null;
@@ -111,6 +116,7 @@ export function removeVariableCompletion(doc: TextDocument, position: Position) 
     let key = doc.uri.toString() + ':' + position.line + ':' + position.character;
     variableCompletionMap.delete(key);
 }
+
 
 
 // function convertSentenceToVariable(sentence: string): string {
@@ -160,7 +166,15 @@ async function replaceVariable(position: Position) {
 
     addVariableCompletion(editor.document, position, translatedText, range, text, codeType);
     commands.executeCommand('editor.action.triggerSuggest');
-    // commands.executeCommand('workbench.action.chat.open', { query: '@translate /var' + text });
+}
+
+export async function nameVariableCommand() {
+
+    let editor = window.activeTextEditor;
+    if (!editor || !editor.document || !editor.selections || editor.selections.length === 0) {
+        return outputChannel.append(`No editor and document!\n`);
+    }
+    return replaceVariable(editor.selection.end);
 }
 
 //翻译选择区域并替换
@@ -170,9 +184,9 @@ export async function replaceSelections() {
     if (!editor || !editor.document || !editor.selections || editor.selections.length === 0) {
         return outputChannel.append(`No editor and document!\n`);
     }
-    if (editor.selection.isEmpty) {
-        return replaceVariable(editor.selection.start);
-    }
+    // if (editor.selection.isEmpty) {
+    //     return replaceVariable(editor.selection.start);
+    // }
 
     const validSelections = editor.selections
         .filter(selection => !selection.isEmpty);

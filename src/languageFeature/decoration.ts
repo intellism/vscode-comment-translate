@@ -9,7 +9,7 @@ import {
     workspace,
     Range,
 } from "vscode";
-import { comment, ctx } from "../extension";
+import { ctx } from "../extension";
 import { usePlaceholderCodeLensProvider } from "./codelen";
 import { getConfig, onConfigChange } from "../configuration";
 import { ICommentBlock, ICommentToken, ITranslatedText } from "../interface";
@@ -17,6 +17,7 @@ import { debounce } from "../util/short-live";
 import { getTextLength } from "../util/string";
 import { textTranslate } from "../copilot/translate";
 import { translateManager } from "../translate/manager";
+import { createComment } from "../syntax/Comment";
 
 class CommentDecorationManager {
     private static instance: CommentDecorationManager;
@@ -97,7 +98,7 @@ class CommentDecorationManager {
                     clearTimeout(timer);
                     timer = setTimeout(() => {
                         this.showBrowseCommentTranslateImpl(false);
-                    }, 300);
+                    }, 80);
                 }
             },
             null,
@@ -138,6 +139,8 @@ class CommentDecorationManager {
                     });
                 }
             } else {
+
+                let comment = await createComment();
                 blocks = await comment.getAllComment(
                     this.currDocument,
                     "comment",
@@ -228,11 +231,11 @@ class CommentDecoration {
         return this._block;
     }
 
-    editing() {
+    editing(): boolean {
         let range = this._block.range;
         let selection = window.activeTextEditor?.selection;
         if (selection) {
-            return range.contains(selection);
+            return range.intersection(selection) ? true : false;
         }
         return false;
     }
@@ -264,7 +267,7 @@ class CommentDecoration {
 
             let combinedIndex = i;
 
-            if (this._inplace) {
+            if (this._inplace && targetText) {
                 this._contentDecorations.push({
                     range: new Selection(
                         range.start.line + combinedIndex,
@@ -355,9 +358,10 @@ class CommentDecoration {
             window.activeTextEditor?.setDecorations(this._loadingDecoration, []);
         }
 
+        let translatedDecoration = this.getTranslatedDecoration();
         // The current comment block is being edited, translation status is not displayed
-        if (this._inplace && this.editing() && this._translatedDecoration) {
-            window.activeTextEditor?.setDecorations(this._translatedDecoration, []);
+        if (this._inplace && this.editing()) {
+            window.activeTextEditor?.setDecorations(translatedDecoration, []);
             return;
         }
 
@@ -366,11 +370,7 @@ class CommentDecoration {
             let lines = this._contentDecorations.map((decoration) => decoration.range.start.line);
             append(window.activeTextEditor?.document!, lines);
         }
-
-        if (this._contentDecorations.length) {
-            let translatedDecoration = this.getTranslatedDecoration();
-            window.activeTextEditor?.setDecorations(translatedDecoration, this._contentDecorations);
-        }
+        window.activeTextEditor?.setDecorations(translatedDecoration, this._contentDecorations);
     }
 
     dispose() {

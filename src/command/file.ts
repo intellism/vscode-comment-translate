@@ -1,4 +1,4 @@
-import { ProgressLocation, Selection, window } from "vscode";
+import { commands, env, ProgressLocation, Selection, window } from "vscode";
 import { getConfig, selectTargetLanguage } from "../configuration";
 import { comment, ctx, outputChannel } from "../extension";
 // import { client } from "../extension";
@@ -115,4 +115,36 @@ export async function translateAllForType(type = 'comment') {
             }
 
         })
+}
+
+
+let BlackLanguages = ['markdown', 'log'];
+
+function wrapMarkdown(text: string, languageId: string) {
+    if (BlackLanguages.includes(languageId)) {
+        return text;
+    }
+    return `\`\`\`${languageId}
+${text}
+\`\`\``;
+}
+
+/**
+ * Quickly translate selection or clipboard text for display on Github Copilot Chat
+ */
+export async function quickTranslationCommand() {
+
+    let text: string;
+    let editor = window.activeTextEditor;
+
+    if (editor?.selection?.isEmpty === false && editor.document) {
+        text = wrapMarkdown(editor.document.getText(editor.selection), editor.document.languageId);
+    } else {
+        text = await env.clipboard.readText();
+    }
+
+    commands.executeCommand('workbench.action.chat.open', {
+        query: '@translate ' + text
+    });
+
 }

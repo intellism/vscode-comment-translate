@@ -64,6 +64,16 @@
                 "category": "Comment Translate"
             },
             {
+                "command": "commentTranslate.quickTranslation",
+                "title": "Quickly translate selection or clipboard text for display on Github Copilot Chat",
+                "category": "Comment Translate"
+            },
+            {
+                "command": "commentTranslate.nameVariable",
+                "title": "Variable naming from translated descriptions",
+                "category": "Comment Translate"
+            },
+            {
                 "command": "commentTranslate.selectAllText",
                 "title": "%commentTranslate.command.selectAllText%",
                 "category": "Comment Translate"

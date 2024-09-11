@@ -27,7 +27,21 @@ class DefaultTranslateStrategy implements TranslateStrategy {
 
         let targetLanguage = getConfig('targetLanguage', 'en');
 
-        let { systemPrompt, userPrompt } = getTranslatePrompt(targetLanguage, request.prompt);
+        let text = request.prompt;
+        let terminalSelectionText: string = '';
+        request.references.forEach(ref => {
+            if (ref.id === 'copilot.terminalSelection') {
+                terminalSelectionText = ref?.value as string || '';
+                terminalSelectionText = terminalSelectionText.replace('The active terminal\'s selection:', '');
+                terminalSelectionText = `The active terminal\'s selection:\n\`\`\`\n${terminalSelectionText}\n\`\`\``;
+            }
+        });
+
+        if (terminalSelectionText) {
+            text = text.replace('#terminalSelection', terminalSelectionText);
+        }
+
+        let { systemPrompt, userPrompt } = getTranslatePrompt(targetLanguage, text);
         // 发送请求，翻译到目标语言
         const messages = [
             LanguageModelChatMessage.User(systemPrompt, 'system'),

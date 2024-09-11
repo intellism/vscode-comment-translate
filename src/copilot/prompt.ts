@@ -12,7 +12,8 @@ ${text}`;
 export function getTranslatePrompt(to: string, text: string) {
     let systemPrompt = `You are a professional translation engine in the IT field, do not translate noun phrases and programming domain terms, only return the translation result.`;
     let userPrompt = `Please translate the following text to ${to}. If the text is already ${to}, translate to english.
-${text}`;
+${text}
+`;
 
     return { systemPrompt, userPrompt };
 }
@@ -123,10 +124,7 @@ export function getWordPrompt(to: string, text: string) {
 export function getVarPrompt(text: string) {
     let systemPrompt = `你是一个变量命名高手,通过用户输入,输出各种场景下相关变量命名。包括各种命名风格与用途`;
 
-    let userPrompt = `
-    翻译一下内容到en,生成对应的编程变量命名
-
-    ${text}`;
+    let userPrompt = `给我10到20个描述为 “${text}” 的变量名,通过注释说明变量语义或命名原因`;
 
     return { systemPrompt, userPrompt };
 }
