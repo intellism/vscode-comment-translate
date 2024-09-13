@@ -11,8 +11,7 @@
     "commentTranslate.command.changeTranslateSource": "Change translate source",
     "commentTranslate.command.replaceSelections": "Translate and replace selections",
     "commentTranslate.command.toggleBrowseMode":"Toggle comment browse mode",
-    "commentTranslate.command.toggleTempBrowseMode":"Toggle comment browsing mode for the current document",
-
+    "commentTranslate.command.toggleDocumentBrowseMode":"Toggle comment browsing mode for the current document",
 
     "commentTranslate.configuration.concise": "Concise mode.If on, only pressing Ctrl or Command will trigger floating translation",
     "commentTranslate.configuration.contentHover": "Translate Hover Content",

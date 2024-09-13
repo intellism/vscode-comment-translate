@@ -12,17 +12,19 @@ export function registerCommands(context: ExtensionContext) {
         commands.registerCommand('commentTranslate.translateAllText', translateAllText),
         commands.registerCommand('commentTranslate.selectAllComment', selectAllComment),
         commands.registerCommand('commentTranslate.translateAllComment', translateAllComment),
-        commands.registerCommand('commentTranslate.clipboard', clipboard),
+        commands.registerCommand('commentTranslate.clipboard', clipboard), // delete
         commands.registerCommand('commentTranslate._replaceRange', replaceRange),
-        commands.registerCommand('commentTranslate.replaceSelections', replaceSelections),
+        commands.registerCommand('commentTranslate.replaceSelections', replaceSelections), // add context
         commands.registerCommand('commentTranslate._toggleMultiLineMerge', toggleMultiLineMerge),
         commands.registerCommand('commentTranslate.changeTranslateSource', changeTranslateSource),
         commands.registerCommand('commentTranslate._openOutputPannel', openOutputPannel),
         commands.registerCommand('commentTranslate.toggleEnableHover', toggleEnableHover),
-        commands.registerCommand('commentTranslate.toggleBrowseMode', toggleBrowseMode),
-        commands.registerCommand('commentTranslate.toggleTempBrowseMode', toggleTempBrowseMode),
+        commands.registerCommand('commentTranslate.toggleBrowseMode', toggleBrowseMode), // add keyboard
+        commands.registerCommand('commentTranslate.toggleDocumentBrowseMode', toggleTempBrowseMode), // add keyboard & add context
+        commands.registerCommand('commentTranslate.openDocumentBrowseMode', toggleTempBrowseMode), // add keyboard & add context
+        commands.registerCommand('commentTranslate.closeDocumentBrowseMode', toggleTempBrowseMode), // add keyboard & add context
         commands.registerCommand('commentTranslate.changeTargetLanguage', changeTargetLanguage),
-        commands.registerCommand('commentTranslate.quickTranslation', quickTranslationCommand),
-        commands.registerCommand('commentTranslate.nameVariable', nameVariableCommand),
+        commands.registerCommand('commentTranslate.quickTranslation', quickTranslationCommand), // add context
+        commands.registerCommand('commentTranslate.nameVariable', nameVariableCommand), // add keyboard
     );
 }

@@ -4,18 +4,17 @@
  * ------------------------------------------------------------------------------------------ */
 'use strict';
 
-import { ExtensionContext, extensions, env, window } from 'vscode';
+import { ExtensionContext, window } from 'vscode';
 import { registerCommands } from './command/command';
-import { mouseToSelect } from './command/select';
+// import { mouseToSelect } from './command/select';
 import { showHoverStatusBar, showTargetLanguageStatusBarItem } from './configuration';
 import { registerDefinition } from './languageFeature/definition';
 import { registerHover } from './languageFeature/hover';
 import { AliTranslate } from './plugin/translateAli';
 import { ITranslateRegistry } from 'comment-translate-manager';
-import { Comment, createComment } from './syntax/Comment';
-import { TextMateService } from './syntax/TextMateService';
+import { createComment } from './syntax/Comment';
 import { commentDecorationManager } from './languageFeature/decoration';
-import { extractGrammarExtensions, getCanLanguageIds, getGrammerExtensions, readResources } from './util/ext';
+import { getCanLanguageIds } from './util/ext';
 import { registerCompletion } from './languageFeature/completion';
 import { getUserLanguage, initTranslate } from './translate/manager';
 import { registerChatParticipant } from './copilot/translate';

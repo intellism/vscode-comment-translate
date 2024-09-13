@@ -1,8 +1,9 @@
 import { commands, env, ProgressLocation, Selection, window } from "vscode";
 import { getConfig, selectTargetLanguage } from "../configuration";
-import { comment, ctx, outputChannel } from "../extension";
+import { ctx, outputChannel } from "../extension";
 // import { client } from "../extension";
 import { compileBlock } from "../syntax/compile";
+import { createComment } from "../syntax/Comment";
 
 
 export async function selectAllForType(type = 'comment') {
@@ -12,7 +13,7 @@ export async function selectAllForType(type = 'comment') {
         //     start: editor.selections[0].start,
         //     end: editor.selections[0].end
         // }});
-
+        let comment = await createComment();
         let blocks = await comment.getAllComment(editor.document, type, editor.selections[0]);
 
         if (!blocks || blocks.length === 0) return;
@@ -55,6 +56,7 @@ export async function translateAllForType(type = 'comment') {
             // }});
 
             progress.report({ message: 'Parsing' });
+            let comment = await createComment();
             let blocks = await comment.getAllComment(editor.document, type, editor.selections[0]);
 
 

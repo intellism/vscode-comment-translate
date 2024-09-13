@@ -1,10 +1,11 @@
 import { Selection, window, Range, Position, TextDocument, commands } from "vscode";
 import { getConfig, selectTargetLanguage } from "../configuration";
-import { comment, ctx, outputChannel } from "../extension";
+import { ctx, outputChannel } from "../extension";
 import * as changeCase from "change-case";
 import humanizeString = require("humanize-string");
 import { franc } from 'franc'
 import { translateManager } from "../translate/manager";
+import { createComment } from "../syntax/Comment";
 
 async function translateSelection(text: string, selection: Selection, targetLanguage: string) {
     // let translation = await client.sendRequest<string>('translate', { text, targetLanguage });
@@ -139,6 +140,7 @@ export function removeVariableCompletion(doc: TextDocument, position: Position) 
 async function replaceVariable(position: Position) {
     let editor = window.activeTextEditor;
     if (!editor || !editor.document) return;
+    let comment = await createComment();
     let word = await comment.getWordAtPosition(editor.document, new Position(position.line, Math.max(0, position.character - 1)));
     if (!word || !word.comment.trim()) return;
     let { range, comment: text, scopes } = word;

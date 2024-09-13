@@ -1,4 +1,4 @@
-import { Disposable, ExtensionContext, Position, Range, TextDocument, workspace } from "vscode";
+import { Disposable, Position, Range, TextDocument, workspace } from "vscode";
 import { CommentParse } from "./CommentParse";
 import { TextMateService } from "./TextMateService";
 import { ICommentBlock } from "../interface";

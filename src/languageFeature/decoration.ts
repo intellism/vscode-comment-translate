@@ -8,6 +8,7 @@ import {
     TextDocument,
     workspace,
     Range,
+    commands,
 } from "vscode";
 import { ctx } from "../extension";
 import { usePlaceholderCodeLensProvider } from "./codelen";
@@ -60,7 +61,7 @@ class CommentDecorationManager {
         let docTemporarilyToggled = uri && this.tempSet.has(uri);
         let docBrowseEnabled = docTemporarilyToggled ? !this.browseEnable : this.browseEnable;
         let ultimatelyBrowseEnable = docBrowseEnabled && this.hoverEnable;
-
+        commands.executeCommand('setContext', 'commentTranslate.ultimatelyBrowseEnable', ultimatelyBrowseEnable);
         return ultimatelyBrowseEnable;
     }
 
@@ -83,6 +84,7 @@ class CommentDecorationManager {
 
         onConfigChange('browse.enabled', (value: boolean) => {
             this.browseEnable = value;
+            this.tempSet.clear();
             this.resetCommentDecoration();
         }, null, this.disposables);
 
@@ -254,7 +256,7 @@ class CommentDecoration {
         if (!tokens || tokens.length === 0) return null;
 
         this._loading = false;
-        let { targets, texts, combined } = result;
+        let { targets, texts, combined, translatedText } = result;
 
         let targetIndex = 0;
         let tokensLength = tokens.length || 0;
@@ -267,8 +269,8 @@ class CommentDecoration {
 
             let combinedIndex = i;
 
-            // TODO 翻译错误的时候，不需要显示装饰
-            if (this._inplace) {
+            // No need to display decoration when translation is wrong
+            if (this._inplace && translatedText) {
                 this._contentDecorations.push({
                     range: new Selection(
                         range.start.line + combinedIndex,

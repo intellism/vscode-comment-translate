@@ -1,6 +1,6 @@
 import { promises as fsPromises } from "fs";
 import { IGrammarExtensions, ITMLanguageExtensionPoint } from "../syntax/TextMateService";
-import { env, ExtensionContext, extensions } from "vscode";
+import { commands, env, extensions } from "vscode";
 import { ctx } from "../extension";
 
 export async function readResources(extensionPath: string) {
@@ -61,7 +61,9 @@ export async function getCanLanguageIds() {
     }), canLanguages);
 
 
-    let BlackLanguage: string[] = ['log', 'Log', 'code-runner-output'];
+    let BlackLanguage: string[] = ['log', 'Log', 'code-runner-output', 'markdown'];
     canLanguages = canLanguages.filter((v) => BlackLanguage.indexOf(v) < 0);
+
+    commands.executeCommand('setContext', 'commentTranslate.canLanguages', canLanguages);
     return canLanguages;
 }
