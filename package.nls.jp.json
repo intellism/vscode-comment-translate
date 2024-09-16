@@ -11,7 +11,7 @@
     "commentTranslate.command.changeTranslateSource": "ソースを変える",
     "commentTranslate.command.replaceSelections": "選択の翻訳と置換",
     "commentTranslate.command.toggleBrowseMode": "コメント閲覧モードを切り替える",
-    "commentTranslate.command.toggleTempBrowseMode": "現在のドキュメントのコメント閲覧モードを切り替える",
+    "commentTranslate.command.toggleDocumentBrowseMode": "現在のドキュメントのコメント閲覧モードを切り替える",
     "commentTranslate.command.translateForCopilotChat": "選択したテキストを翻訳してGitHub Copilot Chatに表示",
     "commentTranslate.command.nameVariable": "翻訳された説明から変数名を付ける",
     "commentTranslate.configuration.concise": "簡潔なモード.オンにするとctrlまたはcommandを押すだけで懸濁翻訳がトリガーされます",

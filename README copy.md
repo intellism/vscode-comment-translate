@@ -20,10 +20,11 @@
 
 
 ## 有用的命令
-- 沉浸式：开启/关闭当前文档  cmd + t
-- 沉浸式：切换 对照/占位 阅读方式 cmd + b
-- 变量提醒： cmd+v
-- 快捷翻译（选中内容、剪贴板）inchat: cmd + t
+- 沉浸式：开启/关闭当前文档  ctrl+shift+z
+- 沉浸式：切换 对照/占位 阅读方式 ctrl+shift+b
+- 变量提醒： ctrl+shift+n
+- 快捷翻译（选中内容、剪贴板）inchat: ctrl+shift+y
+- 翻译替换: ctrl+shift+t
 
 
 ## 翻译服务

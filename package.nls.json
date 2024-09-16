@@ -12,6 +12,8 @@
     "commentTranslate.command.replaceSelections": "Translate and replace selections",
     "commentTranslate.command.toggleBrowseMode": "Toggle comment browse mode",
     "commentTranslate.command.toggleDocumentBrowseMode": "Toggle comment browsing mode for the current document",
+    "commentTranslate.command.openDocumentBrowseMode": "Open comment browsing mode",
+    "commentTranslate.command.closeDocumentBrowseMode": "Close comment browsing mode",
     "commentTranslate.command.translateForCopilotChat": "Translate selected text and display in GitHub Copilot Chat",
     "commentTranslate.command.nameVariable": "Variable naming from translated descriptions",
     "commentTranslate.configuration.concise": "Concise mode.If on, only pressing Ctrl or Command will trigger floating translation",

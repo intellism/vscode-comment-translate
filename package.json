@@ -120,14 +120,14 @@
             },
             {
                 "command": "commentTranslate.openDocumentBrowseMode",
-                "title": "%commentTranslate.command.toggleDocumentBrowseMode%",
-                "icon":"$(eye)",
+                "title": "%commentTranslate.command.openDocumentBrowseMode%",
+                "icon":"$(eye-closed)",
                 "category": "Comment Translate"
             },
             {
                 "command": "commentTranslate.closeDocumentBrowseMode",
-                "title": "%commentTranslate.command.toggleDocumentBrowseMode%",
-                "icon":"$(eye-closed)",
+                "title": "%commentTranslate.command.closeDocumentBrowseMode%",
+                "icon":"$(eye)",
                 "category": "Comment Translate"
             },
             {
@@ -144,18 +144,25 @@
                 "mac": "ctrl+shift+s"
             },
             {
+                "command": "commentTranslate.nameVariable",
+                "key": "alt+shift+n",
+                "mac": "ctrl+shift+n",
+                "when":"resourceLangId in commentTranslate.canLanguages"
+            },
+            {
+                "command": "commentTranslate.translateForCopilotChat",
+                "key": "alt+shift+y",
+                "mac": "ctrl+shift+y",
+                "when":"github.copilot.activated"
+            },
+            {
                 "command": "commentTranslate.replaceSelections",
                 "when": "editorHasSelection",
                 "mac": "ctrl+shift+t",
                 "key": "alt+shift+t"
             },
             {
-                "command": "commentTranslate.clipboard",
-                "key": "alt+shift+c",
-                "mac": "ctrl+shift+c"
-            },
-            {
-                "command": "commentTranslate.toggleTempBrowseMode",
+                "command": "commentTranslate.toggleDocumentBrowseMode",
                 "key": "alt+shift+z",
                 "mac": "ctrl+shift+z"
             },
@@ -750,7 +757,7 @@
                     },
                     "commentTranslate.browse.enabled": {
                         "type": "boolean",
-                        "default": true,
+                        "default": false,
                         "description": "%commentTranslate.configuration.browseEnabled%"
                     },
                     "commentTranslate.browse.mode": {
