@@ -24,7 +24,7 @@ export function registerCommands(context: ExtensionContext) {
         commands.registerCommand('commentTranslate.openDocumentBrowseMode', toggleTempBrowseMode), // add keyboard & add context
         commands.registerCommand('commentTranslate.closeDocumentBrowseMode', toggleTempBrowseMode), // add keyboard & add context
         commands.registerCommand('commentTranslate.changeTargetLanguage', changeTargetLanguage),
-        commands.registerCommand('commentTranslate.quickTranslation', quickTranslationCommand), // add context
+        commands.registerCommand('commentTranslate.translateForCopilotChat', quickTranslationCommand), // add context
         commands.registerCommand('commentTranslate.nameVariable', nameVariableCommand), // add keyboard
     );
 }

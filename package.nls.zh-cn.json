@@ -12,6 +12,8 @@
     "commentTranslate.command.replaceSelections": "翻译并替换选区",
     "commentTranslate.command.toggleBrowseMode": "切换注释浏览模式",
     "commentTranslate.command.toggleTempBrowseMode": "切换当前文档的注释浏览模式",
+    "commentTranslate.command.translateForCopilotChat": "翻译选定文本并在 GitHub Copilot 聊天中显示",
+    "commentTranslate.command.nameVariable": "从翻译描述中命名变量",
     "commentTranslate.configuration.concise": "简洁模式.开启后只有按住ctrl或command才会触发悬浮翻译",
     "commentTranslate.configuration.contentHover": "翻译悬停内容",
     "commentTranslate.configuration.targetLanguage": "翻译成目标语言",
@@ -23,5 +25,6 @@
     "commentTranslate.configuration.stringHover": "开启悬停翻译字符串",
     "commentTranslate.configuration.variableHover": "开启悬停翻译变量",
     "commentTranslate.configuration.selectTargetLanguageWhenReplacing": "替换时选择目标语言",
+    "commentTranslate.configuration.maxTranslationLength": "最大翻译长度",
     "commentTranslate.configuration.MultilineMerge": "多行注释合并"
 }

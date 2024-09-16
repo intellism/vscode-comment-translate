@@ -1,6 +1,7 @@
 import { ChatContext, ChatRequest, ChatResponseStream, CancellationToken, LanguageModelChatSelector, LanguageModelChat, lm, LanguageModelChatMessage, chat, ExtensionContext, Uri } from "vscode";
 import { getConfig } from "../configuration";
 import { getTranslatePrompt, getVarPrompt, getWordPrompt, getHoverTranslatePrompt } from "./prompt";
+import { getUserLanguage } from "../translate/manager";
 
 let model: LanguageModelChat | undefined;
 export async function getModel(): Promise<LanguageModelChat | undefined> {
@@ -24,8 +25,8 @@ class DefaultTranslateStrategy implements TranslateStrategy {
         if (!model) {
             return;
         }
-
-        let targetLanguage = getConfig('targetLanguage', 'en');
+        let userLanguage = getUserLanguage();
+        let targetLanguage = getConfig('targetLanguage', userLanguage);
 
         let text = request.prompt;
         let terminalSelectionText: string = '';
@@ -62,7 +63,9 @@ class WordTranslateStrategy implements TranslateStrategy {
         if (!model) {
             return;
         }
-        let targetLanguage = getConfig('targetLanguage', 'en');
+
+        let userLanguage = getUserLanguage();
+        let targetLanguage = getConfig('targetLanguage', userLanguage);
 
         let { systemPrompt, userPrompt } = getWordPrompt(targetLanguage, request.prompt);
 
@@ -132,7 +135,7 @@ export async function translate(request: ChatRequest, context: ChatContext, stre
 
 export function registerChatParticipant(ctx: ExtensionContext) {
     const translateParticipant = chat.createChatParticipant('intellism.translate', translate);
-    translateParticipant.iconPath = Uri.joinPath(ctx.extensionUri, 'icon.png');
+    translateParticipant.iconPath = Uri.joinPath(ctx.extensionUri, 'icon_mini.png');
 
     ctx.subscriptions.push(translateParticipant);
 }

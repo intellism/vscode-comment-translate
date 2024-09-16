@@ -41,7 +41,7 @@
         "chatParticipants": [
 			{
 				"id": "intellism.translate",
-				"fullName": "Translate",
+				"fullName": "Comment Translate",
 				"name": "translate",
 				"description": "I can help you translate into other languages.",
 				"isSticky": true,
@@ -64,13 +64,13 @@
                 "category": "Comment Translate"
             },
             {
-                "command": "commentTranslate.quickTranslation",
-                "title": "Quickly translate selection or clipboard text for display on Github Copilot Chat",
+                "command": "commentTranslate.translateForCopilotChat",
+                "title": "%commentTranslate.command.translateForCopilotChat%",
                 "category": "Comment Translate"
             },
             {
                 "command": "commentTranslate.nameVariable",
-                "title": "Variable naming from translated descriptions",
+                "title": "%commentTranslate.command.nameVariable%",
                 "category": "Comment Translate"
             },
             {
@@ -182,7 +182,7 @@
                     "when":"false"
                 },
                 {
-                    "command": "commentTranslate.quickTranslation",
+                    "command": "commentTranslate.translateForCopilotChat",
                     "when":"github.copilot.activated"
                 }
             ],
@@ -215,7 +215,7 @@
                     "group": "1_translate@2"
                 },
                 {
-                    "command": "commentTranslate.quickTranslation",
+                    "command": "commentTranslate.translateForCopilotChat",
                     "when":"github.copilot.activated",
                     "group": "1_translate@3"
                 },{

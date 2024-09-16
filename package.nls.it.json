@@ -10,13 +10,20 @@
     "commentTranslate.command.changeTargetLanguage": "Modificare la lingua di destinazione di traduzione",
     "commentTranslate.command.changeTranslateSource": "Modificare l'origine della traduzione",
     "commentTranslate.command.replaceSelections": "Tradurre e sostituire le selezioni",
+    "commentTranslate.command.toggleBrowseMode": "Attiva/disattiva modalità di navigazione dei commenti",
+    "commentTranslate.command.toggleDocumentBrowseMode": "Attiva/disattiva modalità di navigazione dei commenti per il documento corrente",
+    "commentTranslate.command.translateForCopilotChat": "Traduci il testo selezionato e visualizzalo in GitHub Copilot Chat",
+    "commentTranslate.command.nameVariable": "Assegnazione di variabili dalle descrizioni tradotte",
     "commentTranslate.configuration.concise": "Modalità concisa. Se attivato, solo premendo Ctrl o Comando verrà attivata la traduzione mobile",
     "commentTranslate.configuration.contentHover": "Traduci contenuto al passaggio del mouse",
     "commentTranslate.configuration.targetLanguage": "Traduzione nella lingua di destinazione",
     "commentTranslate.configuration.source": "Traduci servcie source. Google, Bing, Baidu sono stati integrati.",
+    "commentTranslate.configuration.browseEnabled": "Abilita traduzione durante la navigazione dei commenti",
+    "commentTranslate.configuration.browseMode": "Modalità di navigazione dei commenti",
     "commentTranslate.configuration.openHover": "Apri la traduzione al passaggio del mouse",
     "commentTranslate.configuration.stringHover": "Stringa di traduzione al passaggio del mouse",
     "commentTranslate.configuration.variableHover": "Variabile di conversione al passaggio del mouse",
     "commentTranslate.configuration.selectTargetLanguageWhenReplacing": "Selezionare TargetLanguage durante la sostituzione",
-    "commentTranslate.configuration.MultilineMerge": "Commento Unione su più righe"
+    "commentTranslate.configuration.maxTranslationLength": "Lunghezza massima della traduzione",
+    "commentTranslate.configuration.MultilineMerge": "Unione di commenti su più righe"
 }

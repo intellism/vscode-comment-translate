@@ -10,6 +10,10 @@
     "commentTranslate.command.changeTargetLanguage": "翻訳対象言語の変更",
     "commentTranslate.command.changeTranslateSource": "ソースを変える",
     "commentTranslate.command.replaceSelections": "選択の翻訳と置換",
+    "commentTranslate.command.toggleBrowseMode": "コメント閲覧モードを切り替える",
+    "commentTranslate.command.toggleTempBrowseMode": "現在のドキュメントのコメント閲覧モードを切り替える",
+    "commentTranslate.command.translateForCopilotChat": "選択したテキストを翻訳してGitHub Copilot Chatに表示",
+    "commentTranslate.command.nameVariable": "翻訳された説明から変数名を付ける",
     "commentTranslate.configuration.concise": "簡潔なモード.オンにするとctrlまたはcommandを押すだけで懸濁翻訳がトリガーされます",
     "commentTranslate.configuration.contentHover": "ホバーコンテンツを翻訳する",
     "commentTranslate.configuration.targetLanguage": "ターゲット言語への翻訳",
@@ -19,8 +23,7 @@
     "commentTranslate.configuration.variableHover": "翻訳変数",
     "commentTranslate.configuration.selectTargetLanguageWhenReplacing": "置換時にターゲット言語を選択",
     "commentTranslate.configuration.MultilineMerge": "コメント複数行マージ",
-    "commentTranslate.command.toggleBrowseMode": "コメント閲覧モードを切り替える",
-    "commentTranslate.command.toggleTempBrowseMode": "現在のドキュメントのコメント閲覧モードを切り替える",
     "commentTranslate.configuration.browseEnabled": "コメント閲覧翻訳を有効にする",
-    "commentTranslate.configuration.browseMode": "コメント閲覧モード"
+    "commentTranslate.configuration.browseMode": "コメント閲覧モード",
+    "commentTranslate.configuration.maxTranslationLength": "最大翻訳長"
 }
