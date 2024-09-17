@@ -5,6 +5,12 @@ jest.mock("../../../src/configuration", () => {
     };
 });
 
+jest.mock("../../../src/extension", () => {
+    return {
+        ctx: {}
+    }
+});
+
 import { Comment } from "../../../src/syntax/Comment";
 import { Uri } from "vscode";
 import { createTextDocument } from "jest-mock-vscode";

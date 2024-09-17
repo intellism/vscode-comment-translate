@@ -1,8 +1,14 @@
 jest.mock("onigasm/lib/onigasm.wasm", () => {
     return {
-      default: "../../node_modules/onigasm/lib/onigasm.wasm",
+        default: "../../node_modules/onigasm/lib/onigasm.wasm",
     };
-  });
+});
+
+jest.mock("../../src/extension", () => {
+    return {
+        ctx: {}
+    }
+});
 
 import * as path from "path";
 import { extractGrammarExtensions, readResources } from "../../src/util/ext";
@@ -22,5 +28,5 @@ export async function mockTextMateService() {
 }
 
 export async function getFixtureFile(filePath: string) {
-    return fsPromises.readFile(path.resolve(__dirname, "../fixtures/", filePath),'utf-8')
+    return fsPromises.readFile(path.resolve(__dirname, "../fixtures/", filePath), 'utf-8')
 }

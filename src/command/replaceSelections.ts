@@ -1,11 +1,13 @@
 import { Selection, window, Range, Position, TextDocument, commands } from "vscode";
 import { getConfig, selectTargetLanguage } from "../configuration";
 import { ctx, outputChannel } from "../extension";
-import * as changeCase from "change-case";
+// import * as changeCase from "change-case";
 import humanizeString = require("humanize-string");
 import { franc } from 'franc'
 import { translateManager } from "../translate/manager";
 import { createComment } from "../syntax/Comment";
+
+const changeCase = require("change-case");
 
 async function translateSelection(text: string, selection: Selection, targetLanguage: string) {
     // let translation = await client.sendRequest<string>('translate', { text, targetLanguage });

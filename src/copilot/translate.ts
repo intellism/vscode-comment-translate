@@ -19,6 +19,7 @@ export interface TranslateStrategy {
 }
 
 class DefaultTranslateStrategy implements TranslateStrategy {
+    //@ts-ignore
     async execute(request: ChatRequest, context: ChatContext, stream: ChatResponseStream, token: CancellationToken): Promise<void> {
         // 默认翻译策略的实现
         let model = await getModel();
@@ -57,6 +58,7 @@ class DefaultTranslateStrategy implements TranslateStrategy {
 }
 
 class WordTranslateStrategy implements TranslateStrategy {
+    //@ts-ignore
     async execute(request: ChatRequest, context: ChatContext, stream: ChatResponseStream, token: CancellationToken): Promise<void> {
 
         let model = await getModel();
@@ -81,6 +83,7 @@ class WordTranslateStrategy implements TranslateStrategy {
 }
 
 class VariableTranslateStrategy implements TranslateStrategy {
+    //@ts-ignore
     async execute(request: ChatRequest, context: ChatContext, stream: ChatResponseStream, token: CancellationToken): Promise<void> {
 
         let model = await getModel();
