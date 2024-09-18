@@ -4,10 +4,7 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ## [Unreleased]
 ### Add
- * 变量命名
-    * 中文翻译到驼峰的变量命名
  * 独立Pannel
-   * 剪贴板翻译结果
    * 翻译历史
    * 多翻译源对比
    * i18n
@@ -15,9 +12,6 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
      * 核心单词
      * 例句
    * 生词本
- * Markdown翻译
-   * Hover 段落翻译
-   * 一键翻译并替换整个文档
  * 添加更多翻译源,for API版本的
    * google for api
    * bing for api
@@ -28,10 +22,21 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ### Change
 * i18n 支持更多语言。 代码内支持
-* Readme优化
-  * 阿里云配置文档添加
-  * 自定义扩展翻译源文档添加
-  * 多语言支持
+
+## [3.0.0] 2024-9-17
+### Add
+* 沉浸式: 注释
+* 变量翻译替换
+* github copilot翻译 
+   > 需要github copilot插件,并授权调用模型
+* Markdown,Hover 段落翻译
+
+### Change
+* 互译支持，待翻译文本是目标语言，反向翻译源语言（可以设置`commentTranslate.sourceLanguage`，默认English）
+* 优化文档，默认改为英文文档。
+
+### Fixed
+* 移除 **划词翻译** 引起的编辑失焦
 
 ## [2.3.3] 2023-12-10
 

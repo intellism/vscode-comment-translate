@@ -1,9 +1,17 @@
 # VSCode 注释翻译
 
+vscode翻译插件,翻译代码中的注释、字符串、代码提示、错误提醒、变量名称等。
 
+[![Licence](https://img.shields.io/github/license/intellism/vscode-comment-translate.svg)]
 
 ## 简介
+[【English】](./doc/README.md) [【日本語の文書】](./doc/README_JA.md) [【한국어】](./doc/README_KR.md)
 
+许多优秀的项目，都有丰富的注释，使用者可以快速理解代码意图。但是如果使用者并不熟习注释的语言，会带来理解困难。本插件提供丰富的翻译场景，帮助开发者更轻松地理解和编写多语言代码。
+本插件使用 Google、Bing、Baidu、AliCloud、DeepL等的 Translate API 翻译服务，帮助开发者更轻松地理解和编写多语言代码。
+
+
+沉浸阅读，不干扰用户体验，帮助开发者更轻松地理解和编写多语言代码。
 
 ## 功能
 
