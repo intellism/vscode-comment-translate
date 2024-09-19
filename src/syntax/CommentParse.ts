@@ -4,7 +4,7 @@ import { getConfig } from "../configuration";
 import { checkScopeFunction, ICommentBlock, ICommentToken, ITokenState } from "../interface";
 
 function findLeadingWhitespaceOrUnpairedIndex(str: string): number {
-    const unpairedSymbols = new Set(['*', '+', '-', '#', '?', '!', '|', '&', '~','^',',','.',':',';']);
+    const unpairedSymbols = new Set(['*', '+', '-', '#', '?', '!', '|', '&', '~', '^', ',', '.', ':', ';']);
     for (let i = 0; i < str.length; i++) {
         const char = str[i];
         if (!char.match(/\s/) && !unpairedSymbols.has(char)) {
@@ -35,7 +35,7 @@ export function skipComment(scopes: string[]) {
 }
 
 export function ignoreComment(scopes: string[]) {
-    if(scopes[0].indexOf('.jsdoc') >= 0) return true;
+    if (scopes[0].indexOf('.jsdoc') >= 0) return true;
 
     return scopes[0].indexOf('punctuation.definition.comment') === 0;
 }
@@ -121,7 +121,7 @@ export class CommentParse {
     /**
      * 定位 position 的Token起始位置标记
      * @param position 给定坐标
-     * @returns 
+     * @returns
      */
     // private _posOffsetTokens(position: Position) {
     //     const { tokens1 } = this._getTokensAtLine(position.line);
@@ -153,7 +153,7 @@ export class CommentParse {
      *
      * @param {number} line - The line number to parse.
      * @param {number} index - The token index to parse.
-     * @return {{startIndex: number, endIndex: number, text: string, scopes: string[]}} 
+     * @return {{startIndex: number, endIndex: number, text: string, scopes: string[]}}
      *         An object containing the start index, end index, text, and scopes of the token.
      */
     private _posScopesParse(line: number, index: number) {
@@ -183,7 +183,7 @@ export class CommentParse {
 
         // 分析注释的起始位置
         let skipEnable = false;
-        for (let line = originLine; line >= 0; line--,skipEnable = false) {
+        for (let line = originLine; line >= 0; line--, skipEnable = false) {
             let i = index;
             if (line !== originLine) {
                 const { tokens1 } = this._getTokensAtLine(line);
@@ -192,19 +192,19 @@ export class CommentParse {
             }
             for (; i >= 0; i--) {
                 const { scopes, startIndex: si } = this._posScopesParse(line, i);
-                
+
                 if (checkHandle(scopes)) {
                     startIndex = si;
                     startLine = line;
                     skipEnable = true;
-                } else if(skipEnable && skipHandle && skipHandle(scopes)) {
+                } else if (skipEnable && skipHandle && skipHandle(scopes)) {
                     skipEnable = false;
                     continue;
                 } else {
                     break;
                 }
             }
-            if (i >= 0 || single ) break;
+            if (i >= 0 || single) break;
         }
 
         // 分析注释的结束位置
@@ -222,7 +222,7 @@ export class CommentParse {
                     endIndex = ei;
                     endLine = line;
                     skipEnable = true;
-                } else if(skipEnable && skipHandle && skipHandle(scopes)) {
+                } else if (skipEnable && skipHandle && skipHandle(scopes)) {
                     skipEnable = false;
                     continue;
                 } else {
@@ -249,10 +249,10 @@ export class CommentParse {
 
     /**
      * 获取注释范围内的CommentToken
-     * 
+     *
      * @param range 注释范围
-     * @param opts 
-     * @returns 
+     * @param opts
+     * @returns
      */
     private _getCommentTokens(range: Range, opts?: { skipHandle?: checkScopeFunction, ignoreHandle?: checkScopeFunction }): ICommentToken[] {
 
@@ -276,7 +276,7 @@ export class CommentParse {
 
             if (line === endLine) {
                 // 结束位置，不是真实的位置。如字符串end
-                eIndex = this._posOffsetTokens(new Position(line, range.end.character-1));
+                eIndex = this._posOffsetTokens(new Position(line, range.end.character - 1));
                 eTextIndex = range.end.character;
             }
 
@@ -290,9 +290,9 @@ export class CommentParse {
                     ignoreStart += res.text.length;
                 } else if (findLeadingWhitespaceOrUnpairedIndex(res.text) === res.text.length) {
                     ignoreStart += res.text.length;
-                } else if(i ===0 && ignoreStart === 0) {
+                } else if (i === 0 && ignoreStart === 0) {
                     const match = res.text.match(/^\s+/);
-                    ignoreStart =  match ? match[0].length : ignoreStart;
+                    ignoreStart = match ? match[0].length : ignoreStart;
                 } else {
                     break;
                 }
@@ -387,7 +387,7 @@ export class CommentParse {
         const { scopes, startIndex, endIndex, text } = this._posScopesParse(position.line, index);
 
         if (scopes && isBase(scopes)) {
-            const range = new Range(new Position(position.line, startIndex), new Position(position.line, endIndex));
+            const range = new Range(new Position(position.line, startIndex), new Position(position.line, endIndex - 1));
 
             return {
                 comment: text,
