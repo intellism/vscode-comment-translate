@@ -1,40 +1,81 @@
-# VSCode 注释翻译
+# VSCode Comment Translation Extension
 
-[![Licence](https://img.shields.io/github/license/intellism/vscode-comment-translate.svg)](https://github.com/intellism/vscode-comment-translate)
+This extension helps developers translate comments, strings, code hints, error messages, and variable names in their code.
 
-## 简介
+![Licence](https://img.shields.io/github/license/intellism/vscode-comment-translate.svg)
 
-[【English】](./doc/README.md) [【日本語の文書】](./doc/README_JA.md) [【한국어】](./doc/README_KR.md)
+## Introduction
+[【中文文档】](./doc/README_ZH.md) [【日本語の文書】](./doc/README_JA.md) [【한국어】](./doc/README_KR.md)
 
-许多优秀的项目，都有丰富的注释，使用者可以快速理解代码意图。但是如果使用者并不熟习注释的语言，会带来理解困难。
-本插件使用 Google、Bing、Baidu、AliCloud、DeepL等的 Translate API 翻译 VSCode 的编程语言的注释。
+Many excellent projects have extensive comments to help users quickly understand the code's intent. If users are not familiar with the language of the comments, it can be challenging to understand. This extension provides multiple translation scenarios to help developers comprehend and write multilingual code more easily. It supports common translation services like Google, Bing, AliCloud, and DeepL, and allows developers to add custom translation services.
 
 ![Introduction](./doc/image/Introduction.gif)
 
+## Features
 
-## 功能
-1. Hover识别并翻译代码中注释部分。支持不同语言，单行、多行注释。
-2. Hover翻译选中区域文本（划词翻译）
-3. 翻译并快速替换选中文本
-4. 翻译并替换文件中所有"字符串"或"注释"
-   * 如果有选中的文本区域，只识别并翻译替换选中区域的“字符串”或“注释”
-5. 翻译Hover内容。（实验功能）
+### Code Reading
+The extension identifies multilingual content like comments and strings in the source code using TextMate, translates them quickly, and displays them via Hover, minimizing disruption to development.
 
-## 配置
-* `commentTranslate.hover.enabled`: 开启/关闭悬停翻译（可以通过状态快速设置）
-* `commentTranslate.hover.concise`: 开启/关闭简洁模式.开启后只有按住ctrl或command才会触发悬浮翻译
-* `commentTranslate.hover.string`: 开启/关闭字符串悬停翻译
-* `commentTranslate.hover.content`: 开启/关闭翻译悬停内容
-* `commentTranslate.multilineMerge`: 合并多行注释
-* `commentTranslate.targetLanguage`: 翻译目标语言，没有设置的情况下使用vscode本地语言。（可以通过状态快速设置）
-* `commentTranslate.source`: 翻译服务源配置。建议通过命令完成设置。 支持插件扩展翻译服务源。 [example](https://github.com/intellism/deepl-translate)
-* `commentTranslate.maxTranslationLength`， 最长翻译长度配置。规避过长字符翻译引起收费过多问题
-* `commentTranslate.googleTranslate.mirror`，解决国内服务不可访问问题. [文档](https://hcfy.app/blog/2022/09/28/ggg#%E6%96%B9%E6%A1%88-c%E4%BD%BF%E7%94%A8%E9%95%9C%E5%83%8F%E5%9C%B0%E5%9D%80%E6%9C%80%E7%AE%80%E5%8D%95)
+**Hover Translation**: Move the mouse over comments, strings, or selected areas to see the translated content in a hover box. Other hover content like exceptions and code documentation are also translated and displayed.
 
-## 翻译源
-* 支持外部“翻译源”扩展。目前外部插件已支持:
-  * [ChatGPT 支持反代 API](https://marketplace.visualstudio.com/items?itemName=upupnoah.chatgpt-comment-translateX)
-  * [ChatGPT](https://marketplace.visualstudio.com/items?itemName=kitiho.chatgpt-comment-translate)
-  * [DeepL](https://marketplace.visualstudio.com/items?itemName=intellsmi.deepl-translate)
-  * [Tecent Cloud](https://marketplace.visualstudio.com/items?itemName=Kaiqun.tencent-cloud-translate) 
-* 已内置Ali翻译源。 可以通过 [开通阿里云机器翻译](https://www.aliyun.com/product/ai/alimt) 生成 accessKeyId & accessKeySecret ,并配置到插件中。切换对应翻译源，获得更稳定的翻译服务
+**Immersive Reading**: Turn on immersive comment translation to automatically translate comments and display them in the document. The translated results can be shown alongside the original text or in place of it; toggle the display mode with `Ctrl+Shift+B`.
+![Immersive](./doc/image/Immersive.gif)
+
+### Translation and Replacement
+The extension can translate source code content and quickly replace it in the document. For instance, translate a description and use it as a variable name; in multilingual development scenarios, translate a string and replace it in the document.
+
+**Translate Variable Naming**: Translate the current description into English and provide various variable names to choose from, then replace the original description.
+![naming](<./doc/image/full naming.gif>)
+
+**Hover Replacement**: The hover box provides the ability to replace text with the translation result, which replaces the original content.
+![hover](./doc/image/hover_image.png)
+
+**Full Text Replacement Translation**: Supports translating and replacing strings, comments, and selected areas with one click.
+![replace](./doc/image/replace.png)
+
+### GitHub Copilot Chat Participant: @translate
+  > - Requires pre-installation of the GitHub Copilot Chat extension and authorization.
+  > - For GitHub Copilot users, translation is currently supported in the Chat box, but not for comments, text, etc.
+
+This extension extends GitHub Copilot by enabling translations in the Chat box using Copilot's AI model. The target language is set by CommentTranslate. Select text in the Editor and send it to GitHub Copilot Chat for quick translation using commands.
+![copilot](./doc/image/copilot.gif)
+
+## Useful Commands
+
+> Mac: `ctrl+shift+?` / Windows: `alt+shift+?`
+
+The extension provides translation or replacement commands for various scenarios, with shortcuts for some common functionalities. Users can also customize shortcuts according to their habits.
+- **Immersive Comment Translation**: Toggle immersive translation reading for the current document `ctrl+shift+z`
+- **Immersive Display Mode**: Toggle cross-display/placeholder read mode `ctrl+shift+b`
+- **Translate Variable Naming**: Translate the current descriptive word and provide named variables `ctrl+shift+n`
+- **Translation and Replacement**: Translate selected content and replace it at the current location `ctrl+shift+t`
+- **Copilot Quick Translation**: Translate selected content or clipboard content in GitHub Copilot Chat `ctrl+shift+y`
+
+## Translation Services
+
+The extension supports the following translation services:
+- **Google Translate**: Built-in, free version, used by default.
+  - **Note**: Requires a network connection, some users may need a proxy. If encountering network issues, it is recommended to use Bing.
+- **Bing Translate**: Built-in, free version.
+- **AliCloud Translate**: Built-in, requires configuration of accessKeyId & accessKeySecret.
+
+Third-party translation services can be found by searching for `@tag:translateSource` in the plugin market. Users can choose the desired translation service through the plugin configuration or expand it by customizing the translation service. [More Links](https://github.com/intellism/vscode-comment-translate/wiki/Translation-Service)
+
+## Common Configurations
+* `commentTranslate.hover.enabled`: Enable/disable hover translation (quickly set through status)
+* `commentTranslate.hover.concise`: Enable/disable concise mode. Only triggers hover translation when pressing ctrl or command
+* `commentTranslate.hover.string`: Enable/disable string hover translation
+* `commentTranslate.hover.content`: Enable/disable translation of hover content
+* `commentTranslate.multilineMerge`: Merge multiline comments
+* `commentTranslate.targetLanguage`: Translation target language, uses the local VSCode language if not set (quickly set through status)
+* `commentTranslate.source`: Translation service source configuration. It is recommended to set it through commands. Supports plugin extensions for translation service sources. [example](https://github.com/intellism/deepl-translate)
+* `commentTranslate.maxTranslationLength`: Maximum translation length configuration to avoid excessive charges for long character translations
+* `commentTranslate.browse.enabled`: Enable/disable project immersive browsing translation function
+
+
+## Support Us
+
+If you find this extension helpful, please consider supporting us in the following ways:
+- Give us a star on GitHub [intellism/vscode-comment-translate](https://github.com/intellism/vscode-comment-translate)
+- Submit feedback and suggestions
+- Share with your friends and colleagues
