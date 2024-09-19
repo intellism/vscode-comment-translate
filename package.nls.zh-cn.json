@@ -1,6 +1,6 @@
 {
     "commentTranslate.displayName": "注释翻译",
-    "commentTranslate.description": "此插件使用Google Translate、DeepL等API翻译VSCode编程语言的注释、变量、字符串等。并提供翻译替换功能。",
+    "commentTranslate.description": "这个插件帮助开发者翻译代码中的注释、字符串、代码提示、错误提醒和变量名称等内容。",
     "commentTranslate.command.select": "快速选择最后一个翻译区域",
     "commentTranslate.command.clipboard": "翻译剪贴板",
     "commentTranslate.command.selectAllText": "快速选择文件中的所有字符串",

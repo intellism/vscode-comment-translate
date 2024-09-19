@@ -1,6 +1,6 @@
 {
     "commentTranslate.displayName": "주석 번역기",
-    "commentTranslate.description": "이 플러그인은 Google 번역 API를 사용하여 VSCode 프로그래밍 언어에 대한 주석을 번역합니다.",
+    "commentTranslate.description": "이 플러그인은 개발자가 코드의 주석, 문자열, 코드 힌트, 오류 알림 및 변수 이름 등의 내용을 번역하는 데 도움을 줍니다.",
     "commentTranslate.command.select": "마지막 번역 영역을 선택",
     "commentTranslate.command.clipboard": "클립보드 번역하기",
     "commentTranslate.command.selectAllText": "파일안에 모든 문자열을 선택",

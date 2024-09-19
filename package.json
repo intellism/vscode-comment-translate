@@ -2,7 +2,7 @@
     "name": "comment-translate",
     "displayName": "%commentTranslate.displayName%",
     "description": "%commentTranslate.description%",
-    "version": "3.0.1",
+    "version": "3.0.0",
     "publisher": "intellsmi",
     "author": {
         "name": "Zheng MaoWei",
@@ -21,6 +21,8 @@
         "vscode": "^1.92.0"
     },
     "categories": [
+        "AI",
+        "Chat",
         "Other"
     ],
     "keywords": [
@@ -28,6 +30,7 @@
         "translate",
         "hover",
         "google translate",
+        "GitHub Copilot Chat Participant",
         "翻译",
         "注释",
         "翻訳"
