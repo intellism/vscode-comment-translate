@@ -6,6 +6,7 @@ import { GoogleTranslate } from "./GoogleTranslate";
 import { BingTranslate } from "./BingTranslate";
 import { detectLanguage } from "../lang";
 import { CopilotTranslate } from "./CopilotTranslate";
+import { TranSmartTranslate } from "./TranSmartTranslate";
 
 
 export let translateManager: TranslateManager;
@@ -42,6 +43,11 @@ export function initTranslate(context: ExtensionContext) {
         title: 'Github Copilot translate',
         ctor: CopilotTranslate,
         translate: 'Copilot'
+    },
+    {
+        title: 'Tencent TranSmart translate',
+        ctor: TranSmartTranslate,
+        translate: 'TranSmart'
     }];
     translateExtensionProvider = new TranslateExtensionProvider(translateManager, buildInTranslate);
     translateExtensionProvider.init(getConfig<string>('source', ''));
