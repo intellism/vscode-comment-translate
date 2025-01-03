@@ -14,6 +14,7 @@
 | DeepL | 每月50万字符 |  每月4.99欧元基础费用 + 20欧元/100万字符	 | [DeepL插件](https://marketplace.visualstudio.com/items?itemName=intellsmi.deepl-translate)、[点此申请秘钥](https://bobtranslate.com/service/translate/deepl.html) |
 | 腾讯云 | 每月500万字符 |  58元/100万字符		 | [Tecent Cloud插件](https://marketplace.visualstudio.com/items?itemName=Kaiqun.tencent-cloud-translate) 、[点此申请秘钥](https://cloud.tencent.com/product/tmt) |
 | Chatgpt | 无 |  $0.002 / 1K tokens（GPT 3.5）			 |[ChatGPT 支持反代 API](https://marketplace.visualstudio.com/items?itemName=upupnoah.chatgpt-comment-translateX)、[ChatGPT](https://marketplace.visualstudio.com/items?itemName=kitiho.chatgpt-comment-translate)、[点此申请秘钥](https://bobtranslate.com/service/translate/openai.html) |
+| DeepSeek | 500万字符 | 1RMB / 1M tokens (DeepSeek v3) | [DeepSeek插件](https://marketplace.visualstudio.com/items?itemName=Renping.deepseek-comment-translate)、[点此申请秘钥](https://platform.deepseek.com/api_keys) |
 
 **注意**: 以上费用仅供参考，具体费用以服务商官网为准。 其他插件提供的翻译服务可以在插件市场搜索`@tag:translateSource`找到。
 ![image](https://github.com/user-attachments/assets/9cb8d6ea-f0a0-4b11-a9b0-66192dc7f671)
@@ -65,7 +66,7 @@
                 // 实现更多链接逻辑
           }
 
-          
+
           // ...
      }
     ```
