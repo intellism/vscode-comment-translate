@@ -90,7 +90,9 @@ export class TranslateExtensionProvider {
         if (this._translateManager.hasSource(id)) {
             return this._translateManager.setSource(id);
         }
-        const conf = this._translateConfig.get(id);
+        // 忽略大小写查找配置
+        const conf = Array.from(this._translateConfig.entries())
+            .find(([key]) => key.toLowerCase() === id.toLowerCase())?.[1];
         if (!conf) {
             this.showError(`${id} configuration not found.`);
             return null;
