@@ -77,13 +77,20 @@ export async function compileBlock(block: ICommentBlock, languageId: string, tar
     let texts: string[] = [];
     let combined: boolean[] = []; // Marked as merged rows for easy regrouping after translation
     let humanizeText: string = '';
-    const { comment: originText } = block;
+    const { comment: originText, range } = block;
     let { tokens } = block;
+
+    // 检查是否是单行注释（在同一行）
+    const isSingleLine = range && range.start.line === range.end.line;
 
     if (!tokens) {
         // No tokens means select translation or single word translation, only need to produce simple results
         humanizeText = humanize(originText);
         translatedText = await autoMutualTranslate(humanizeText || originText, { to: targetLanguage });
+        // 如果是单行注释，确保末尾没有换行符
+        if (isSingleLine) {
+            translatedText = translatedText.replace(/[\r\n]+$/, '');
+        }
     } else {
         // Tokens represent comments, strings, and need to be structured
 
@@ -140,7 +147,8 @@ export async function compileBlock(block: ICommentBlock, languageId: string, tar
                     const endText = text.slice(text.length - ignoreEnd);
                     translated.push(startText + targetText + endText);
                 }
-                translatedText = translated.join('\n');
+                // 如果是单行注释，确保末尾没有换行符
+                translatedText = isSingleLine ? translated[0].replace(/[\r\n]+$/, '') : translated.join('\n');
             }
         }
     }
