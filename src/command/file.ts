@@ -108,7 +108,13 @@ export async function translateAllForType(type = 'comment') {
                 editor.edit(builder => {
                     results.forEach(({ translatedText }, index) => {
                         let selection = selections[index];
-                        translatedText && builder.replace(selection, translatedText);
+                        // translatedText && builder.replace(selection, translatedText);
+                        if (translatedText) {
+                            // 如果是单行注释，去掉翻译结果末尾的换行，避免多出空行
+                            const isSingleLine = selection.start.line === selection.end.line;
+                            const cleanedText = isSingleLine ? translatedText.replace(/[\r\n]+$/, '') : translatedText;
+                            builder.replace(selection, cleanedText);
+                        }
                     });
                 });
             } catch (e: any) {
