@@ -19,7 +19,8 @@ export function isComment(scopes: string[]) {
     const arr = [
         'punctuation.definition.comment',
         'comment.block',
-        'comment.line'
+        'comment.line',
+        'string.quoted.docstring.multi',
     ];
 
     return scopes.some(scope => {
@@ -51,7 +52,13 @@ function isString(scopes: string[]) {
         'constant.character.escape'
     ];
 
-    return arr.some(item => {
+    const comment_arr = [
+        'string.quoted.docstring.multi',
+    ]
+
+    return !scopes.some(scope => {
+        return comment_arr.some(citem => { return scope.indexOf(citem) === 0 })
+    }) && arr.some(item => {
         return scope.indexOf(item) === 0;
     });
 }
