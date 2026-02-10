@@ -4,99 +4,40 @@ import {
     loadWASM,
     OnigScanner,
     OnigString
-} from 'onigasm';
+} from 'vscode-oniguruma';
 
-import { Registry, IOnigLib,parseRawGrammar,INITIAL } from 'vscode-textmate';
-// import { getNodeModule } from '../util/patch-asar-require';
-export interface ILocation {
-    readonly filename: string;
-    readonly line: number;
-    readonly char: number;
-}
-export interface ILocatable {
-    readonly $vscodeTextmateLocation?: ILocation;
-}
+import {
+    Registry,
+    IOnigLib,
+    parseRawGrammar,
+    INITIAL,
+    IGrammar,
+    StateStack,
+    IRawGrammar,
+    ITokenTypeMap,
+    IEmbeddedLanguagesMap as IEmbeddedLanguagesMapNum,
+    ITokenizeLineResult,
+    ITokenizeLineResult2,
+    IToken
+} from 'vscode-textmate';
 
-export interface IRawCapturesMap {
-    [captureId: string]: IRawRule;
-}
-export declare type IRawCaptures = IRawCapturesMap & ILocatable;
-export interface IRawRule extends ILocatable {
-    id?: number;
-    readonly include?: string;
-    readonly name?: string;
-    readonly contentName?: string;
-    readonly match?: string;
-    readonly captures?: IRawCaptures;
-    readonly begin?: string;
-    readonly beginCaptures?: IRawCaptures;
-    readonly end?: string;
-    readonly endCaptures?: IRawCaptures;
-    readonly while?: string;
-    readonly whileCaptures?: IRawCaptures;
-    readonly patterns?: IRawRule[];
-    readonly repository?: IRawRepository;
-    readonly applyEndPatternLast?: boolean;
-}
-export interface IRawRepositoryMap {
-    [name: string]: IRawRule;
-    $self: IRawRule;
-    $base: IRawRule;
-}
-export declare type IRawRepository = IRawRepositoryMap & ILocatable;
+export type StackElement = StateStack;
 
-export interface IRawGrammar extends ILocatable {
-    repository: IRawRepository;
-    readonly scopeName: string;
-    readonly patterns: IRawRule[];
-    readonly injections?: {
-        [expression: string]: IRawRule;
-    };
-    readonly injectionSelector?: string;
-    readonly fileTypes?: string[];
-    readonly name?: string;
-    readonly firstLineMatch?: string;
-}
-
-export declare const enum StandardTokenType {
+export const enum StandardTokenType {
     Other = 0,
     Comment = 1,
     String = 2,
-    RegEx = 4,
-}
-export interface ITokenTypeMap {
-    [selector: string]: StandardTokenType;
-}
-export interface IEmbeddedLanguagesMap2 {
-    [scopeName: string]: number;
-}
-export interface IToken {
-    startIndex: number;
-    readonly endIndex: number;
-    readonly scopes: string[];
+    RegEx = 4
 }
 
-export interface ITokenizeLineResult2 {
-    readonly tokens: Uint32Array;
-    readonly ruleStack: StackElement;
-}
+export {
+    IGrammar,
+    IToken,
+    ITokenizeLineResult,
+    ITokenizeLineResult2
+};
 
-export interface ITokenizeLineResult {
-    readonly tokens: IToken[];
-    readonly ruleStack: StackElement;
-}
-
-export interface IGrammar {
-    tokenizeLine(lineText: string, prevState: StackElement|null): ITokenizeLineResult;
-    tokenizeLine2(lineText: string, prevState: StackElement|null): ITokenizeLineResult2;
-}
-
-export interface StackElement {
-    _stackElementBrand: void;
-    readonly depth: number;
-    clone(): StackElement;
-    equals(other: StackElement): boolean;
-}
+// import { getNodeModule } from '../util/patch-asar-require';
 
 export interface TokenTypesContribution {
     [scopeName: string]: string;
@@ -198,13 +139,13 @@ export class TMLanguageRegistration {
                 const tokenType = tokenTypes[scope];
                 switch (tokenType) {
                     case 'string':
-                        this.tokenTypes[scope] = StandardTokenType.String;
+                        this.tokenTypes[scope] = StandardTokenType.String as any;
                         break;
                     case 'other':
-                        this.tokenTypes[scope] = StandardTokenType.Other;
+                        this.tokenTypes[scope] = StandardTokenType.Other as any;
                         break;
                     case 'comment':
-                        this.tokenTypes[scope] = StandardTokenType.Comment;
+                        this.tokenTypes[scope] = StandardTokenType.Comment as any;
                         break;
                 }
             }
@@ -227,28 +168,28 @@ export interface IGrammarExtensions {
     languages: ITMLanguageExtensionPoint[];
 }
 
-async function doLoadOnigasm(): Promise<IOnigLib> {
-    // const [wasmBytes] = await Promise.all([
-    //     loadOnigasmWASM()
-    // ]);
-    
-    // debugger;
+import { ctx } from '../extension';
 
-    const wasmPath:string = require('onigasm/lib/onigasm.wasm').default;
-    const bytes = await fs.promises.readFile(path.join(__dirname,wasmPath));
-	await loadWASM(bytes.buffer);
-	return {
-		createOnigScanner(patterns: string[]) { return new OnigScanner(patterns); },
-		createOnigString(s: string) { return new OnigString(s); }
-	};
+async function doLoadOniguruma(): Promise<IOnigLib> {
+    let wasmPath: string;
+    if (ctx && ctx.extensionPath) {
+        wasmPath = path.join(ctx.extensionPath, 'node_modules', 'vscode-oniguruma', 'release', 'onig.wasm');
+        if (!fs.existsSync(wasmPath)) {
+            const onigurumaPath = require.resolve('vscode-oniguruma');
+            wasmPath = path.join(path.dirname(onigurumaPath), 'onig.wasm');
+        }
+    } else {
+        const onigurumaPath = require.resolve('vscode-oniguruma');
+        wasmPath = path.join(path.dirname(onigurumaPath), 'onig.wasm');
+    }
+
+    const bytes = await fs.promises.readFile(wasmPath);
+    await loadWASM(bytes.buffer);
+    return {
+        createOnigScanner(patterns: string[]) { return new OnigScanner(patterns); },
+        createOnigString(s: string) { return new OnigString(s); }
+    };
 }
-
-// async function loadOnigasmWASM(): Promise<ArrayBuffer> {
-//     let indexPath:string = require.resolve('onigasm');
-//     const wasmPath = path.join(indexPath, '../onigasm.wasm');
-// 	const bytes = await fs.promises.readFile(wasmPath);
-// 	return bytes.buffer;
-// }
 
 export class TextMateService implements ITextMateService {
     public _serviceBrand: any;
@@ -257,12 +198,12 @@ export class TextMateService implements ITextMateService {
     // private _modeService: IModeService;
     private _scopeRegistry: TMScopeRegistry;
     private _injections: { [scopeName: string]: string[]; };
-    private _injectedEmbeddedLanguages: { [scopeName: string]: IEmbeddedLanguagesMap[]; };
+    private _injectedEmbeddedLanguages: { [scopeName: string]: IEmbeddedLanguagesMapNum[]; };
     private _languages: Map<string, number>;
     private _languageToScope: Map<string, string>;
 
     constructor(
-        extensions: IGrammarExtensions[]    ) {
+        extensions: IGrammarExtensions[]) {
         this._scopeRegistry = new TMScopeRegistry();
         this._injections = {};
         this._injectedEmbeddedLanguages = {};
@@ -289,12 +230,12 @@ export class TextMateService implements ITextMateService {
     private async _getOrCreateGrammarRegistry(): Promise<[any, StackElement]> {
         if (!this._grammarRegistry) {
             const grammarRegistry = new Registry({
-                getOnigLib: doLoadOnigasm,
-                loadGrammar: (scopeName: string) => {
+                onigLib: doLoadOniguruma(),
+                loadGrammar: async (scopeName: string) => {
                     const location = this._scopeRegistry.getGrammarLocation(scopeName);
                     if (!location) {
                         console.log(`No grammar found for scope ${scopeName}`);
-                        return Promise.resolve(null);
+                        return null;
                     }
                     return new Promise<IRawGrammar>((c, e) => {
                         fs.readFile(location, { encoding: 'utf8' }, (error, content) => {
@@ -342,7 +283,7 @@ export class TextMateService implements ITextMateService {
                     if (!injectedEmbeddedLanguages) {
                         this._injectedEmbeddedLanguages[injectScope] = injectedEmbeddedLanguages = [];
                     }
-                    injectedEmbeddedLanguages.push(syntax.embeddedLanguages);
+                    injectedEmbeddedLanguages.push(this._resolveEmbeddedLanguages(syntax.embeddedLanguages));
                 }
             }
         }
@@ -353,9 +294,9 @@ export class TextMateService implements ITextMateService {
         }
     }
 
-    private _resolveEmbeddedLanguages(embeddedLanguages: IEmbeddedLanguagesMap): IEmbeddedLanguagesMap2 {
+    private _resolveEmbeddedLanguages(embeddedLanguages: IEmbeddedLanguagesMap): IEmbeddedLanguagesMapNum {
         let scopes = Object.keys(embeddedLanguages);
-        let result: IEmbeddedLanguagesMap2 = Object.create(null);
+        let result: IEmbeddedLanguagesMapNum = Object.create(null);
         for (let i = 0, len = scopes.length; i < len; i++) {
             let scope = scopes[i];
             let language = embeddedLanguages[scope];
@@ -380,7 +321,7 @@ export class TextMateService implements ITextMateService {
         if (!languageRegistration) {
             // No TM grammar defined
             //throw new Error('No TM Grammar registered for this language.');
-            
+
             //修改为返回null而不是throw，翻译正常执行
             console.warn("No TM Grammar registered for this language.");
             return null;
@@ -388,7 +329,14 @@ export class TextMateService implements ITextMateService {
         let embeddedLanguages = this._resolveEmbeddedLanguages(languageRegistration.embeddedLanguages);
         let rawInjectedEmbeddedLanguages = this._injectedEmbeddedLanguages[scopeName];
         if (rawInjectedEmbeddedLanguages) {
-            let injectedEmbeddedLanguages: IEmbeddedLanguagesMap2[] = rawInjectedEmbeddedLanguages.map(this._resolveEmbeddedLanguages.bind(this));
+            // let injectedEmbeddedLanguages: IEmbeddedLanguagesMapNum[] = rawInjectedEmbeddedLanguages.map(this._resolveEmbeddedLanguages.bind(this));
+            // NOTE: rawInjectedEmbeddedLanguages is already IEmbeddedLanguagesMapNum[] because we converted it in _handleGrammarExtensionPointUser
+            // Wait, looking at _handleGrammarExtensionPointUser:
+            // injectedEmbeddedLanguages.push(this._resolveEmbeddedLanguages(syntax.embeddedLanguages));
+            // Yes, it pushes the resolved one.
+            // So rawInjectedEmbeddedLanguages IS IEmbeddedLanguagesMapNum[]
+
+            let injectedEmbeddedLanguages = rawInjectedEmbeddedLanguages;
             for (const injected of injectedEmbeddedLanguages) {
                 for (const scope of Object.keys(injected)) {
                     embeddedLanguages[scope] = injected[scope];

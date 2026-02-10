@@ -42,24 +42,24 @@
     "main": "./dist/extension",
     "contributes": {
         "chatParticipants": [
-			{
-				"id": "intellism.translate",
-				"fullName": "Comment Translate",
-				"name": "translate",
-				"description": "I can help you translate into other languages.",
-				"isSticky": true,
-				"commands": [
-					{
-						"name": "word",
-						"description": "Key words explained in detail"
-					},
+            {
+                "id": "intellism.translate",
+                "fullName": "Comment Translate",
+                "name": "translate",
+                "description": "I can help you translate into other languages.",
+                "isSticky": true,
+                "commands": [
                     {
-						"name": "var",
-						"description": "Translate description to variable naming"
-					}
-				]
-			}
-		],
+                        "name": "word",
+                        "description": "Key words explained in detail"
+                    },
+                    {
+                        "name": "var",
+                        "description": "Translate description to variable naming"
+                    }
+                ]
+            }
+        ],
         "commands": [
             {
                 "command": "commentTranslate.select",
@@ -124,13 +124,13 @@
             {
                 "command": "commentTranslate.openDocumentBrowseMode",
                 "title": "%commentTranslate.command.openDocumentBrowseMode%",
-                "icon":"$(eye-closed)",
+                "icon": "$(eye-closed)",
                 "category": "Comment Translate"
             },
             {
                 "command": "commentTranslate.closeDocumentBrowseMode",
                 "title": "%commentTranslate.command.closeDocumentBrowseMode%",
-                "icon":"$(eye)",
+                "icon": "$(eye)",
                 "category": "Comment Translate"
             },
             {
@@ -139,7 +139,6 @@
                 "category": "Comment Translate"
             }
         ],
-
         "keybindings": [
             {
                 "command": "commentTranslate.select",
@@ -150,13 +149,13 @@
                 "command": "commentTranslate.nameVariable",
                 "key": "alt+shift+n",
                 "mac": "ctrl+shift+n",
-                "when":"resourceLangId in commentTranslate.canLanguages"
+                "when": "resourceLangId in commentTranslate.canLanguages"
             },
             {
                 "command": "commentTranslate.translateForCopilotChat",
                 "key": "alt+shift+y",
                 "mac": "ctrl+shift+y",
-                "when":"github.copilot.activated"
+                "when": "github.copilot.activated"
             },
             {
                 "command": "commentTranslate.replaceSelections",
@@ -182,29 +181,28 @@
             }
         ],
         "menus": {
-            "commandPalette":[
+            "commandPalette": [
                 {
                     "command": "commentTranslate.openDocumentBrowseMode",
-                    "when":"false"
+                    "when": "false"
                 },
                 {
                     "command": "commentTranslate.closeDocumentBrowseMode",
-                    "when":"false"
+                    "when": "false"
                 },
                 {
                     "command": "commentTranslate.translateForCopilotChat",
-                    "when":"github.copilot.activated"
+                    "when": "github.copilot.activated"
                 }
             ],
             "editor/title": [
                 {
-                    "command": "commentTranslate.openDocumentBrowseMode",
-                    "when":"!commentTranslate.ultimatelyBrowseEnable && resourceLangId in commentTranslate.canLanguages",
+                    "when": "!commentTranslate.ultimatelyBrowseEnable && config.commentTranslate.hover.enabled && resourceLangId in commentTranslate.canLanguages",
                     "group": "navigation"
                 },
                 {
                     "command": "commentTranslate.closeDocumentBrowseMode",
-                    "when":"commentTranslate.ultimatelyBrowseEnable && resourceLangId in commentTranslate.canLanguages",
+                    "when": "commentTranslate.ultimatelyBrowseEnable && config.commentTranslate.hover.enabled && resourceLangId in commentTranslate.canLanguages",
                     "group": "navigation"
                 }
             ],
@@ -221,28 +219,32 @@
                 },
                 {
                     "command": "commentTranslate.nameVariable",
-                    "when":"resourceLangId in commentTranslate.canLanguages",
+                    "when": "resourceLangId in commentTranslate.canLanguages",
                     "group": "1_translate@2"
                 },
                 {
                     "command": "commentTranslate.translateForCopilotChat",
-                    "when":"github.copilot.activated",
+                    "when": "github.copilot.activated",
                     "group": "1_translate@3"
-                },{
+                },
+                {
                     "command": "commentTranslate.translateAllText",
-                    "when":"resourceLangId in commentTranslate.canLanguages",
+                    "when": "resourceLangId in commentTranslate.canLanguages",
                     "group": "2_file@1"
-                },{
+                },
+                {
                     "command": "commentTranslate.translateAllComment",
-                    "when":"resourceLangId in commentTranslate.canLanguages",
+                    "when": "resourceLangId in commentTranslate.canLanguages",
                     "group": "2_file@2"
-                },{
+                },
+                {
                     "command": "commentTranslate.selectAllText",
-                    "when":"resourceLangId in commentTranslate.canLanguages",
+                    "when": "resourceLangId in commentTranslate.canLanguages",
                     "group": "3_select@1"
-                },{
+                },
+                {
                     "command": "commentTranslate.selectAllComment",
-                    "when":"resourceLangId in commentTranslate.canLanguages",
+                    "when": "resourceLangId in commentTranslate.canLanguages",
                     "group": "3_select@2"
                 }
             ]
@@ -889,15 +891,15 @@
         "he": "^1.2.0",
         "humanize-string": "2.1.0",
         "marked": "^5.0.2",
-        "onigasm": "^2.2.5",
-        "vscode-textmate": "^4.3.0"
+        "vscode-oniguruma": "^2.0.1",
+        "vscode-textmate": "^9.3.2"
     },
     "devDependencies": {
         "@typescript-eslint/eslint-plugin": "^7.18.0",
         "@typescript-eslint/parser": "^7.18.0",
         "@types/jest": "^29.5.12",
         "@types/marked": "^4.3.0",
-        "@types/node": "^12.12.0",
+        "@types/node": "^25.2.2",
         "@types/vscode": "^1.92.0",
         "eslint": "^8.57.1",
         "file-loader": "^6.2.0",
@@ -906,7 +908,7 @@
         "reflect-metadata": "^0.2.2",
         "ts-jest": "^29.2.4",
         "ts-loader": "^9.3.1",
-        "typescript": "^4.3.5",
+        "typescript": "^5.9.3",
         "webpack": "^5.73.0",
         "webpack-cli": "^4.10.0"
     }
