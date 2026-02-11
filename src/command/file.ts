@@ -150,3 +150,19 @@ export async function quickTranslationCommand() {
     });
 
 }
+
+/**
+ * Quickly translate terminal selection for display on Github Copilot Chat
+ */
+export async function translateTerminalForCopilotChatCommand() {
+    await commands.executeCommand('workbench.action.terminal.copySelection');
+    let text = await env.clipboard.readText();
+
+    if (!text) {
+        return;
+    }
+
+    commands.executeCommand('workbench.action.chat.open', {
+        query: '@translate ' + text
+    });
+}

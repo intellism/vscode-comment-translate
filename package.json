@@ -137,6 +137,11 @@
                 "command": "commentTranslate.replaceSelections",
                 "title": "%commentTranslate.command.replaceSelections%",
                 "category": "Comment Translate"
+            },
+            {
+                "command": "commentTranslate.translateTerminalForCopilotChat",
+                "title": "%commentTranslate.command.translateForCopilotChat%",
+                "category": "Comment Translate"
             }
         ],
         "keybindings": [
@@ -156,6 +161,12 @@
                 "key": "alt+shift+y",
                 "mac": "ctrl+shift+y",
                 "when": "github.copilot.activated"
+            },
+            {
+                "command": "commentTranslate.translateTerminalForCopilotChat",
+                "key": "alt+shift+y",
+                "mac": "ctrl+shift+y",
+                "when": "terminalFocus && github.copilot.activated"
             },
             {
                 "command": "commentTranslate.replaceSelections",
@@ -193,6 +204,10 @@
                 {
                     "command": "commentTranslate.translateForCopilotChat",
                     "when": "github.copilot.activated"
+                },
+                {
+                    "command": "commentTranslate.translateTerminalForCopilotChat",
+                    "when": "terminalFocus && github.copilot.activated"
                 }
             ],
             "editor/title": [
@@ -210,6 +225,13 @@
                 {
                     "submenu": "commentTranslate",
                     "group": "1_translate@0"
+                }
+            ],
+            "terminal/context": [
+                {
+                    "command": "commentTranslate.translateTerminalForCopilotChat",
+                    "when": "github.copilot.activated",
+                    "group": "z_translation"
                 }
             ],
             "commentTranslate": [

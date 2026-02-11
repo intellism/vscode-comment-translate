@@ -1,6 +1,6 @@
 import { commands, ExtensionContext } from "vscode";
 import { changeTargetLanguage, changeTranslateSource, openOutputPannel, toggleBrowseMode, toggleEnableHover, toggleMultiLineMerge, toggleTempBrowseMode } from "./changeTargetLanguage";
-import { quickTranslationCommand, selectAllComment, selectAllText, translateAllComment, translateAllText } from "./file";
+import { quickTranslationCommand, selectAllComment, selectAllText, translateAllComment, translateAllText, translateTerminalForCopilotChatCommand } from "./file";
 import { nameVariableCommand, replaceRange, replaceSelections } from "./replaceSelections";
 import { addSelection, clipboard, selectLastHover } from "./select";
 
@@ -25,6 +25,7 @@ export function registerCommands(context: ExtensionContext) {
         commands.registerCommand('commentTranslate.closeDocumentBrowseMode', toggleTempBrowseMode), // add keyboard & add context
         commands.registerCommand('commentTranslate.changeTargetLanguage', changeTargetLanguage),
         commands.registerCommand('commentTranslate.translateForCopilotChat', quickTranslationCommand), // add context
+        commands.registerCommand('commentTranslate.translateTerminalForCopilotChat', translateTerminalForCopilotChatCommand),
         commands.registerCommand('commentTranslate.nameVariable', nameVariableCommand), // add keyboard
     );
 }
