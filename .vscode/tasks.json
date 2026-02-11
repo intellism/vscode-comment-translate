@@ -24,8 +24,8 @@
 					},
 					"background": {
 						"activeOnStart": true,
-						"beginsPattern": "webpack --mode development --watch",
-						"endsPattern": "compiled successfully"
+						"beginsPattern": "webpack",
+						"endsPattern": "compiled|emitted"
 					}
 				}
 			]
