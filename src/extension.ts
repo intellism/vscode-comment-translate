@@ -8,7 +8,6 @@ import { ExtensionContext, window, workspace } from 'vscode';
 import { registerCommands } from './command/command';
 // import { mouseToSelect } from './command/select';
 import { showHoverStatusBar, showTargetLanguageStatusBarItem } from './configuration';
-import { registerDefinition } from './languageFeature/definition';
 import { registerHover } from './languageFeature/hover';
 import { AliTranslate } from './plugin/translateAli';
 import { ITranslateRegistry } from 'comment-translate-manager';
@@ -19,6 +18,7 @@ import { registerCompletion } from './languageFeature/completion';
 import { getUserLanguage, initTranslate } from './translate/manager';
 import { registerChatParticipant } from './copilot/translate';
 import { cleanupVariableCompletionByUri } from './command/replaceSelections';
+import { conciseDecorationManager } from './languageFeature/concise';
 
 export let outputChannel = window.createOutputChannel('Comment Translate');
 
@@ -38,9 +38,9 @@ export async function activate(context: ExtensionContext) {
     createComment();
     registerCommands(context);
     registerHover(context, canLanguages);
-    registerDefinition(context, canLanguages);
     registerCompletion(context, canLanguages);
     registerChatParticipant(context);
+    conciseDecorationManager.register(context, canLanguages);
 
     context.subscriptions.push(...commentDecorationManager.showBrowseCommentTranslate(canLanguages));
     context.subscriptions.push(workspace.onDidCloseTextDocument((doc) => {

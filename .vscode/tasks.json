@@ -2,8 +2,9 @@
     "version": "2.0.0",
     "tasks": [
         {
-			"type": "npm",
-			"script": "webpack-dev",
+			"type": "shell",
+			"command": "npm run webpack-dev",
+			"label": "webpack-dev",
 			"group": {
 				"kind": "build",
 				"isDefault": true
