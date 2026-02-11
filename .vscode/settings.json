@@ -29,7 +29,7 @@
     "commentTranslate.hover.string": true,
     "commentTranslate.hover.enabled": true,
     "commentTranslate.source": "naomi233.comment-translate-transmart-transmart",
-    "commentTranslate.browse.mode": "inplace",
+    "commentTranslate.browse.mode": "contrast",
     "prettier.singleQuote": true,
     "prettier.tabWidth": 4,
 }

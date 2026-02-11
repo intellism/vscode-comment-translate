@@ -1,8 +1,8 @@
-jest.mock("onigasm/lib/onigasm.wasm", () => {
-    return {
-        default: "../../node_modules/onigasm/lib/onigasm.wasm",
-    };
-});
+// jest.mock("onigasm/lib/onigasm.wasm", () => {
+//     return {
+//         default: "../../node_modules/onigasm/lib/onigasm.wasm",
+//     };
+// });
 
 jest.mock("../../src/extension", () => {
     return {

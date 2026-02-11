@@ -9,6 +9,10 @@ export class Comment implements Disposable {
 
     private _disposable: Disposable;
     private _commentParseCache: Map<string, CommentParse> = new Map();
+    public get textMateService() {
+        return this._textMateService;
+    }
+
     constructor(private _textMateService: TextMateService) {
         // Close document or content changes, remove cache
         this._disposable = Disposable.from(

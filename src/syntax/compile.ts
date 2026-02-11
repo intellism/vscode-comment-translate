@@ -3,6 +3,7 @@ import { getConfig } from "../configuration";
 import { autoMutualTranslate, translateManager } from "../translate/manager";
 import { hasEndMark, isLowerCase, isUpperCase } from "../util/string";
 import { ICommentBlock, ICommentToken, ITranslatedText } from "../interface";
+import { isCode } from './isCode';
 
 
 
@@ -90,6 +91,18 @@ export async function compileBlock(block: ICommentBlock, languageId: string, tar
         // Regular ignore partial structure content
         let regular = getIgnoreRegular(languageId) || '[\\s|/]+';
         tokens = ignoreStringTag(tokens, regular);
+
+        // Detect which lines are code and mark them to be ignored
+        const codeTexts = tokens.map(({ text, ignoreStart = 0, ignoreEnd = 0 }) => {
+            return text.slice(ignoreStart, text.length - ignoreEnd).trim();
+        });
+        const codeFlags = await isCode(codeTexts, languageId);
+        for (let i = 0; i < tokens.length; i++) {
+            if (codeFlags[i]) {
+                tokens[i].ignoreStart = tokens[i].text.length;
+                tokens[i].ignoreEnd = 0;
+            }
+        }
 
         // Get the string to be translated.
         texts = tokens.map(({ text, ignoreStart = 0, ignoreEnd = 0 }) => {
