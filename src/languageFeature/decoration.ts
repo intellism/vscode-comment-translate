@@ -30,7 +30,7 @@ class CommentDecorationManager {
     private blockMaps: Map<string, { comment: string, commentDecoration: CommentDecoration }> = new Map();
     private currDocument: TextDocument | undefined;
     private canLanguages: string[] = [];
-    private BlackLanguage: string[] = ['markdown']; // TODO markdown还未就绪，先不处理
+    private BlackLanguage: string[] = [];
 
     private constructor() {
         this.inplace = getConfig<string>('browse.mode', 'contrast') === 'inplace';
@@ -112,6 +112,43 @@ class CommentDecorationManager {
         return this.disposables;
     }
 
+    private _getMarkdownTextBlocks(document: TextDocument, visibleRange: Range, commentBlocks: ICommentBlock[]): ICommentBlock[] {
+        const blocks: ICommentBlock[] = [];
+        const commentLineSet = new Set<number>();
+
+        commentBlocks.forEach((block) => {
+            for (let line = block.range.start.line; line <= block.range.end.line; line++) {
+                commentLineSet.add(line);
+            }
+        });
+
+        let inCodeFence = false;
+        for (let line = visibleRange.start.line; line <= visibleRange.end.line; line++) {
+            if (commentLineSet.has(line)) {
+                continue;
+            }
+
+            const text = document.lineAt(line).text;
+            const trimText = text.trim();
+
+            if (/^(```|~~~)/.test(trimText)) {
+                inCodeFence = !inCodeFence;
+                continue;
+            }
+
+            if (inCodeFence || trimText.length === 0) {
+                continue;
+            }
+
+            blocks.push({
+                range: new Range(line, 0, line, text.length),
+                comment: text
+            });
+        }
+
+        return blocks;
+    }
+
     private async showBrowseCommentTranslateImpl(maintain = true) {
         if (!this.shouldShowBrowser()) return;
 
@@ -129,25 +166,17 @@ class CommentDecorationManager {
         let blocks: ICommentBlock[] | null = null;
 
         try {
+            let comment = await createComment();
+            blocks = await comment.getAllComment(
+                this.currDocument,
+                "comment",
+                editor.visibleRanges[0]
+            );
+
             if (this.currDocument.languageId === 'markdown') {
-
-                let { start, end } = editor.visibleRanges[0];
-                for (let i = start.line; i <= end.line; i++) {
-                    let comment = this.currDocument.lineAt(i).text;
-                    if (!blocks) blocks = [];
-                    blocks.push({
-                        range: new Range(i, 0, i, comment.length),
-                        comment,
-                    });
-                }
-            } else {
-
-                let comment = await createComment();
-                blocks = await comment.getAllComment(
-                    this.currDocument,
-                    "comment",
-                    editor.visibleRanges[0]
-                );
+                const commentBlocks = blocks || [];
+                const markdownTextBlocks = this._getMarkdownTextBlocks(this.currDocument, editor.visibleRanges[0], commentBlocks);
+                blocks = commentBlocks.concat(markdownTextBlocks);
             }
         } catch (error) {
             console.error(error);
@@ -170,7 +199,7 @@ class CommentDecorationManager {
             }
             let commentDecoration: CommentDecoration;
 
-            if (this.currDocument!.languageId === 'markdown') {
+            if (this.currDocument!.languageId === 'markdown' && (!block.tokens || block.tokens.length === 0)) {
                 commentDecoration = new MarkdownDecoration(block, this.currDocument!, this.inplace);
             } else {
                 commentDecoration = new CommentDecoration(block, this.currDocument!, this.inplace)
