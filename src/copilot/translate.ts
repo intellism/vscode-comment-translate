@@ -15,12 +15,12 @@ export async function getModel(): Promise<LanguageModelChat | undefined> {
 }
 
 export interface TranslateStrategy {
-    execute(request: ChatRequest, context: ChatContext, stream: ChatResponseStream, token: CancellationToken): Promise<void>;
+    execute(request: ChatRequest, context: ChatContext, stream: ChatResponseStream, _token: CancellationToken): Promise<void>;
 }
 
 class DefaultTranslateStrategy implements TranslateStrategy {
     //@ts-ignore
-    async execute(request: ChatRequest, context: ChatContext, stream: ChatResponseStream, token: CancellationToken): Promise<void> {
+    async execute(request: ChatRequest, context: ChatContext, stream: ChatResponseStream, _token: CancellationToken): Promise<void> {
         // 默认翻译策略的实现
         let model = await getModel();
         if (!model) {
@@ -59,7 +59,7 @@ class DefaultTranslateStrategy implements TranslateStrategy {
 
 class WordTranslateStrategy implements TranslateStrategy {
     //@ts-ignore
-    async execute(request: ChatRequest, context: ChatContext, stream: ChatResponseStream, token: CancellationToken): Promise<void> {
+    async execute(request: ChatRequest, context: ChatContext, stream: ChatResponseStream, _token: CancellationToken): Promise<void> {
 
         let model = await getModel();
         if (!model) {
@@ -84,7 +84,7 @@ class WordTranslateStrategy implements TranslateStrategy {
 
 class VariableTranslateStrategy implements TranslateStrategy {
     //@ts-ignore
-    async execute(request: ChatRequest, context: ChatContext, stream: ChatResponseStream, token: CancellationToken): Promise<void> {
+    async execute(request: ChatRequest, context: ChatContext, stream: ChatResponseStream, _token: CancellationToken): Promise<void> {
 
         let model = await getModel();
         if (!model) {

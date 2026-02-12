@@ -23,6 +23,7 @@
     "commentTranslate.configuration.source": "Translate servcie source. Google, Bing, Baidu have been built-in.",
     "commentTranslate.configuration.browseEnabled": "Enable comment browse translation",
     "commentTranslate.configuration.browseMode": "Comment browse mode",
+    "commentTranslate.configuration.markdownScopeFallback": "When parsing Markdown code blocks, use TextMate scope matching as a fallback after fenced-code detection.",
     "commentTranslate.configuration.openHover": "Open hover translation",
     "commentTranslate.configuration.stringHover": "Hover translation string",
     "commentTranslate.configuration.variableHover": "Hover translation variable",

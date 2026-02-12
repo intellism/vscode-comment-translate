@@ -71,6 +71,7 @@
 * `commentTranslate.source`: 翻译服务源配置。建议通过命令完成设置。 支持插件扩展翻译服务源。 [example](https://github.com/intellism/deepl-translate)
 * `commentTranslate.maxTranslationLength`: 最长翻译长度配置。规避过长字符翻译引起收费过多问题
 * `commentTranslate.browse.enabled`: 开启/关闭项目沉浸浏览翻译功能
+* `commentTranslate.markdown.scopeFallback`: 开启/关闭 Markdown fenced code 检测后的 TextMate scope 兜底匹配
 * `commentTranslate.googleTranslate.mirror`: 解决国内服务不可访问问题。 [文档](https://hcfy.app/blog/2022/09/28/ggg#%E6%96%B9%E6%A1%88-c%E4%BD%BF%E7%94%A8%E9%95%9C%E5%83%8F%E5%9C%B0%E5%9D%80%E6%9C%80%E7%AE%80%E5%8D%95)
 
 ## 支持我们

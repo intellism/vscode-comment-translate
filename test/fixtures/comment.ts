@@ -33,6 +33,6 @@ export interface Command {
 }
 
 let text = 'hello world';
-let mText = `多行文本
+let _mText = `多行文本
 Type Definition for ${text} Visual Studio Code 1.91 Extension API
 See https://code.visualstudio.com/api for more information`
