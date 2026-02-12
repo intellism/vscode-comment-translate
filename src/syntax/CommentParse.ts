@@ -17,14 +17,13 @@ function findLeadingWhitespaceOrUnpairedIndex(str: string): number {
 export function isComment(scopes: string[]) {
     //评论的token标记
     const arr = [
-        'punctuation.definition.comment',
-        'comment.block',
-        'comment.line'
+        /^punctuation\.definition\.comment/,
+        /^comment\..*/
     ];
 
     return scopes.some(scope => {
         return arr.some(item => {
-            return scope.indexOf(item) === 0;
+            return item.test(scope);
         });
     })
 }
