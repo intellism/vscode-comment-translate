@@ -22,6 +22,18 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ### Change
 * i18n 支持更多语言。 代码内支持
+* 沉浸式浏览渲染调度优化：滚动/编辑场景采用更平滑的刷新策略，降低闪烁与无效刷新
+* Markdown 段落切分与前缀识别增强（标题、引用、列表、任务列表、表格分隔线）
+* editor title 菜单显示条件与 browse 实际状态对齐
+
+### Fixed
+* 修复 Markdown 文档浏览翻译链路在部分语法场景下中断的问题（`invalid pattern in look-behind`）
+* 修复 `toggleDocumentBrowseMode` 在 Markdown 场景下偶发不生效问题
+* 修复 browse 与 hover 状态耦合导致的开关行为不一致
+
+### Refactor
+* 重构 Markdown browse 主路径，优先走文档段落扫描；TextMate scope fallback 失败时自动降级，保证主功能可用
+* 调整注释翻译策略，忽略无效 token 参数并清理部分冗余状态字段
 
 ## [3.0.0] 2024-9-17
 ### Add
