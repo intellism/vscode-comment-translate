@@ -2,7 +2,7 @@
     "name": "comment-translate",
     "displayName": "%commentTranslate.displayName%",
     "description": "%commentTranslate.description%",
-    "version": "3.0.0",
+    "version": "3.1.0",
     "publisher": "intellsmi",
     "author": {
         "name": "Zheng MaoWei",
@@ -199,12 +199,12 @@
             "editor/title": [
                 {
                     "command": "commentTranslate.openDocumentBrowseMode",
-                    "when":"!commentTranslate.ultimatelyBrowseEnable && config.commentTranslate.hover.enabled && resourceLangId in commentTranslate.canLanguages",
+                    "when":"!commentTranslate.ultimatelyBrowseEnable && resourceLangId in commentTranslate.canLanguages",
                     "group": "navigation"
                 },
                 {
                     "command": "commentTranslate.closeDocumentBrowseMode",
-                    "when":"commentTranslate.ultimatelyBrowseEnable && config.commentTranslate.hover.enabled && resourceLangId in commentTranslate.canLanguages",
+                    "when":"commentTranslate.ultimatelyBrowseEnable && resourceLangId in commentTranslate.canLanguages",
                     "group": "navigation"
                 }
             ],
