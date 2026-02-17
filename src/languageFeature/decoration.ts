@@ -414,6 +414,18 @@ class CommentDecorationManager {
         }
 
         if (maintain) {
+            const currentVisibleRange = editor.visibleRanges[0];
+            this.blockMaps.forEach((value, key) => {
+                if (newBlockMaps.has(key)) {
+                    return;
+                }
+
+                if (value.commentDecoration.block.range.intersection(currentVisibleRange)) {
+                    value.commentDecoration.dispose();
+                    this.blockMaps.delete(key);
+                }
+            });
+
             newBlockMaps.forEach((value, key) => {
                 this.blockMaps.set(key, value);
             });
