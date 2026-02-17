@@ -12,6 +12,57 @@ import { TranSmartTranslate } from "./TranSmartTranslate";
 export let translateManager: TranslateManager;
 export let translateExtensionProvider: TranslateExtensionProvider
 
+const sessionTranslateCache = new Map<string, string>();
+const pendingTranslateTasks = new Map<string, Promise<string>>();
+const MAX_SESSION_CACHE_SIZE = 1000;
+
+function trimSessionCache() {
+    if (sessionTranslateCache.size <= MAX_SESSION_CACHE_SIZE) {
+        return;
+    }
+
+    const removeCount = sessionTranslateCache.size - MAX_SESSION_CACHE_SIZE;
+    let removed = 0;
+    for (const key of sessionTranslateCache.keys()) {
+        sessionTranslateCache.delete(key);
+        removed += 1;
+        if (removed >= removeCount) {
+            break;
+        }
+    }
+}
+
+function buildTranslateCacheKey(text: string, opts?: ITranslateOptions) {
+    const sourceProvider = getConfig<string>('source', '');
+    const from = opts?.from || translateManager.opts.from || 'auto';
+    const to = opts?.to || translateManager.opts.to || 'en';
+    return `${sourceProvider}|${from}|${to}|${text}`;
+}
+
+export async function cachedTranslate(text: string, opts?: ITranslateOptions): Promise<string> {
+    const key = buildTranslateCacheKey(text, opts);
+    if (sessionTranslateCache.has(key)) {
+        return sessionTranslateCache.get(key) || '';
+    }
+
+    if (pendingTranslateTasks.has(key)) {
+        return pendingTranslateTasks.get(key)!;
+    }
+
+    const task = translateManager.translate(text, opts)
+        .then((result) => {
+            sessionTranslateCache.set(key, result);
+            trimSessionCache();
+            return result;
+        })
+        .finally(() => {
+            pendingTranslateTasks.delete(key);
+        });
+
+    pendingTranslateTasks.set(key, task);
+    return task;
+}
+
 export function initTranslate(context: ExtensionContext) {
 
     let userLanguage = getUserLanguage();
@@ -24,9 +75,17 @@ export function initTranslate(context: ExtensionContext) {
     });
     onConfigChange('targetLanguage', (targetLanguage: string) => {
         translateManager.opts.to = targetLanguage;
+        sessionTranslateCache.clear();
+        pendingTranslateTasks.clear();
     });
     onConfigChange('sourceLanguage', (sourceLanguage: string) => {
         translateManager.opts.from = sourceLanguage;
+        sessionTranslateCache.clear();
+        pendingTranslateTasks.clear();
+    });
+    onConfigChange('source', () => {
+        sessionTranslateCache.clear();
+        pendingTranslateTasks.clear();
     });
 
     const buildInTranslate: ITranslateConfig[] = [{
@@ -72,7 +131,7 @@ export async function autoMutualTranslate(text: string, opts?: ITranslateOptions
         // In the case of automatic detection, the target language for translation cannot be auto
         if (targetLanguage === 'auto') targetLanguage = 'en';
     }
-    return translateManager.translate(text, { from: opts?.from, to: targetLanguage });
+    return cachedTranslate(text, { from: opts?.from, to: targetLanguage });
 }
 
 

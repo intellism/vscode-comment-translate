@@ -16,7 +16,7 @@ import { getConfig, onConfigChange } from "../configuration";
 import { checkScopeFunction, ICommentBlock, ICommentToken, ITranslatedText } from "../interface";
 import { debounce } from "../util/short-live";
 import { getTextLength } from "../util/string";
-import { translateManager } from "../translate/manager";
+import { cachedTranslate, translateManager } from "../translate/manager";
 import { createComment } from "../syntax/Comment";
 
 interface IFenceState {
@@ -735,7 +735,7 @@ class MarkdownDecoration extends CommentDecoration {
 
         const sourceText = texts.join('\n');
         let translatedText = sourceText.length > 0
-            ? await translateManager.translate(sourceText, { to: translateManager.opts.to || 'en' })
+            ? await cachedTranslate(sourceText, { to: translateManager.opts.to || 'en' })
             : '';
         const targets = this._normalizeTargets(translatedText.split('\n'), lines.length);
 
