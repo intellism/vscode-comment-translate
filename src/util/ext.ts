@@ -64,6 +64,10 @@ export async function getCanLanguageIds() {
     let BlackLanguage: string[] = ['log', 'Log', 'code-runner-output'];
     canLanguages = canLanguages.filter((v) => BlackLanguage.indexOf(v) < 0);
 
+    if (!canLanguages.includes('markdown')) {
+        canLanguages.push('markdown');
+    }
+
     commands.executeCommand('setContext', 'commentTranslate.canLanguages', canLanguages);
     return canLanguages;
 }

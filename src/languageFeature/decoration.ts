@@ -23,7 +23,7 @@ interface IFenceState {
     marker: '`' | '~';
     len: number;
 }
-
+// helper interface for markdown code fence scanning result
 interface IMarkdownFenceScanResult {
     occupiedLines: Set<number>;
     inFenceAtRangeStart: boolean;
@@ -35,16 +35,19 @@ class CommentDecorationManager {
     private tempSet = new Set<string>();
     private inplace: boolean;
     private browseEnable: boolean;
-    private hoverEnable: boolean;
     private blockMaps: Map<string, { comment: string, commentDecoration: CommentDecoration }> = new Map();
     private currDocument: TextDocument | undefined;
     private canLanguages: string[] = [];
     private BlackLanguage: string[] = [];
+    private browseTimer: ReturnType<typeof setTimeout> | undefined;
+    private browseRequestSeq = 0;
+    private avgRenderCost = 0;
+    private lastSelection: Selection | undefined;
+    private markdownScopeFallbackDisabled = false;
 
     private constructor() {
         this.inplace = getConfig<string>('browse.mode', 'contrast') === 'inplace';
         this.browseEnable = getConfig<boolean>('browse.enabled', true);
-        this.hoverEnable = getConfig<boolean>('hover.enabled', true);
     }
 
     public static getInstance(): CommentDecorationManager {
@@ -69,16 +72,20 @@ class CommentDecorationManager {
         let uri = window.activeTextEditor?.document.uri.toString();
         let docTemporarilyToggled = uri && this.tempSet.has(uri);
         let docBrowseEnabled = docTemporarilyToggled ? !this.browseEnable : this.browseEnable;
-        let ultimatelyBrowseEnable = docBrowseEnabled && this.hoverEnable;
+        let ultimatelyBrowseEnable = docBrowseEnabled;
         commands.executeCommand('setContext', 'commentTranslate.ultimatelyBrowseEnable', ultimatelyBrowseEnable);
         return ultimatelyBrowseEnable;
     }
 
     public showBrowseCommentTranslate(languages: string[]) {
         this.canLanguages = languages.filter((v) => this.BlackLanguage.indexOf(v) < 0);
-        window.onDidChangeTextEditorVisibleRanges(debounce(this.showBrowseCommentTranslateImpl.bind(this)), null, this.disposables);
+        window.onDidChangeTextEditorVisibleRanges(() => {
+            this.scheduleBrowseRefresh('scroll', true);
+        }, null, this.disposables);
         window.onDidChangeTextEditorSelection(debounce(this.updateCommentDecoration.bind(this)), null, this.disposables);
-        window.onDidChangeActiveTextEditor(debounce(this.resetCommentDecoration.bind(this)), null, this.disposables);
+        window.onDidChangeActiveTextEditor(() => {
+            this.resetCommentDecoration();
+        }, null, this.disposables);
         workspace.onDidCloseTextDocument((doc) => {
             let uriStr = doc.uri.toString();
             if (this.tempSet.has(uriStr)) {
@@ -97,19 +104,10 @@ class CommentDecorationManager {
             this.resetCommentDecoration();
         }, null, this.disposables);
 
-        onConfigChange('hover.enabled', (value: boolean) => {
-            this.hoverEnable = value;
-            this.resetCommentDecoration();
-        }, null, this.disposables);
-
-        let timer: any;
         workspace.onDidChangeTextDocument(
             (e) => {
                 if (e.document === this.currDocument) {
-                    clearTimeout(timer);
-                    timer = setTimeout(() => {
-                        this.showBrowseCommentTranslateImpl(false);
-                    }, 80);
+                    this.scheduleBrowseRefresh('edit', false);
                 }
             },
             null,
@@ -119,6 +117,24 @@ class CommentDecorationManager {
         this.showBrowseCommentTranslateImpl();
 
         return this.disposables;
+    }
+
+    private scheduleBrowseRefresh(reason: 'scroll' | 'edit' | 'active', maintain: boolean) {
+        if (this.browseTimer) {
+            clearTimeout(this.browseTimer);
+        }
+
+        let delay = reason === 'edit' ? 110 : 70;
+        if (this.avgRenderCost > 700) {
+            delay += 80;
+        }
+        if (this.avgRenderCost > 1300) {
+            delay += 120;
+        }
+
+        this.browseTimer = setTimeout(() => {
+            this.showBrowseCommentTranslateImpl(maintain);
+        }, delay);
     }
 
     private _parseFence(trimText: string): IFenceState | null {
@@ -263,6 +279,11 @@ class CommentDecorationManager {
                 continue;
             }
 
+            if (this._isMarkdownStructureBoundary(trimText)) {
+                pushParagraph();
+                continue;
+            }
+
             if (paragraphStart < 0) {
                 paragraphStart = line;
             }
@@ -274,7 +295,28 @@ class CommentDecorationManager {
         return blocks;
     }
 
+    private _isMarkdownStructureBoundary(trimText: string): boolean {
+        if (/^(?:[-*_]\s*){3,}$/.test(trimText)) {
+            return true;
+        }
+
+        const tableSeparator = /^\|?\s*:?-{3,}:?\s*(?:\|\s*:?-{3,}:?\s*)+\|?$/;
+        return tableSeparator.test(trimText);
+    }
+
+    private updateAvgRenderCost(cost: number) {
+        if (cost <= 0) {
+            return;
+        }
+        if (this.avgRenderCost === 0) {
+            this.avgRenderCost = cost;
+            return;
+        }
+        this.avgRenderCost = this.avgRenderCost * 0.75 + cost * 0.25;
+    }
+
     private async showBrowseCommentTranslateImpl(maintain = true) {
+        const startAt = Date.now();
         if (!this.shouldShowBrowser()) return;
 
         let editor = window.activeTextEditor;
@@ -288,49 +330,49 @@ class CommentDecorationManager {
             return;
         }
 
+        const renderSeq = ++this.browseRequestSeq;
+
         let blocks: ICommentBlock[] | null = null;
 
         try {
-            let comment = await createComment();
-            blocks = await comment.getAllComment(
-                this.currDocument,
-                "comment",
-                editor.visibleRanges[0]
-            );
-
             if (this.currDocument.languageId === 'markdown') {
-                const commentBlocks = blocks || [];
                 const occupiedLineSet = new Set<number>();
-                commentBlocks.forEach((block) => {
-                    for (let line = block.range.start.line; line <= block.range.end.line; line++) {
-                        occupiedLineSet.add(line);
-                    }
-                });
-
                 const fenceScan = this._scanMarkdownFenceLines(this.currDocument, editor.visibleRanges[0]);
                 fenceScan.occupiedLines.forEach((line) => occupiedLineSet.add(line));
 
                 const scopeFallback = getConfig<boolean>('markdown.scopeFallback', true);
-                if (scopeFallback) {
-                    const codeBlocks = await comment.getAllScopeBlocks(
-                        this.currDocument,
-                        this._isMarkdownCodeScope,
-                        editor.visibleRanges[0]
-                    ) || [];
-                    codeBlocks.forEach((block) => {
-                        for (let line = block.range.start.line; line <= block.range.end.line; line++) {
-                            occupiedLineSet.add(line);
-                        }
-                    });
+                if (scopeFallback && !this.markdownScopeFallbackDisabled) {
+                    try {
+                        const comment = await createComment();
+                        const codeBlocks = await comment.getAllScopeBlocks(
+                            this.currDocument,
+                            this._isMarkdownCodeScope,
+                            editor.visibleRanges[0]
+                        ) || [];
+                        codeBlocks.forEach((block) => {
+                            for (let line = block.range.start.line; line <= block.range.end.line; line++) {
+                                occupiedLineSet.add(line);
+                            }
+                        });
+                    } catch (error) {
+                        this.markdownScopeFallbackDisabled = true;
+                        console.warn('[comment-translate] markdown.scopeFallback disabled for current session due to invalid grammar regex.', error);
+                    }
                 }
 
-                const markdownTextBlocks = this._getMarkdownTextBlocks(
+                blocks = this._getMarkdownTextBlocks(
                     this.currDocument,
                     editor.visibleRanges[0],
                     occupiedLineSet,
                     fenceScan.inFenceAtRangeStart
                 );
-                blocks = commentBlocks.concat(markdownTextBlocks);
+            } else {
+                let comment = await createComment();
+                blocks = await comment.getAllComment(
+                    this.currDocument,
+                    "comment",
+                    editor.visibleRanges[0]
+                );
             }
         } catch (error) {
             console.error(error);
@@ -363,6 +405,14 @@ class CommentDecorationManager {
             return commentDecoration;
         });
 
+        if (renderSeq !== this.browseRequestSeq || this.currDocument !== editor.document) {
+            newBlockMaps.forEach((value) => {
+                value.commentDecoration.dispose();
+            });
+            this.updateAvgRenderCost(Date.now() - startAt);
+            return;
+        }
+
         if (maintain) {
             newBlockMaps.forEach((value, key) => {
                 this.blockMaps.set(key, value);
@@ -375,15 +425,40 @@ class CommentDecorationManager {
             });
             this.blockMaps = newBlockMaps;
         }
+
+        this.updateAvgRenderCost(Date.now() - startAt);
     }
 
     private updateCommentDecoration() {
+        const editor = window.activeTextEditor;
+        const currentSelection = editor?.selection;
+        const previousSelection = this.lastSelection;
+        this.lastSelection = currentSelection;
+
+        if (!currentSelection) {
+            return;
+        }
+
         this.blockMaps.forEach((value) => {
-            value.commentDecoration.reflash();
+            if (!this.inplace) {
+                value.commentDecoration.reflash();
+                return;
+            }
+
+            const range = value.commentDecoration.block.range;
+            const hitCurrent = !!range.intersection(currentSelection);
+            const hitPrevious = previousSelection ? !!range.intersection(previousSelection) : false;
+            if (hitCurrent || hitPrevious) {
+                value.commentDecoration.reflash();
+            }
         });
     }
 
     private resetCommentDecoration() {
+        if (this.browseTimer) {
+            clearTimeout(this.browseTimer);
+            this.browseTimer = undefined;
+        }
         this.blockMaps.forEach((value) => {
             value.commentDecoration.dispose();
         });
@@ -573,8 +648,45 @@ class MarkdownDecoration extends CommentDecoration {
     }
 
     private _getMarkdownPrefixLen(line: string): number {
-        const prefix = line.match(/^\s{0,3}(?:#{1,6}\s+|>\s+|[-*+]\s+|\d+[.)]\s+)/);
-        return prefix ? prefix[0].length : 0;
+        let remaining = line;
+        let consumed = 0;
+
+        const leadingSpace = remaining.match(/^\s{0,3}/);
+        if (leadingSpace) {
+            consumed += leadingSpace[0].length;
+            remaining = remaining.slice(leadingSpace[0].length);
+        }
+
+        while (remaining.startsWith('>')) {
+            const quote = remaining.match(/^>\s?/);
+            if (!quote) {
+                break;
+            }
+            consumed += quote[0].length;
+            remaining = remaining.slice(quote[0].length);
+        }
+
+        const heading = remaining.match(/^#{1,6}\s+/);
+        if (heading) {
+            return consumed + heading[0].length;
+        }
+
+        const listTask = remaining.match(/^[-*+]\s+\[[ xX]\]\s+/);
+        if (listTask) {
+            return consumed + listTask[0].length;
+        }
+
+        const list = remaining.match(/^[-*+]\s+/);
+        if (list) {
+            return consumed + list[0].length;
+        }
+
+        const orderedList = remaining.match(/^\d+[.)]\s+/);
+        if (orderedList) {
+            return consumed + orderedList[0].length;
+        }
+
+        return consumed;
     }
 
     private _normalizeTargets(targetLines: string[], lineCount: number): string[] {
