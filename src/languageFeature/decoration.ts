@@ -364,8 +364,13 @@ class CommentDecorationManager {
                             }
                         });
                     } catch (error) {
-                        this.markdownScopeFallbackDisabled = true;
-                        console.warn('[comment-translate] markdown.scopeFallback disabled for current session due to invalid grammar regex.', error);
+                        const err = error as Error;
+                        if (err && typeof err.message === 'string' && /look.?behind/i.test(err.message)) {
+                            this.markdownScopeFallbackDisabled = true;
+                            console.warn('[comment-translate] markdown.scopeFallback disabled for current session due to invalid grammar regex.', error);
+                        } else {
+                            console.warn('[comment-translate] markdown.scopeFallback encountered unexpected error; leaving fallback enabled.', error);
+                        }
                     }
                 }
 
