@@ -198,6 +198,13 @@ class CommentDecorationManager {
         return scopes.some((scope) => rules.some((rule) => rule.test(scope)));
     };
 
+    private _getExpandedVisibleRange(document: TextDocument, visibleRange: Range, paddingLines: number = 120) {
+        const startLine = Math.max(0, visibleRange.start.line - paddingLines);
+        const endLine = Math.min(document.lineCount - 1, visibleRange.end.line + paddingLines);
+        const endLineText = document.lineAt(endLine).text;
+        return new Range(startLine, 0, endLine, endLineText.length);
+    }
+
     private _scanMarkdownFenceLines(document: TextDocument, visibleRange: Range): IMarkdownFenceScanResult {
         let fence = this._getFenceStateBeforeLine(document, visibleRange.start.line);
         const occupiedLines = new Set<number>();
@@ -335,9 +342,11 @@ class CommentDecorationManager {
         let blocks: ICommentBlock[] | null = null;
 
         try {
+            const visibleRange = editor.visibleRanges[0];
             if (this.currDocument.languageId === 'markdown') {
+                const parseRange = this._getExpandedVisibleRange(this.currDocument, visibleRange);
                 const occupiedLineSet = new Set<number>();
-                const fenceScan = this._scanMarkdownFenceLines(this.currDocument, editor.visibleRanges[0]);
+                const fenceScan = this._scanMarkdownFenceLines(this.currDocument, parseRange);
                 fenceScan.occupiedLines.forEach((line) => occupiedLineSet.add(line));
 
                 const scopeFallback = getConfig<boolean>('markdown.scopeFallback', true);
@@ -347,7 +356,7 @@ class CommentDecorationManager {
                         const codeBlocks = await comment.getAllScopeBlocks(
                             this.currDocument,
                             this._isMarkdownCodeScope,
-                            editor.visibleRanges[0]
+                            parseRange
                         ) || [];
                         codeBlocks.forEach((block) => {
                             for (let line = block.range.start.line; line <= block.range.end.line; line++) {
@@ -362,16 +371,18 @@ class CommentDecorationManager {
 
                 blocks = this._getMarkdownTextBlocks(
                     this.currDocument,
-                    editor.visibleRanges[0],
+                    parseRange,
                     occupiedLineSet,
                     fenceScan.inFenceAtRangeStart
                 );
+
+                blocks = blocks.filter((block) => !!block.range.intersection(visibleRange));
             } else {
                 let comment = await createComment();
                 blocks = await comment.getAllComment(
                     this.currDocument,
                     "comment",
-                    editor.visibleRanges[0]
+                    visibleRange
                 );
             }
         } catch (error) {
