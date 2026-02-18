@@ -424,14 +424,22 @@ class CommentDecorationManager {
             return;
         }
 
-        if (maintain) {
-            const currentVisibleRange = editor.visibleRanges[0];
+        if (maintain && editor.visibleRanges.length > 0) {
+            const primaryVisibleRange = editor.visibleRanges[0];
+            const bufferLines = 200;
+            const document = editor.document;
+            const startLine = Math.max(0, primaryVisibleRange.start.line - bufferLines);
+            const endLine = Math.min(document.lineCount - 1, primaryVisibleRange.end.line + bufferLines);
+            const endChar = document.lineAt(endLine).range.end.character;
+            const extendedVisibleRange = new Range(startLine, 0, endLine, endChar);
+
             this.blockMaps.forEach((value, key) => {
                 if (newBlockMaps.has(key)) {
                     return;
                 }
 
-                if (value.commentDecoration.block.range.intersection(currentVisibleRange)) {
+                // Dispose entries that are completely outside the buffered visible range.
+                if (!value.commentDecoration.block.range.intersection(extendedVisibleRange)) {
                     value.commentDecoration.dispose();
                     this.blockMaps.delete(key);
                 }
