@@ -29,6 +29,10 @@ interface IMarkdownFenceScanResult {
     inFenceAtRangeStart: boolean;
 }
 
+interface ITextBlockOptions {
+    isBoundary?: (trimText: string) => boolean;
+}
+
 class CommentDecorationManager {
     private static instance: CommentDecorationManager;
     private disposables: Disposable[] = [];
@@ -311,6 +315,78 @@ class CommentDecorationManager {
         return tableSeparator.test(trimText);
     }
 
+    private _isRstStructureBoundary(trimText: string): boolean {
+        if (!trimText) {
+            return false;
+        }
+
+        if (/^([-=*~`^"'+#])\1{2,}$/.test(trimText)) {
+            return true;
+        }
+
+        if (/^\.\.\s+/.test(trimText)) {
+            return true;
+        }
+
+        if (/^[:\w-]+:\s+/.test(trimText)) {
+            return true;
+        }
+
+        if (/^[-*+]\s+/.test(trimText) || /^\d+[.)]\s+/.test(trimText)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    private _getParagraphTextBlocks(document: TextDocument, range: Range, options: ITextBlockOptions = {}): ICommentBlock[] {
+        const blocks: ICommentBlock[] = [];
+        let paragraphStart = -1;
+        let paragraphTexts: string[] = [];
+        const isBoundary = options.isBoundary;
+
+        const pushParagraph = () => {
+            if (paragraphStart < 0 || paragraphTexts.length === 0) {
+                paragraphStart = -1;
+                paragraphTexts = [];
+                return;
+            }
+
+            const endLine = paragraphStart + paragraphTexts.length - 1;
+            const endLineText = document.lineAt(endLine).text;
+            blocks.push({
+                range: new Range(paragraphStart, 0, endLine, endLineText.length),
+                comment: paragraphTexts.join('\n')
+            });
+
+            paragraphStart = -1;
+            paragraphTexts = [];
+        };
+
+        for (let line = range.start.line; line <= range.end.line; line++) {
+            const text = document.lineAt(line).text;
+            const trimText = text.trimStart();
+
+            if (trimText.trim().length === 0) {
+                pushParagraph();
+                continue;
+            }
+
+            if (isBoundary && isBoundary(trimText)) {
+                pushParagraph();
+                continue;
+            }
+
+            if (paragraphStart < 0) {
+                paragraphStart = line;
+            }
+            paragraphTexts.push(text);
+        }
+
+        pushParagraph();
+        return blocks;
+    }
+
     private updateAvgRenderCost(cost: number) {
         if (cost <= 0) {
             return;
@@ -382,6 +458,15 @@ class CommentDecorationManager {
                 );
 
                 blocks = blocks.filter((block) => !!block.range.intersection(visibleRange));
+            } else if (this.currDocument.languageId === 'restructuredtext' || this.currDocument.languageId === 'rst') {
+                const parseRange = this._getExpandedVisibleRange(this.currDocument, visibleRange);
+                blocks = this._getParagraphTextBlocks(this.currDocument, parseRange, {
+                    isBoundary: this._isRstStructureBoundary.bind(this)
+                }).filter((block) => !!block.range.intersection(visibleRange));
+            } else if (this.currDocument.languageId === 'plaintext' || this.currDocument.languageId === 'text') {
+                const parseRange = this._getExpandedVisibleRange(this.currDocument, visibleRange);
+                blocks = this._getParagraphTextBlocks(this.currDocument, parseRange)
+                    .filter((block) => !!block.range.intersection(visibleRange));
             } else {
                 let comment = await createComment();
                 blocks = await comment.getAllComment(
@@ -538,7 +623,47 @@ class CommentDecoration {
 
     protected async _compile(): Promise<ITranslatedText | null> {
         let { tokens } = this._block;
-        if (!tokens || tokens.length === 0) return null;
+        if (!tokens || tokens.length === 0) {
+            const lines = this._block.comment.split('\n');
+            const fallbackTokens: ICommentToken[] = lines.map((line) => {
+                const leadingWhitespace = line.match(/^\s*/)?.[0] || '';
+                return {
+                    text: line,
+                    ignoreStart: leadingWhitespace.length,
+                    ignoreEnd: 0,
+                };
+            });
+
+            const texts = fallbackTokens.map(({ text, ignoreStart = 0, ignoreEnd = 0 }) => {
+                return text.slice(ignoreStart, text.length - ignoreEnd).trim();
+            });
+
+            const sourceText = texts.join('\n');
+            const translatedText = sourceText.length > 0
+                ? await cachedTranslate(sourceText, { to: translateManager.opts.to || 'en' })
+                : '';
+
+            const targetLines = translatedText.split('\n');
+            let targets: string[];
+            if (targetLines.length === lines.length) {
+                targets = targetLines;
+            } else if (targetLines.length === 1) {
+                targets = [targetLines[0], ...new Array(Math.max(lines.length - 1, 0)).fill('')];
+            } else {
+                const merged = targetLines.join(' ').trim();
+                targets = [merged, ...new Array(Math.max(lines.length - 1, 0)).fill('')];
+            }
+
+            this._block.tokens = fallbackTokens;
+
+            return {
+                translatedText,
+                targets,
+                texts,
+                combined: [],
+                translateLink: ''
+            };
+        }
         return compileBlock(this._block, this._currDocument.languageId);
     }
 
