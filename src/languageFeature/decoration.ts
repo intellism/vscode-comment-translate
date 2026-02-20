@@ -332,10 +332,6 @@ class CommentDecorationManager {
             return true;
         }
 
-        if (/^[-*+]\s+/.test(trimText) || /^\d+[.)]\s+/.test(trimText)) {
-            return true;
-        }
-
         return false;
     }
 
