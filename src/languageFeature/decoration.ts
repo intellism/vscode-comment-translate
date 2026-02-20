@@ -617,15 +617,39 @@ class CommentDecoration {
         return false;
     }
 
+    private _getRstPrefixLen(line: string): number {
+        let remaining = line;
+        let consumed = 0;
+
+        const leadingWhitespace = remaining.match(/^\s*/)?.[0] || '';
+        consumed += leadingWhitespace.length;
+        remaining = remaining.slice(leadingWhitespace.length);
+
+        const bulletList = remaining.match(/^[-*+]\s+/);
+        if (bulletList) {
+            return consumed + bulletList[0].length;
+        }
+
+        const orderedList = remaining.match(/^\d+[.)]\s+/);
+        if (orderedList) {
+            return consumed + orderedList[0].length;
+        }
+
+        return consumed;
+    }
+
     protected async _compile(): Promise<ITranslatedText | null> {
         let { tokens } = this._block;
         if (!tokens || tokens.length === 0) {
             const lines = this._block.comment.split('\n');
+            const isRst = this._currDocument.languageId === 'restructuredtext' || this._currDocument.languageId === 'rst';
             const fallbackTokens: ICommentToken[] = lines.map((line) => {
-                const leadingWhitespace = line.match(/^\s*/)?.[0] || '';
+                const ignoreStart = isRst
+                    ? this._getRstPrefixLen(line)
+                    : (line.match(/^\s*/)?.[0] || '').length;
                 return {
                     text: line,
-                    ignoreStart: leadingWhitespace.length,
+                    ignoreStart,
                     ignoreEnd: 0,
                 };
             });
@@ -665,12 +689,21 @@ class CommentDecoration {
 
     // Translate commentblock text and set decorative content
     async translate() {
-        let result = await this._compile();
-        let { tokens, range } = this._block;
-        if (!result) return;
-        if (!tokens || tokens.length === 0) return null;
+        let result: ITranslatedText | null = null;
+        try {
+            result = await this._compile();
+        } catch (error) {
+            console.error('[comment-translate] translate compile failed:', error);
+        }
 
+        let { tokens, range } = this._block;
         this._loading = false;
+
+        if (!result || !tokens || tokens.length === 0) {
+            this.reflash();
+            return null;
+        }
+
         let { targets, texts, combined, translatedText } = result;
 
         let targetIndex = 0;
@@ -704,7 +737,8 @@ class CommentDecoration {
 
             if (targetText && targetText !== originText) {
                 // Read text here will be more than blocks and need to be read throughout the document
-                let showLineLen = getTextLength(this._currDocument!.lineAt(range.start.line + combinedIndex + 1).text);
+                const showLine = Math.min(this._currDocument.lineCount - 1, range.start.line + combinedIndex + 1);
+                let showLineLen = getTextLength(this._currDocument!.lineAt(showLine).text);
                 // let offsetText = texts[combinedIndex].substring(0, offset + ignoreStart);
                 let offsetText = this._currDocument!.lineAt(range.start.line + combinedIndex).text.substring(0, offset + ignoreStart);
 
