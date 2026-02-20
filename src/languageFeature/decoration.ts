@@ -34,6 +34,7 @@ interface ITextBlockOptions {
 }
 
 class CommentDecorationManager {
+    private static readonly HIDDEN_DOC_CACHE_LIMIT = 2;
     private static instance: CommentDecorationManager;
     private disposables: Disposable[] = [];
     private tempSet = new Set<string>();
@@ -48,6 +49,7 @@ class CommentDecorationManager {
     private avgRenderCost = 0;
     private lastSelection: Selection | undefined;
     private markdownScopeFallbackDisabled = false;
+    private documentAccessAt = new Map<string, number>();
 
     private constructor() {
         this.inplace = getConfig<string>('browse.mode', 'contrast') === 'inplace';
@@ -69,7 +71,59 @@ class CommentDecorationManager {
         } else {
             this.tempSet.add(uriStr);
         }
+        this.touchDocument(uriStr);
         this.resetCommentDecoration();
+    }
+
+    private touchDocument(uriStr: string) {
+        this.documentAccessAt.set(uriStr, Date.now());
+    }
+
+    private getVisibleDocumentUris(): Set<string> {
+        const uris = new Set<string>();
+        window.visibleTextEditors.forEach((editor) => {
+            uris.add(editor.document.uri.toString());
+        });
+        return uris;
+    }
+
+    private disposeBlocksByUri(uriStr: string) {
+        const prefix = `${uriStr}~`;
+        this.blockMaps.forEach((value, key) => {
+            if (!key.startsWith(prefix)) {
+                return;
+            }
+            value.commentDecoration.dispose();
+            this.blockMaps.delete(key);
+        });
+    }
+
+    private pruneHiddenDocumentCaches(currentUriStr?: string) {
+        const visibleUris = this.getVisibleDocumentUris();
+        if (currentUriStr) {
+            visibleUris.add(currentUriStr);
+        }
+
+        const hiddenCandidates = Array.from(this.documentAccessAt.entries())
+            .filter(([uri]) => !visibleUris.has(uri))
+            .sort((a, b) => b[1] - a[1]);
+
+        const retainedHidden = hiddenCandidates.slice(0, CommentDecorationManager.HIDDEN_DOC_CACHE_LIMIT);
+        const retainedUris = new Set(retainedHidden.map(([uri]) => uri));
+
+        hiddenCandidates.slice(CommentDecorationManager.HIDDEN_DOC_CACHE_LIMIT).forEach(([uri]) => {
+            this.disposeBlocksByUri(uri);
+            this.documentAccessAt.delete(uri);
+        });
+
+        this.blockMaps.forEach((value, key) => {
+            const uri = key.split('~')[0];
+            if (visibleUris.has(uri) || retainedUris.has(uri)) {
+                return;
+            }
+            value.commentDecoration.dispose();
+            this.blockMaps.delete(key);
+        });
     }
 
     private shouldShowBrowser() {
@@ -88,13 +142,34 @@ class CommentDecorationManager {
         }, null, this.disposables);
         window.onDidChangeTextEditorSelection(debounce(this.updateCommentDecoration.bind(this)), null, this.disposables);
         window.onDidChangeActiveTextEditor(() => {
-            this.resetCommentDecoration();
+            const editor = window.activeTextEditor;
+            if (!editor) {
+                return;
+            }
+
+            const uriStr = editor.document.uri.toString();
+            this.touchDocument(uriStr);
+
+            if (!this.canLanguages.includes(editor.document.languageId)) {
+                this.pruneHiddenDocumentCaches();
+                return;
+            }
+
+            if (this.currDocument && editor.document === this.currDocument) {
+                this.updateCommentDecoration();
+                this.pruneHiddenDocumentCaches(uriStr);
+                return;
+            }
+
+            this.scheduleBrowseRefresh('active', true);
         }, null, this.disposables);
         workspace.onDidCloseTextDocument((doc) => {
             let uriStr = doc.uri.toString();
             if (this.tempSet.has(uriStr)) {
                 this.tempSet.delete(uriStr);
             }
+            this.disposeBlocksByUri(uriStr);
+            this.documentAccessAt.delete(uriStr);
         });
 
         onConfigChange('browse.mode', (value: string) => {
@@ -409,6 +484,9 @@ class CommentDecorationManager {
             return;
         }
 
+        const currentUriStr = this.currDocument.uri.toString();
+        this.touchDocument(currentUriStr);
+
         const renderSeq = ++this.browseRequestSeq;
 
         let blocks: ICommentBlock[] | null = null;
@@ -520,6 +598,10 @@ class CommentDecorationManager {
             const extendedVisibleRange = new Range(startLine, 0, endLine, endChar);
 
             this.blockMaps.forEach((value, key) => {
+                if (!key.startsWith(`${currentUriStr}~`)) {
+                    return;
+                }
+
                 if (newBlockMaps.has(key)) {
                     return;
                 }
@@ -536,12 +618,22 @@ class CommentDecorationManager {
             });
         } else {
             this.blockMaps.forEach((value, key) => {
+                if (!key.startsWith(`${currentUriStr}~`)) {
+                    return;
+                }
+
                 if (!newBlockMaps.has(key)) {
                     value.commentDecoration.dispose();
+                    this.blockMaps.delete(key);
                 }
             });
-            this.blockMaps = newBlockMaps;
+
+            newBlockMaps.forEach((value, key) => {
+                this.blockMaps.set(key, value);
+            });
         }
+
+        this.pruneHiddenDocumentCaches(currentUriStr);
 
         this.updateAvgRenderCost(Date.now() - startAt);
     }
@@ -801,28 +893,45 @@ class CommentDecoration {
     // 重新渲染装饰内容
     reflash() {
         if (this._desposed) return;
+        const currentUri = this._currDocument.uri.toString();
+        const targetEditors = window.visibleTextEditors.filter((editor) => {
+            return editor.document.uri.toString() === currentUri;
+        });
+
+        if (targetEditors.length === 0) {
+            return;
+        }
+
         if (this._loading) {
-            window.activeTextEditor?.setDecorations(this._loadingDecoration, [
-                this._block.range,
-            ]);
+            targetEditors.forEach((editor) => {
+                editor.setDecorations(this._loadingDecoration, [
+                    this._block.range,
+                ]);
+            });
             return;
         } else {
-            window.activeTextEditor?.setDecorations(this._loadingDecoration, []);
+            targetEditors.forEach((editor) => {
+                editor.setDecorations(this._loadingDecoration, []);
+            });
         }
 
         let translatedDecoration = this.getTranslatedDecoration();
         // The current comment block is being edited, translation status is not displayed
         if (this._inplace && this.editing()) {
-            window.activeTextEditor?.setDecorations(translatedDecoration, []);
+            targetEditors.forEach((editor) => {
+                editor.setDecorations(translatedDecoration, []);
+            });
             return;
         }
 
         if (!this._inplace) {
             let { append } = usePlaceholderCodeLensProvider();
             let lines = this._contentDecorations.map((decoration) => decoration.range.start.line);
-            append(window.activeTextEditor?.document!, lines);
+            append(this._currDocument, lines);
         }
-        window.activeTextEditor?.setDecorations(translatedDecoration, this._contentDecorations);
+        targetEditors.forEach((editor) => {
+            editor.setDecorations(translatedDecoration, this._contentDecorations);
+        });
     }
 
     dispose() {
