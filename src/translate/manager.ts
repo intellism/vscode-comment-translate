@@ -76,16 +76,19 @@ export function initTranslate(context: ExtensionContext) {
     onConfigChange('targetLanguage', (targetLanguage: string) => {
         translateManager.opts.to = targetLanguage;
         sessionTranslateCache.clear();
-        pendingTranslateTasks.clear();
+        // Note: pendingTranslateTasks are NOT cleared intentionally.
+        // In-flight tasks use keys that include the old language code, so they cannot
+        // collide with new requests (which use new keys). Clearing would only cause
+        // duplicate API calls for any requests that arrive while old tasks are still running.
     });
     onConfigChange('sourceLanguage', (sourceLanguage: string) => {
         translateManager.opts.from = sourceLanguage;
         sessionTranslateCache.clear();
-        pendingTranslateTasks.clear();
+        // See note above regarding pendingTranslateTasks.
     });
     onConfigChange('source', () => {
         sessionTranslateCache.clear();
-        pendingTranslateTasks.clear();
+        // See note above regarding pendingTranslateTasks.
     });
 
     const buildInTranslate: ITranslateConfig[] = [{
