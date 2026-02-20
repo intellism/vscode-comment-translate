@@ -35,6 +35,10 @@ interface ITextBlockOptions {
 
 class CommentDecorationManager {
     private static readonly HIDDEN_DOC_CACHE_LIMIT = 2;
+    private static readonly BROWSE_FALLBACK_LANGUAGES = new Set<string>([
+        'plaintext',
+        'text',
+    ]);
     private static instance: CommentDecorationManager;
     private disposables: Disposable[] = [];
     private tempSet = new Set<string>();
@@ -135,6 +139,11 @@ class CommentDecorationManager {
         return ultimatelyBrowseEnable;
     }
 
+    private canBrowseLanguage(languageId: string): boolean {
+        return this.canLanguages.includes(languageId)
+            || CommentDecorationManager.BROWSE_FALLBACK_LANGUAGES.has(languageId);
+    }
+
     public showBrowseCommentTranslate(languages: string[]) {
         this.canLanguages = languages.filter((v) => this.BlackLanguage.indexOf(v) < 0);
         window.onDidChangeTextEditorVisibleRanges(() => {
@@ -150,7 +159,7 @@ class CommentDecorationManager {
             const uriStr = editor.document.uri.toString();
             this.touchDocument(uriStr);
 
-            if (!this.canLanguages.includes(editor.document.languageId)) {
+            if (!this.canBrowseLanguage(editor.document.languageId)) {
                 this.pruneHiddenDocumentCaches();
                 return;
             }
@@ -480,7 +489,7 @@ class CommentDecorationManager {
             return;
         }
 
-        if (!this.canLanguages.includes(this.currDocument.languageId)) {
+        if (!this.canBrowseLanguage(this.currDocument.languageId)) {
             return;
         }
 
