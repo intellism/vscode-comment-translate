@@ -23,6 +23,7 @@
     "commentTranslate.configuration.source": "翻译服务源。已内置 Google、Bing、百度。",
     "commentTranslate.configuration.browseEnabled": "启用注释浏览翻译",
     "commentTranslate.configuration.browseMode": "注释浏览模式",
+    "commentTranslate.configuration.markdownScopeFallback": "解析 Markdown 代码块时，在 fenced code 检测后启用 TextMate scope 兜底匹配。",
     "commentTranslate.configuration.openHover": "开启悬停翻译",
     "commentTranslate.configuration.stringHover": "开启悬停翻译字符串",
     "commentTranslate.configuration.variableHover": "开启悬停翻译变量",

@@ -42,8 +42,21 @@ async function commentProvideHover(
     let range: Range | undefined;
 
     if (!block) {
-        if (document.languageId === "markdown") {
-            if (document.languageId !== "markdown") return null;
+        if (canLanguages.includes(document.languageId)) {
+            try {
+                let comment = await createComment();
+                block = await comment.getComment(document, position);
+            } catch (e) {
+                //@ts-ignore
+                outputChannel.append("\n" + e.message);
+            }
+
+            if (!block && document.languageId !== "markdown") {
+                return null;
+            }
+        }
+
+        if (!block && document.languageId === "markdown") {
             let { translatedText, range: MarkdwonRange } = await compileMarkdown(document, position);
             res = createHoverMarkdownString(
                 translatedText,
@@ -54,18 +67,6 @@ async function commentProvideHover(
                 ''
             );
             range = MarkdwonRange;
-        } else if (canLanguages.includes(document.languageId)) {
-            try {
-                let comment = await createComment();
-                block = await comment.getComment(document, position);
-            } catch (e) {
-                //@ts-ignore
-                outputChannel.append("\n" + e.message);
-            }
-
-            if (!block) {
-                return null;
-            }
         }
     }
 

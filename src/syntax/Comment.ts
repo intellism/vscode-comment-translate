@@ -1,7 +1,7 @@
 import { Disposable, Position, Range, TextDocument, workspace } from "vscode";
 import { CommentParse } from "./CommentParse";
 import { TextMateService } from "./TextMateService";
-import { ICommentBlock } from "../interface";
+import { checkScopeFunction, ICommentBlock } from "../interface";
 import { getGrammerExtensions } from "../util/ext";
 import { ctx } from "../extension";
 
@@ -52,6 +52,12 @@ export class Comment implements Disposable {
         const parse = await this._getCommentParse(textDocument);
         if (!parse) return null;
         return parse.computeAllText(type, range);
+    }
+
+    async getAllScopeBlocks(textDocument: TextDocument, checkHandle: checkScopeFunction, range?: Range): Promise<ICommentBlock[] | null> {
+        const parse = await this._getCommentParse(textDocument);
+        if (!parse) return null;
+        return parse.getAllCommentScope(range, checkHandle);
     }
 
     async getWordAtPosition(textDocument: TextDocument, position: Position) {

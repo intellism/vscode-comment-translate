@@ -47,7 +47,17 @@ export async function replaceRange({ uri, text, range }: { uri: string, text: st
 }
 
 
+const MAX_VARIABLE_COMPLETION_CACHE_SIZE = 50;
 let variableCompletionMap = new Map<string, { value: string, filterText: string, codeType: string, range: Range }>();
+
+export function cleanupVariableCompletionByUri(uriStr: string) {
+    const prefix = uriStr + ':';
+    for (const key of variableCompletionMap.keys()) {
+        if (key.startsWith(prefix)) {
+            variableCompletionMap.delete(key);
+        }
+    }
+}
 
 let caseGuide: { [key: string]: string } = {
     variable: 'camelCase',
@@ -113,6 +123,12 @@ export function getVariableCompletionDatas(doc: TextDocument, position: Position
 export function addVariableCompletion(doc: TextDocument, position: Position, value: string, range: Range, filterText: string, codeType: string) {
     let key = doc.uri.toString() + ':' + position.line + ':' + position.character;
     variableCompletionMap.set(key, { value, range, filterText, codeType });
+    if (variableCompletionMap.size > MAX_VARIABLE_COMPLETION_CACHE_SIZE) {
+        const oldest = variableCompletionMap.keys().next().value;
+        if (oldest) {
+            variableCompletionMap.delete(oldest);
+        }
+    }
 }
 
 export function removeVariableCompletion(doc: TextDocument, position: Position) {

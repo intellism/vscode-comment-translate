@@ -1,41 +1,52 @@
-import { compileBlock } from "../syntax/compile";
 import {
     window,
     Selection,
-    DecorationOptions,
-    TextEditorDecorationType,
     Disposable,
     TextDocument,
     workspace,
     Range,
     commands,
 } from "vscode";
-import { ctx } from "../extension";
 import { usePlaceholderCodeLensProvider } from "./codelen";
 import { getConfig, onConfigChange } from "../configuration";
-import { ICommentBlock, ICommentToken, ITranslatedText } from "../interface";
+import { ICommentBlock } from "../interface";
 import { debounce } from "../util/short-live";
-import { getTextLength } from "../util/string";
-import { textTranslate } from "../copilot/translate";
-import { translateManager } from "../translate/manager";
 import { createComment } from "../syntax/Comment";
+import {
+    getExpandedVisibleRange,
+    scanMarkdownFenceLines,
+    getMarkdownTextBlocks,
+    isRstStructureBoundary,
+    getParagraphTextBlocks,
+    isMarkdownCodeScope,
+} from "./blockParser";
+import { CommentDecoration, MarkdownDecoration } from "./commentDecoration";
 
 class CommentDecorationManager {
+    private static readonly HIDDEN_DOC_CACHE_LIMIT = 2;
+    private static readonly BROWSE_FALLBACK_LANGUAGES = new Set<string>([
+        'plaintext',
+        'text',
+    ]);
     private static instance: CommentDecorationManager;
     private disposables: Disposable[] = [];
     private tempSet = new Set<string>();
     private inplace: boolean;
     private browseEnable: boolean;
-    private hoverEnable: boolean;
     private blockMaps: Map<string, { comment: string, commentDecoration: CommentDecoration }> = new Map();
     private currDocument: TextDocument | undefined;
     private canLanguages: string[] = [];
-    private BlackLanguage: string[] = ['markdown']; // TODO markdown还未就绪，先不处理
+    private BlackLanguage: string[] = [];
+    private browseTimer: ReturnType<typeof setTimeout> | undefined;
+    private browseRequestSeq = 0;
+    private avgRenderCost = 0;
+    private lastSelection: Selection | undefined;
+    private markdownScopeFallbackDisabled = false;
+    private documentAccessAt = new Map<string, number>();
 
     private constructor() {
         this.inplace = getConfig<string>('browse.mode', 'contrast') === 'inplace';
         this.browseEnable = getConfig<boolean>('browse.enabled', true);
-        this.hoverEnable = getConfig<boolean>('hover.enabled', true);
     }
 
     public static getInstance(): CommentDecorationManager {
@@ -53,28 +64,110 @@ class CommentDecorationManager {
         } else {
             this.tempSet.add(uriStr);
         }
+        this.touchDocument(uriStr);
         this.resetCommentDecoration();
+    }
+
+    private touchDocument(uriStr: string) {
+        this.documentAccessAt.set(uriStr, Date.now());
+    }
+
+    private getVisibleDocumentUris(): Set<string> {
+        const uris = new Set<string>();
+        window.visibleTextEditors.forEach((editor) => {
+            uris.add(editor.document.uri.toString());
+        });
+        return uris;
+    }
+
+    private disposeBlocksByUri(uriStr: string) {
+        const prefix = `${uriStr}~`;
+        this.blockMaps.forEach((value, key) => {
+            if (!key.startsWith(prefix)) {
+                return;
+            }
+            value.commentDecoration.dispose();
+            this.blockMaps.delete(key);
+        });
+    }
+
+    private pruneHiddenDocumentCaches(currentUriStr?: string) {
+        const visibleUris = this.getVisibleDocumentUris();
+        if (currentUriStr) {
+            visibleUris.add(currentUriStr);
+        }
+
+        const hiddenCandidates = Array.from(this.documentAccessAt.entries())
+            .filter(([uri]) => !visibleUris.has(uri))
+            .sort((a, b) => b[1] - a[1]);
+
+        const retainedHidden = hiddenCandidates.slice(0, CommentDecorationManager.HIDDEN_DOC_CACHE_LIMIT);
+        const retainedUris = new Set(retainedHidden.map(([uri]) => uri));
+
+        hiddenCandidates.slice(CommentDecorationManager.HIDDEN_DOC_CACHE_LIMIT).forEach(([uri]) => {
+            this.disposeBlocksByUri(uri);
+            this.documentAccessAt.delete(uri);
+        });
+
+        this.blockMaps.forEach((value, key) => {
+            const uri = key.split('~')[0];
+            if (visibleUris.has(uri) || retainedUris.has(uri)) {
+                return;
+            }
+            value.commentDecoration.dispose();
+            this.blockMaps.delete(key);
+        });
     }
 
     private shouldShowBrowser() {
         let uri = window.activeTextEditor?.document.uri.toString();
         let docTemporarilyToggled = uri && this.tempSet.has(uri);
         let docBrowseEnabled = docTemporarilyToggled ? !this.browseEnable : this.browseEnable;
-        let ultimatelyBrowseEnable = docBrowseEnabled && this.hoverEnable;
+        let ultimatelyBrowseEnable = docBrowseEnabled;
         commands.executeCommand('setContext', 'commentTranslate.ultimatelyBrowseEnable', ultimatelyBrowseEnable);
         return ultimatelyBrowseEnable;
     }
 
+    private canBrowseLanguage(languageId: string): boolean {
+        return this.canLanguages.includes(languageId)
+            || CommentDecorationManager.BROWSE_FALLBACK_LANGUAGES.has(languageId);
+    }
+
     public showBrowseCommentTranslate(languages: string[]) {
         this.canLanguages = languages.filter((v) => this.BlackLanguage.indexOf(v) < 0);
-        window.onDidChangeTextEditorVisibleRanges(debounce(this.showBrowseCommentTranslateImpl.bind(this)), null, this.disposables);
+        window.onDidChangeTextEditorVisibleRanges(() => {
+            this.scheduleBrowseRefresh('scroll', true);
+        }, null, this.disposables);
         window.onDidChangeTextEditorSelection(debounce(this.updateCommentDecoration.bind(this)), null, this.disposables);
-        window.onDidChangeActiveTextEditor(debounce(this.resetCommentDecoration.bind(this)), null, this.disposables);
+        window.onDidChangeActiveTextEditor(() => {
+            const editor = window.activeTextEditor;
+            if (!editor) {
+                return;
+            }
+
+            const uriStr = editor.document.uri.toString();
+            this.touchDocument(uriStr);
+
+            if (!this.canBrowseLanguage(editor.document.languageId)) {
+                this.pruneHiddenDocumentCaches();
+                return;
+            }
+
+            if (this.currDocument && editor.document === this.currDocument) {
+                this.updateCommentDecoration();
+                this.pruneHiddenDocumentCaches(uriStr);
+                return;
+            }
+
+            this.scheduleBrowseRefresh('active', true);
+        }, null, this.disposables);
         workspace.onDidCloseTextDocument((doc) => {
             let uriStr = doc.uri.toString();
             if (this.tempSet.has(uriStr)) {
                 this.tempSet.delete(uriStr);
             }
+            this.disposeBlocksByUri(uriStr);
+            this.documentAccessAt.delete(uriStr);
         });
 
         onConfigChange('browse.mode', (value: string) => {
@@ -88,19 +181,10 @@ class CommentDecorationManager {
             this.resetCommentDecoration();
         }, null, this.disposables);
 
-        onConfigChange('hover.enabled', (value: boolean) => {
-            this.hoverEnable = value;
-            this.resetCommentDecoration();
-        }, null, this.disposables);
-
-        let timer: any;
         workspace.onDidChangeTextDocument(
             (e) => {
                 if (e.document === this.currDocument) {
-                    clearTimeout(timer);
-                    timer = setTimeout(() => {
-                        this.showBrowseCommentTranslateImpl(false);
-                    }, 80);
+                    this.scheduleBrowseRefresh('edit', false);
                 }
             },
             null,
@@ -112,7 +196,37 @@ class CommentDecorationManager {
         return this.disposables;
     }
 
+    private scheduleBrowseRefresh(reason: 'scroll' | 'edit' | 'active', maintain: boolean) {
+        if (this.browseTimer) {
+            clearTimeout(this.browseTimer);
+        }
+
+        let delay = reason === 'edit' ? 110 : 70;
+        if (this.avgRenderCost > 700) {
+            delay += 80;
+        }
+        if (this.avgRenderCost > 1300) {
+            delay += 120;
+        }
+
+        this.browseTimer = setTimeout(() => {
+            this.showBrowseCommentTranslateImpl(maintain);
+        }, delay);
+    }
+
+    private updateAvgRenderCost(cost: number) {
+        if (cost <= 0) {
+            return;
+        }
+        if (this.avgRenderCost === 0) {
+            this.avgRenderCost = cost;
+            return;
+        }
+        this.avgRenderCost = this.avgRenderCost * 0.75 + cost * 0.25;
+    }
+
     private async showBrowseCommentTranslateImpl(maintain = true) {
+        const startAt = Date.now();
         if (!this.shouldShowBrowser()) return;
 
         let editor = window.activeTextEditor;
@@ -122,31 +236,73 @@ class CommentDecorationManager {
             return;
         }
 
-        if (!this.canLanguages.includes(this.currDocument.languageId)) {
+        if (!this.canBrowseLanguage(this.currDocument.languageId)) {
             return;
         }
+
+        const currentUriStr = this.currDocument.uri.toString();
+        this.touchDocument(currentUriStr);
+
+        const renderSeq = ++this.browseRequestSeq;
 
         let blocks: ICommentBlock[] | null = null;
 
         try {
+            const visibleRange = editor.visibleRanges[0];
             if (this.currDocument.languageId === 'markdown') {
+                const parseRange = getExpandedVisibleRange(this.currDocument, visibleRange);
+                const occupiedLineSet = new Set<number>();
+                const fenceScan = scanMarkdownFenceLines(this.currDocument, parseRange);
+                fenceScan.occupiedLines.forEach((line) => occupiedLineSet.add(line));
 
-                let { start, end } = editor.visibleRanges[0];
-                for (let i = start.line; i <= end.line; i++) {
-                    let comment = this.currDocument.lineAt(i).text;
-                    if (!blocks) blocks = [];
-                    blocks.push({
-                        range: new Range(i, 0, i, comment.length),
-                        comment,
-                    });
+                const scopeFallback = getConfig<boolean>('markdown.scopeFallback', true);
+                if (scopeFallback && !this.markdownScopeFallbackDisabled) {
+                    try {
+                        const comment = await createComment();
+                        const codeBlocks = await comment.getAllScopeBlocks(
+                            this.currDocument,
+                            isMarkdownCodeScope,
+                            parseRange
+                        ) || [];
+                        codeBlocks.forEach((block) => {
+                            for (let line = block.range.start.line; line <= block.range.end.line; line++) {
+                                occupiedLineSet.add(line);
+                            }
+                        });
+                    } catch (error) {
+                        const err = error as Error;
+                        if (err && typeof err.message === 'string' && /look.?behind/i.test(err.message)) {
+                            this.markdownScopeFallbackDisabled = true;
+                            console.warn('[comment-translate] markdown.scopeFallback disabled for current session due to invalid grammar regex.', error);
+                        } else {
+                            console.warn('[comment-translate] markdown.scopeFallback encountered unexpected error; leaving fallback enabled.', error);
+                        }
+                    }
                 }
-            } else {
 
+                blocks = getMarkdownTextBlocks(
+                    this.currDocument,
+                    parseRange,
+                    occupiedLineSet,
+                    fenceScan.inFenceAtRangeStart
+                );
+
+                blocks = blocks.filter((block) => !!block.range.intersection(visibleRange));
+            } else if (this.currDocument.languageId === 'restructuredtext' || this.currDocument.languageId === 'rst') {
+                const parseRange = getExpandedVisibleRange(this.currDocument, visibleRange);
+                blocks = getParagraphTextBlocks(this.currDocument, parseRange, {
+                    isBoundary: isRstStructureBoundary
+                }).filter((block) => !!block.range.intersection(visibleRange));
+            } else if (this.currDocument.languageId === 'plaintext' || this.currDocument.languageId === 'text') {
+                const parseRange = getExpandedVisibleRange(this.currDocument, visibleRange);
+                blocks = getParagraphTextBlocks(this.currDocument, parseRange)
+                    .filter((block) => !!block.range.intersection(visibleRange));
+            } else {
                 let comment = await createComment();
                 blocks = await comment.getAllComment(
                     this.currDocument,
                     "comment",
-                    editor.visibleRanges[0]
+                    visibleRange
                 );
             }
         } catch (error) {
@@ -170,37 +326,104 @@ class CommentDecorationManager {
             }
             let commentDecoration: CommentDecoration;
 
-            if (this.currDocument!.languageId === 'markdown') {
+            if (this.currDocument!.languageId === 'markdown' && (!block.tokens || block.tokens.length === 0)) {
                 commentDecoration = new MarkdownDecoration(block, this.currDocument!, this.inplace);
             } else {
-                commentDecoration = new CommentDecoration(block, this.currDocument!, this.inplace)
+                commentDecoration = new CommentDecoration(block, this.currDocument!, this.inplace);
             }
 
             newBlockMaps.set(key, { comment: block.comment, commentDecoration });
             return commentDecoration;
         });
 
-        if (maintain) {
+        if (renderSeq !== this.browseRequestSeq || this.currDocument !== editor.document) {
+            newBlockMaps.forEach((value) => {
+                value.commentDecoration.dispose();
+            });
+            this.updateAvgRenderCost(Date.now() - startAt);
+            return;
+        }
+
+        if (maintain && editor.visibleRanges.length > 0) {
+            const primaryVisibleRange = editor.visibleRanges[0];
+            const bufferLines = 200;
+            const document = editor.document;
+            const startLine = Math.max(0, primaryVisibleRange.start.line - bufferLines);
+            const endLine = Math.min(document.lineCount - 1, primaryVisibleRange.end.line + bufferLines);
+            const endChar = document.lineAt(endLine).range.end.character;
+            const extendedVisibleRange = new Range(startLine, 0, endLine, endChar);
+
+            this.blockMaps.forEach((value, key) => {
+                if (!key.startsWith(`${currentUriStr}~`)) {
+                    return;
+                }
+
+                if (newBlockMaps.has(key)) {
+                    return;
+                }
+
+                // Dispose entries that are completely outside the buffered visible range.
+                if (!value.commentDecoration.block.range.intersection(extendedVisibleRange)) {
+                    value.commentDecoration.dispose();
+                    this.blockMaps.delete(key);
+                }
+            });
+
             newBlockMaps.forEach((value, key) => {
                 this.blockMaps.set(key, value);
             });
         } else {
             this.blockMaps.forEach((value, key) => {
+                if (!key.startsWith(`${currentUriStr}~`)) {
+                    return;
+                }
+
                 if (!newBlockMaps.has(key)) {
                     value.commentDecoration.dispose();
+                    this.blockMaps.delete(key);
                 }
             });
-            this.blockMaps = newBlockMaps;
+
+            newBlockMaps.forEach((value, key) => {
+                this.blockMaps.set(key, value);
+            });
         }
+
+        this.pruneHiddenDocumentCaches(currentUriStr);
+
+        this.updateAvgRenderCost(Date.now() - startAt);
     }
 
     private updateCommentDecoration() {
+        const editor = window.activeTextEditor;
+        const currentSelection = editor?.selection;
+        const previousSelection = this.lastSelection;
+        this.lastSelection = currentSelection;
+
+        if (!currentSelection) {
+            return;
+        }
+
         this.blockMaps.forEach((value) => {
-            value.commentDecoration.reflash();
+            if (!this.inplace) {
+                value.commentDecoration.reflash();
+                return;
+            }
+
+            const range = value.commentDecoration.block.range;
+            const hitCurrent = !!range.intersection(currentSelection);
+            const hitPrevious = previousSelection ? !!range.intersection(previousSelection) : false;
+            if (hitCurrent || hitPrevious) {
+                value.commentDecoration.reflash();
+            }
         });
     }
 
     private resetCommentDecoration() {
+        if (this.browseTimer) {
+            clearTimeout(this.browseTimer);
+            this.browseTimer = undefined;
+        }
         this.blockMaps.forEach((value) => {
             value.commentDecoration.dispose();
         });
@@ -209,224 +432,6 @@ class CommentDecorationManager {
         cleanAll();
         this.currDocument = undefined;
         this.showBrowseCommentTranslateImpl();
-    }
-}
-
-class CommentDecoration {
-    private _loading: boolean = true;
-    private _desposed: boolean = false;
-    private _loadingDecoration: TextEditorDecorationType;
-    private _translatedDecoration: TextEditorDecorationType | undefined;
-    private _contentDecorations: DecorationOptions[] = [];
-
-    constructor(protected _block: ICommentBlock, private _currDocument: TextDocument, private _inplace: boolean = false) {
-        this._loadingDecoration = window.createTextEditorDecorationType({
-            after: {
-                contentIconPath: ctx.asAbsolutePath("resources/icons/loading.svg"),
-            },
-        });
-        this.reflash();
-        this.translate();
-    }
-
-    get block() {
-        return this._block;
-    }
-
-    editing(): boolean {
-        let range = this._block.range;
-        let selection = window.activeTextEditor?.selection;
-        if (selection) {
-            return range.intersection(selection) ? true : false;
-        }
-        return false;
-    }
-
-    protected async _compile(): Promise<ITranslatedText | null> {
-        let { tokens } = this._block;
-        if (!tokens || tokens.length === 0) return null;
-        return compileBlock(this._block, this._currDocument.languageId);
-    }
-
-    // Translate commentblock text and set decorative content
-    async translate() {
-        let result = await this._compile();
-        let { tokens, range } = this._block;
-        if (!result) return;
-        if (!tokens || tokens.length === 0) return null;
-
-        this._loading = false;
-        let { targets, texts, combined, translatedText } = result;
-
-        let targetIndex = 0;
-        let tokensLength = tokens.length || 0;
-        tokens.forEach((token, i) => {
-            let { text, ignoreStart = 0, ignoreEnd = 0 } = token;
-            const translateText = texts[i];
-            let targetText = translateText.length > 0 ? targets[targetIndex++] : "";
-            let offset = i === 0 ? range.start.character : 0;
-            let originText = text.slice(ignoreStart, text.length - ignoreEnd);
-
-            let combinedIndex = i;
-
-            // No need to display decoration when translation is wrong
-            if (this._inplace && translatedText) {
-                this._contentDecorations.push({
-                    range: new Selection(
-                        range.start.line + combinedIndex,
-                        offset + ignoreStart,
-                        range.start.line + combinedIndex,
-                        offset + text.length - ignoreEnd
-                    ),
-                    renderOptions: this.genrateDecorationOptions(targetText),
-                });
-                return;
-            }
-
-            for (let k = i + 1; k < tokensLength && combined[k]; k++) {
-                combinedIndex = k;
-            }
-
-            if (targetText && targetText !== originText) {
-                // Read text here will be more than blocks and need to be read throughout the document
-                let showLineLen = getTextLength(this._currDocument!.lineAt(range.start.line + combinedIndex + 1).text);
-                // let offsetText = texts[combinedIndex].substring(0, offset + ignoreStart);
-                let offsetText = this._currDocument!.lineAt(range.start.line + combinedIndex).text.substring(0, offset + ignoreStart);
-
-                let gap = getTextLength(offsetText) - showLineLen;
-                if (gap > 0) {
-                    targetText = targetText.padStart(targetText.length + gap, '\u00a0');
-                }
-                this._contentDecorations.push({
-                    range: new Selection(
-                        range.start.line + combinedIndex + 1,
-                        offset + ignoreStart,
-                        range.start.line + combinedIndex + 1,
-                        offset + text.length - ignoreEnd
-                    ),
-                    renderOptions: this.genrateDecorationOptions(targetText),
-                });
-            }
-        });
-
-        this.reflash();
-    }
-
-    // Generate the text decoration styles
-    genrateDecorationOptions(text: string) {
-        if (this._inplace) {
-            return {
-                before: {
-                    color: `var(--vscode-editorCodeLens-foreground)`,
-                    // textDecoration: text.trim().length > 0 ? `none;word-wrap: break-word; white-space: pre-wrap;display: inline-block; width:calc(${showLineLen}ch); max-height: ${lines}lh; position: relative;` : '',
-                    contentText: text,
-                },
-            };
-        }
-        return {
-            before: {
-                textDecoration: `none; font-size: 1em; display: inline-block; position: relative; width: 0; top: ${-1.3}em;`,
-                contentText: text,
-                color: 'var(--vscode-editorCodeLens-foreground)',
-            },
-        }
-    }
-
-    // Get the text decoration type
-    getTranslatedDecoration() {
-        if (this._translatedDecoration) {
-            return this._translatedDecoration;
-        }
-
-        let textDecoration: string | undefined;
-        if (this._inplace) {
-            textDecoration = "none; display: none;";
-        }
-        this._translatedDecoration = window.createTextEditorDecorationType({
-            textDecoration,
-        });
-
-        return this._translatedDecoration;
-    }
-
-    // 重新渲染装饰内容
-    reflash() {
-        if (this._desposed) return;
-        if (this._loading) {
-            window.activeTextEditor?.setDecorations(this._loadingDecoration, [
-                this._block.range,
-            ]);
-            return;
-        } else {
-            window.activeTextEditor?.setDecorations(this._loadingDecoration, []);
-        }
-
-        let translatedDecoration = this.getTranslatedDecoration();
-        // The current comment block is being edited, translation status is not displayed
-        if (this._inplace && this.editing()) {
-            window.activeTextEditor?.setDecorations(translatedDecoration, []);
-            return;
-        }
-
-        if (!this._inplace) {
-            let { append } = usePlaceholderCodeLensProvider();
-            let lines = this._contentDecorations.map((decoration) => decoration.range.start.line);
-            append(window.activeTextEditor?.document!, lines);
-        }
-        window.activeTextEditor?.setDecorations(translatedDecoration, this._contentDecorations);
-    }
-
-    dispose() {
-        this._desposed = true;
-        this._loadingDecoration.dispose();
-        this._translatedDecoration?.dispose();
-    }
-}
-
-
-class MarkdownDecoration extends CommentDecoration {
-    constructor(block: ICommentBlock, currDocument: TextDocument, inplace: boolean = false) {
-        super(block, currDocument, inplace);
-    }
-
-    private _getSameCount(str1: string, str2: string) {
-        let len = 0;
-        for (let i = 0; i < str1.length && i < str2.length; i++) {
-            if (str1[i] === str2[i]) {
-                len++;
-            } else {
-                break;
-            }
-        }
-        return len;
-    }
-
-    protected async _compile(): Promise<ITranslatedText | null> {
-
-        let result: ITranslatedText;
-
-        let block = this._block;
-        let translatedText = await textTranslate(block.comment, translateManager.opts.to || 'en') || '';
-
-        // 两个字符串，判断他们头部相同字符个数
-        let len = this._getSameCount(block.comment, translatedText);
-        let token: ICommentToken = {
-            text: block.comment.substring(len),
-            ignoreStart: len,
-            ignoreEnd: 0,
-        }
-
-        block.tokens = [token];
-
-        result = {
-            translatedText,
-            targets: [translatedText.substring(len)],
-            texts: [token.text],
-            combined: [],
-            translateLink: ''
-        }
-
-        return result;
     }
 }
 

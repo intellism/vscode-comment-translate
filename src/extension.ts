@@ -4,7 +4,7 @@
  * ------------------------------------------------------------------------------------------ */
 'use strict';
 
-import { ExtensionContext, window } from 'vscode';
+import { ExtensionContext, window, workspace } from 'vscode';
 import { registerCommands } from './command/command';
 // import { mouseToSelect } from './command/select';
 import { showHoverStatusBar, showTargetLanguageStatusBarItem } from './configuration';
@@ -18,6 +18,7 @@ import { getCanLanguageIds } from './util/ext';
 import { registerCompletion } from './languageFeature/completion';
 import { getUserLanguage, initTranslate } from './translate/manager';
 import { registerChatParticipant } from './copilot/translate';
+import { cleanupVariableCompletionByUri } from './command/replaceSelections';
 
 export let outputChannel = window.createOutputChannel('Comment Translate');
 
@@ -42,6 +43,9 @@ export async function activate(context: ExtensionContext) {
     registerChatParticipant(context);
 
     context.subscriptions.push(...commentDecorationManager.showBrowseCommentTranslate(canLanguages));
+    context.subscriptions.push(workspace.onDidCloseTextDocument((doc) => {
+        cleanupVariableCompletionByUri(doc.uri.toString());
+    }));
     // 注册状态图标
     let hoverBar = await showHoverStatusBar();
 

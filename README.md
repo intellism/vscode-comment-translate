@@ -71,6 +71,7 @@ Third-party translation services can be found by searching for `@tag:translateSo
 * `commentTranslate.source`: Translation service source configuration. It is recommended to set it through commands. Supports plugin extensions for translation service sources. [example](https://github.com/intellism/deepl-translate)
 * `commentTranslate.maxTranslationLength`: Maximum translation length configuration to avoid excessive charges for long character translations
 * `commentTranslate.browse.enabled`: Enable/disable project immersive browsing translation function
+* `commentTranslate.markdown.scopeFallback`: Enable/disable TextMate scope fallback after Markdown fenced-code detection
 
 
 ## Support Us
