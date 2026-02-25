@@ -212,6 +212,7 @@
             ],
             "editor/title": [
                 {
+                    "command": "commentTranslate.openDocumentBrowseMode",
                     "when": "!commentTranslate.ultimatelyBrowseEnable && config.commentTranslate.hover.enabled && resourceLangId in commentTranslate.canLanguages",
                     "group": "navigation"
                 },
