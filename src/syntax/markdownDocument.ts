@@ -740,3 +740,198 @@ export async function translateMarkdownDocument(
 
     return reconstructDocument(lineMetas, translatedTexts);
 }
+
+// ── Progressive translation support ──────────────────────────────────────
+
+/**
+ * CSS style block injected at the top of loading snapshots to animate the
+ * spinner indicator. Uses a pure-CSS border-spinner with transparent background
+ * so it blends with any VS Code theme.
+ */
+const LOADING_STYLE = `<style>
+@keyframes ct-spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+.ct-loading {
+  display: inline-block;
+  width: 0.9em;
+  height: 0.9em;
+  border: 2px solid transparent;
+  border-top-color: var(--vscode-progressBar-background, #0078d4);
+  border-left-color: var(--vscode-progressBar-background, #0078d4);
+  border-radius: 50%;
+  animation: ct-spin 0.8s linear infinite;
+  vertical-align: middle;
+  margin-left: 4px;
+}
+</style>\n\n`;
+
+/** Inline HTML spinner appended to lines that are still being translated. */
+const LOADING_INDICATOR = ' <span class="ct-loading"></span>';
+
+/**
+ * Build an initial loading snapshot for a markdown document.
+ *
+ * All translatable lines show the original source text with a spinning loading
+ * indicator appended. Non-translatable lines (code blocks, math, YAML, etc.)
+ * are returned as-is. A `<style>` block is prepended to power the CSS
+ * animation.
+ */
+export function buildLoadingSnapshot(source: string): string {
+    const lineMetas = parseMarkdownLines(source);
+    const lines: string[] = [];
+    let hasLoading = false;
+    for (const meta of lineMetas) {
+        if (meta.translatable) {
+            lines.push(meta.raw + LOADING_INDICATOR);
+            hasLoading = true;
+        } else {
+            lines.push(meta.raw);
+        }
+    }
+    const body = lines.join('\n');
+    return hasLoading ? LOADING_STYLE + body : body;
+}
+
+/**
+ * Build a document snapshot for progressive translation.
+ *
+ * Lines whose translation is already available use the translated text;
+ * lines still pending show the original source text with a loading indicator.
+ */
+function buildProgressiveSnapshot(
+    lineMetas: LineMeta[],
+    translatedTexts: (string | null)[],
+): string {
+    let translatedIndex = 0;
+    const outputLines: string[] = [];
+    let hasLoadingLines = false;
+
+    for (const meta of lineMetas) {
+        if (!meta.translatable) {
+            outputLines.push(meta.raw);
+            continue;
+        }
+
+        const translated = translatedTexts[translatedIndex++];
+
+        if (translated !== null) {
+            // Already translated – reconstruct the line
+            if (meta.prefix === '\x00TABLE_ROW\x00') {
+                const cellSegs = tableRowCellSegments.get(meta.lineIndex);
+                if (cellSegs) {
+                    outputLines.push(reconstructTableRow(meta.raw, translated, cellSegs));
+                } else {
+                    outputLines.push(meta.raw);
+                }
+            } else {
+                let prefix = meta.prefix;
+                let finalTranslated = translated;
+                if (prefix.includes('\x00BOLD_INITIAL\x00')) {
+                    prefix = prefix.replace('\x00BOLD_INITIAL\x00', '');
+                    finalTranslated = restoreBoldInitial(translated, 'x');
+                }
+                const segments = lineInlineSegments.get(meta.lineIndex);
+                if (segments) {
+                    const translatedParts = finalTranslated.split('\n');
+                    const isBoldInitial = meta.prefix.includes('\x00BOLD_INITIAL\x00') ||
+                        (prefix !== meta.prefix);
+                    if (isBoldInitial) {
+                        const rawWithoutOrigPrefix = meta.raw.slice(
+                            meta.prefix.replace('\x00BOLD_INITIAL\x00', '').length
+                        );
+                        const strippedRaw = stripBoldInitial(rawWithoutOrigPrefix).stripped;
+                        const contentEnd = meta.suffix ? strippedRaw.length - meta.suffix.length : strippedRaw.length;
+                        const strippedContent = strippedRaw.slice(0, contentEnd);
+                        const reconstructedContent = reconstructInlineContent(strippedContent, segments, translatedParts);
+                        outputLines.push(`${prefix}${reconstructedContent}${meta.suffix}`);
+                    } else {
+                        const rawWithoutPrefix = meta.raw.startsWith(prefix) ? meta.raw.slice(prefix.length) : meta.raw;
+                        const contentEnd = meta.suffix ? rawWithoutPrefix.length - meta.suffix.length : rawWithoutPrefix.length;
+                        const originalContent = rawWithoutPrefix.slice(0, contentEnd);
+                        const reconstructedContent = reconstructInlineContent(originalContent, segments, translatedParts);
+                        outputLines.push(`${prefix}${reconstructedContent}${meta.suffix}`);
+                    }
+                } else {
+                    outputLines.push(`${prefix}${finalTranslated}${meta.suffix}`);
+                }
+            }
+        } else {
+            // Not yet translated – show original with loading indicator
+            outputLines.push(meta.raw + LOADING_INDICATOR);
+            hasLoadingLines = true;
+        }
+    }
+
+    const body = outputLines.join('\n');
+    return hasLoadingLines ? LOADING_STYLE + body : body;
+}
+
+/**
+ * Translate a markdown document progressively in batches.
+ *
+ * Instead of waiting for the entire document to be translated before returning,
+ * this function translates in batches and calls `onProgress` after each batch
+ * with a snapshot of the document where translated lines show translations and
+ * pending lines show the original text with a loading indicator.
+ *
+ * @param source       The raw markdown source text
+ * @param translateFn  Translation function (same contract as translateMarkdownDocument)
+ * @param onProgress   Called after each batch with the current document snapshot
+ * @param batchSize    Number of translatable-text entries per batch (default 5)
+ * @returns The fully translated document
+ */
+export async function translateMarkdownDocumentProgressive(
+    source: string,
+    translateFn: (text: string) => Promise<string>,
+    onProgress: (snapshot: string) => void,
+    batchSize: number = 5,
+): Promise<string> {
+    const lineMetas = parseMarkdownLines(source);
+    const translatableTexts = extractTranslatableTexts(lineMetas);
+
+    if (translatableTexts.length === 0) {
+        return source;
+    }
+
+    // Each translatable text may span multiple lines (table rows with cells).
+    const lineCounts = translatableTexts.map(text => text.split('\n').length);
+
+    // Track per-entry translation results; null = not yet translated
+    const translatedTexts: (string | null)[] = new Array(translatableTexts.length).fill(null);
+
+    // Translate in batches
+    for (let batchStart = 0; batchStart < translatableTexts.length; batchStart += batchSize) {
+        const batchEnd = Math.min(batchStart + batchSize, translatableTexts.length);
+        const batchTexts = translatableTexts.slice(batchStart, batchEnd);
+        const batchLineCounts = lineCounts.slice(batchStart, batchEnd);
+        const batchTotalLines = batchLineCounts.reduce((sum, count) => sum + count, 0);
+
+        const joinedBatch = batchTexts.join('\n');
+        const translatedJoined = await translateFn(joinedBatch);
+        let allTranslatedLines = translatedJoined.split('\n');
+
+        // Pad or trim to match expected line count
+        while (allTranslatedLines.length < batchTotalLines) {
+            allTranslatedLines.push('');
+        }
+        if (allTranslatedLines.length > batchTotalLines) {
+            allTranslatedLines = allTranslatedLines.slice(0, batchTotalLines);
+        }
+
+        // Distribute translated lines back to per-entry chunks
+        let offset = 0;
+        for (let i = batchStart; i < batchEnd; i++) {
+            const count = lineCounts[i];
+            const chunk = allTranslatedLines.slice(offset, offset + count);
+            translatedTexts[i] = chunk.join('\n');
+            offset += count;
+        }
+
+        // Emit progress snapshot after each batch (including the last one,
+        // so the caller can update the preview before the final result)
+        onProgress(buildProgressiveSnapshot(lineMetas, translatedTexts));
+    }
+
+    // All entries translated – build final document using the standard path
+    const finalTexts = translatedTexts as string[];
+    return reconstructDocument(lineMetas, finalTexts);
+}

@@ -146,7 +146,7 @@
             {
                 "command": "commentTranslate.openMarkdownTranslatePreview",
                 "title": "%commentTranslate.command.openMarkdownTranslatePreview%",
-                "icon": "$(open-preview)",
+                "icon": "$(globe)",
                 "category": "Comment Translate"
             }
         ],
