@@ -485,6 +485,9 @@ export function parseMarkdownLines(source: string): LineMeta[] {
         }
 
         // ── HTML block-level tags ──
+        // Tag lines themselves (open/close tags) are non-translatable, but
+        // text content lines inside HTML blocks are allowed to fall through
+        // to the normal text parsing logic so they get translated.
         if (HTML_BLOCK_RE.test(raw)) {
             const openTagMatch = raw.match(/^\s*<([a-zA-Z][a-zA-Z0-9]*)\b[^>]*(?<!\/)>\s*$/);
             if (openTagMatch && !raw.includes(`</${openTagMatch[1]}`)) {
@@ -498,11 +501,15 @@ export function parseMarkdownLines(source: string): LineMeta[] {
             continue;
         }
         if (inHtmlBlock) {
+            // Check if this line is a closing tag → non-translatable
             if (/<\/[a-zA-Z][a-zA-Z0-9]*>\s*$/.test(raw)) {
                 inHtmlBlock = false;
+                result.push(makeNonTranslatable(i, raw));
+                continue;
             }
-            result.push(makeNonTranslatable(i, raw));
-            continue;
+            // Otherwise, fall through to normal text parsing below so that
+            // text content inside HTML blocks (e.g. <Note>...</Note>) gets
+            // translated while preserving inline code and other tokens.
         }
 
         // ── Table separator lines ──
