@@ -1,14 +1,103 @@
 /**
  * Markdown document translation parser.
  *
- * Parses a full markdown document line-by-line, identifies translatable text
- * regions while preserving non-translatable blocks (YAML front matter, fenced
- * code blocks, math blocks, HTML blocks, inline code, inline math, etc.).
+ * Uses marked lexer to parse markdown into tokens, extracts only translatable
+ * text tokens, sends them for batch translation, then reconstructs the document
+ * by replacing text tokens in the original source while preserving all
+ * non-translatable content (code blocks, inline code, math, HTML, tables
+ * structure, links, images, etc.) exactly as-is.
  *
  * The output keeps the exact same line count and structural formatting as the
  * source so that VS Code's built-in markdown preview can synchronise scroll
  * position between the source and the translated virtual document.
  */
+
+import { marked } from "marked";
+
+// ── Bold initial letter handling ─────────────────────────────────────────
+
+/**
+ * Regex that detects a "bold initial letter" pattern such as `**T**his`.
+ * Group 1 = the bold letter, Group 2 = the rest of the word.
+ */
+const BOLD_INITIAL_RE = /^\*\*([A-Za-z])\*\*(\S)/;
+
+/**
+ * Strip bold-initial-letter formatting so the translator sees the full word.
+ * e.g. `**T**his is great` → `This is great`
+ */
+export function stripBoldInitial(text: string): { stripped: string; letter: string | null } {
+    const match = text.match(BOLD_INITIAL_RE);
+    if (match) {
+        const letter = match[1];
+        const rest = text.replace(BOLD_INITIAL_RE, `${letter}${match[2]}`);
+        return { stripped: rest, letter };
+    }
+    return { stripped: text, letter: null };
+}
+
+/**
+ * Re-apply bold-initial-letter formatting after translation.
+ */
+export function restoreBoldInitial(translated: string, _originalLetter: string | null): string {
+    if (_originalLetter === null || translated.length === 0) {
+        return translated;
+    }
+    const firstChar = translated[0];
+    if (/[A-Za-z\u4e00-\u9fff]/.test(firstChar)) {
+        return `**${firstChar}**${translated.slice(1)}`;
+    }
+    return translated;
+}
+
+// ── Inline placeholder handling (kept for backward compatibility) ─────────
+
+interface PlaceholderEntry {
+    placeholder: string;
+    original: string;
+}
+
+/**
+ * Replace inline non-translatable tokens with placeholders.
+ * Kept for backward compatibility with existing tests but no longer used
+ * internally by the translation pipeline.
+ */
+export function replaceInlinePlaceholders(text: string): { cleaned: string; entries: PlaceholderEntry[] } {
+    const entries: PlaceholderEntry[] = [];
+    let index = 0;
+    let result = text;
+
+    function nextPlaceholder(original: string): string {
+        const placeholder = `\u200B${index}\u200B`;
+        entries.push({ placeholder, original });
+        index++;
+        return placeholder;
+    }
+
+    result = result.replace(/`[^`]+`/g, (match) => nextPlaceholder(match));
+    result = result.replace(/(?<!\$)\$(?!\$)([^$]+?)\$(?!\$)/g, (match) => nextPlaceholder(match));
+    result = result.replace(/!\[[^\]]*\]\([^)]*\)/g, (match) => nextPlaceholder(match));
+    result = result.replace(/\[([^\]]*)\]\(([^)]*)\)/g, (_match, linkText: string, url: string) => {
+        const urlPlaceholder = nextPlaceholder(`](${url})`);
+        return `[${linkText}${urlPlaceholder}`;
+    });
+
+    return { cleaned: result, entries };
+}
+
+/**
+ * Restore placeholders back to their original inline tokens.
+ */
+export function restoreInlinePlaceholders(text: string, entries: PlaceholderEntry[]): string {
+    let result = text;
+    for (let i = entries.length - 1; i >= 0; i--) {
+        const { placeholder, original } = entries[i];
+        result = result.replace(placeholder, original);
+    }
+    return result;
+}
+
+// ── Line-level metadata ──────────────────────────────────────────────────
 
 /** Represents a single line's translation disposition. */
 export interface LineMeta {
@@ -30,129 +119,296 @@ export interface LineMeta {
     suffix: string;
 }
 
-/**
- * Regex that detects a "bold initial letter" pattern such as `**T**his`.
- * Group 1 = the bold letter, Group 2 = the rest of the word.
- */
-const BOLD_INITIAL_RE = /^\*\*([A-Za-z])\*\*(\S)/;
+// ── Block-level regex patterns ───────────────────────────────────────────
+
+const FENCED_CODE_OPEN_RE = /^(\s*)(```|~~~)(.*)$/;
+const MATH_BLOCK_RE = /^\s*\$\$\s*$/;
+const YAML_DELIMITER_RE = /^---\s*$/;
+const HEADING_RE = /^(#{1,6}\s+)(.*?)(\s*)$/;
+const BLOCKQUOTE_RE = /^(\s*>\s*)(.*?)(\s*)$/;
+const UNORDERED_LIST_RE = /^(\s*[-*+]\s+)(.*?)(\s*)$/;
+const ORDERED_LIST_RE = /^(\s*\d+\.\s+)(.*?)(\s*)$/;
+const TABLE_SEPARATOR_RE = /^\s*\|?\s*:?-+:?\s*(\|\s*:?-+:?\s*)*\|?\s*$/;
+const HTML_BLOCK_RE = /^\s*<\/?[a-zA-Z][^>]*>\s*$/;
+
+function escapeRegExp(str: string): string {
+    return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function isTableRow(line: string): boolean {
+    const trimmed = line.trim();
+    return trimmed.startsWith('|') && trimmed.endsWith('|') && !TABLE_SEPARATOR_RE.test(line);
+}
+
+function makeNonTranslatable(lineIndex: number, raw: string): LineMeta {
+    return { lineIndex, translatable: false, raw, textToTranslate: raw, prefix: '', suffix: '' };
+}
+
+// ── Inline text extraction using marked lexer ────────────────────────────
 
 /**
- * Strip bold-initial-letter formatting so the translator sees the full word.
- * e.g. `**T**his is great` → `This is great`
- * Returns `{ stripped, letter }` where `letter` is the bold character so it
- * can be re-applied after translation.
+ * Collect only the translatable text portions from inline content using
+ * marked's inline lexer. Returns the concatenated translatable text and
+ * a recipe for reconstructing the line after translation.
+ *
+ * The key insight: we use marked to tokenize inline content, then only
+ * extract `text` tokens for translation. Code spans, inline math, images,
+ * HTML tags etc. are left untouched.
  */
-export function stripBoldInitial(text: string): { stripped: string; letter: string | null } {
-    const match = text.match(BOLD_INITIAL_RE);
-    if (match) {
-        const letter = match[1];
-        const rest = text.replace(BOLD_INITIAL_RE, `${letter}${match[2]}`);
-        return { stripped: rest, letter };
-    }
-    return { stripped: text, letter: null };
+interface InlineSegment {
+    /** The raw text as it appears in the source */
+    raw: string;
+    /** Whether this segment should be translated */
+    translatable: boolean;
 }
 
 /**
- * Re-apply bold-initial-letter formatting after translation.
- * Takes the first character of the translated text and wraps it in `**X**`.
+ * Parse inline content into segments using marked's lexer.
+ * Only `text` type tokens (and text within strong/em/link) are translatable.
+ * Everything else (codespan, image, html, etc.) is preserved as-is.
  */
-export function restoreBoldInitial(translated: string, _originalLetter: string | null): string {
-    if (_originalLetter === null || translated.length === 0) {
-        return translated;
+function parseInlineSegments(content: string): InlineSegment[] {
+    if (!content || content.trim() === '') {
+        return [{ raw: content, translatable: false }];
     }
-    const firstChar = translated[0];
-    // Only restore if the first character is a letter
-    if (/[A-Za-z\u4e00-\u9fff]/.test(firstChar)) {
-        return `**${firstChar}**${translated.slice(1)}`;
+
+    // Use marked.lexer to tokenize; it wraps inline content in a paragraph
+    const tokens = marked.lexer(content, { gfm: true });
+    if (tokens.length === 0) {
+        return [{ raw: content, translatable: true }];
     }
-    return translated;
-}
 
-// ── Inline placeholder handling ──────────────────────────────────────────
+    const segments: InlineSegment[] = [];
 
-interface PlaceholderEntry {
-    placeholder: string;
-    original: string;
+    function walkInlineTokens(tokenList: marked.Token[]) {
+        for (const token of tokenList) {
+            switch (token.type) {
+                case 'text':
+                    if (token.raw.trim()) {
+                        segments.push({ raw: token.raw, translatable: true });
+                    } else {
+                        segments.push({ raw: token.raw, translatable: false });
+                    }
+                    break;
+                case 'codespan':
+                    segments.push({ raw: token.raw, translatable: false });
+                    break;
+                case 'image':
+                    segments.push({ raw: token.raw, translatable: false });
+                    break;
+                case 'html':
+                    segments.push({ raw: token.raw, translatable: false });
+                    break;
+                case 'link': {
+                    // For links, we need to handle sub-tokens (the link text)
+                    const linkToken = token as marked.Tokens.Link;
+                    if (linkToken.tokens && linkToken.tokens.length > 0) {
+                        // Process sub-tokens for translatable text
+                        walkInlineTokens(linkToken.tokens);
+                    } else {
+                        segments.push({ raw: token.raw, translatable: false });
+                    }
+                    break;
+                }
+                case 'strong':
+                case 'em': {
+                    // Treat the entire strong/em as a single translatable segment
+                    // so that "**Multiple** words" doesn't get split into separate segments
+                    const formattedToken = token as marked.Tokens.Strong | marked.Tokens.Em;
+                    const hasTextContent = formattedToken.tokens &&
+                        formattedToken.tokens.some((t: marked.Token) => t.type === 'text' && t.raw.trim());
+                    if (hasTextContent) {
+                        segments.push({ raw: token.raw, translatable: true });
+                    } else {
+                        segments.push({ raw: token.raw, translatable: false });
+                    }
+                    break;
+                }
+                default:
+                    // For unknown token types, check for text content
+                    if ('text' in token && typeof (token as any).text === 'string' && (token as any).text.trim()) {
+                        segments.push({ raw: token.raw, translatable: true });
+                    } else {
+                        segments.push({ raw: token.raw, translatable: false });
+                    }
+                    break;
+            }
+        }
+    }
+
+    // marked.lexer wraps inline content in a paragraph token
+    const firstToken = tokens[0];
+    if ('tokens' in firstToken && firstToken.tokens) {
+        walkInlineTokens(firstToken.tokens);
+    } else {
+        // Fallback: treat the whole content as translatable
+        return [{ raw: content, translatable: true }];
+    }
+
+    if (segments.length === 0) {
+        return [{ raw: content, translatable: true }];
+    }
+
+    return segments;
 }
 
 /**
- * Replace inline non-translatable tokens (inline code, inline math, images,
- * links-as-references) with placeholders so the translator does not touch them.
- * Returns the cleaned text and a list of placeholder→original mappings.
+ * Extract translatable text from inline content.
+ * Returns the text to translate (all translatable segments joined by \n)
+ * and the segments for reconstruction.
  */
-export function replaceInlinePlaceholders(text: string): { cleaned: string; entries: PlaceholderEntry[] } {
-    const entries: PlaceholderEntry[] = [];
-    let index = 0;
+function extractInlineTranslatableText(content: string): {
+    textToTranslate: string;
+    segments: InlineSegment[];
+    hasTranslatable: boolean;
+} {
+    const segments = parseInlineSegments(content);
+    const translatableSegments = segments.filter(seg => seg.translatable);
+    const nonTranslatableSegments = segments.filter(seg => !seg.translatable);
 
-    function nextPlaceholder(original: string): string {
-        const placeholder = `\u200B${index}\u200B`;
-        entries.push({ placeholder, original });
-        index++;
-        return placeholder;
+    if (translatableSegments.length === 0) {
+        return { textToTranslate: '', segments, hasTranslatable: false };
     }
 
-    let result = text;
+    // If there are no non-translatable segments (no inline code, images, etc.),
+    // send the entire content as a single translatable unit. This preserves
+    // inline formatting like **bold** and *italic* in the translation context,
+    // and avoids splitting "**Multiple** words" into separate segments.
+    if (nonTranslatableSegments.length === 0) {
+        const wholeSegment: InlineSegment[] = [{ raw: content, translatable: true }];
+        return { textToTranslate: content, segments: wholeSegment, hasTranslatable: true };
+    }
 
-    // Inline code: `...`
-    result = result.replace(/`[^`]+`/g, (match) => nextPlaceholder(match));
+    const textToTranslate = translatableSegments.map(seg => seg.raw).join('\n');
+    return { textToTranslate, segments, hasTranslatable: true };
+}
 
-    // Inline math: $...$  (but not $$)
-    result = result.replace(/(?<!\$)\$(?!\$)([^$]+?)\$(?!\$)/g, (match) => nextPlaceholder(match));
+/**
+ * Reconstruct inline content by replacing translatable segments with
+ * translated text parts.
+ */
+function reconstructInlineContent(
+    originalContent: string,
+    segments: InlineSegment[],
+    translatedParts: string[]
+): string {
+    let partIndex = 0;
+    let result = originalContent;
 
-    // Images: ![alt](url "title")
-    result = result.replace(/!\[[^\]]*\]\([^)]*\)/g, (match) => nextPlaceholder(match));
+    for (const segment of segments) {
+        if (segment.translatable && partIndex < translatedParts.length) {
+            const translatedPart = translatedParts[partIndex];
+            partIndex++;
+            // Replace the first occurrence of this segment's raw text
+            result = result.replace(segment.raw, translatedPart);
+        }
+    }
 
-    // Links: [text](url) — keep the text translatable, placeholder the url part
-    // We handle this specially: replace the whole link syntax but keep text
-    result = result.replace(/\[([^\]]*)\]\(([^)]*)\)/g, (_match, linkText, url) => {
-        const urlPlaceholder = nextPlaceholder(`](${url})`);
-        return `[${linkText}${urlPlaceholder}`;
+    return result;
+}
+
+// ── Table row handling ───────────────────────────────────────────────────
+
+/**
+ * Parse a table row. Each cell is independently analyzed for translatable text.
+ * The translatable texts from all cells are joined with \n for batch translation.
+ */
+function parseTableRow(raw: string, lineIndex: number): LineMeta & { cellSegments: { segments: InlineSegment[]; originalContent: string }[] } {
+    const trimmed = raw.trim();
+    const cells = trimmed.split('|').slice(1, -1);
+
+    const cellSegments: { segments: InlineSegment[]; originalContent: string }[] = [];
+    const translatableTexts: string[] = [];
+    let hasAnyTranslatable = false;
+
+    for (const cell of cells) {
+        const cellContent = cell.trim();
+        if (!cellContent) {
+            cellSegments.push({ segments: [], originalContent: cellContent });
+            translatableTexts.push('');
+            continue;
+        }
+
+        const { textToTranslate, segments, hasTranslatable } = extractInlineTranslatableText(cellContent);
+        cellSegments.push({ segments, originalContent: cellContent });
+
+        if (hasTranslatable) {
+            hasAnyTranslatable = true;
+            translatableTexts.push(textToTranslate);
+        } else {
+            translatableTexts.push('');
+        }
+    }
+
+    if (!hasAnyTranslatable) {
+        return {
+            ...makeNonTranslatable(lineIndex, raw),
+            cellSegments,
+        };
+    }
+
+    return {
+        lineIndex,
+        translatable: true,
+        raw,
+        textToTranslate: translatableTexts.join('\n'),
+        prefix: '\x00TABLE_ROW\x00',
+        suffix: '',
+        cellSegments,
+    };
+}
+
+/**
+ * Reconstruct a table row by replacing translatable cell content.
+ */
+function reconstructTableRow(
+    raw: string,
+    translatedText: string,
+    cellSegments: { segments: InlineSegment[]; originalContent: string }[]
+): string {
+    const translatedCells = translatedText.split('\n');
+    const trimmed = raw.trim();
+    const originalCells = trimmed.split('|').slice(1, -1);
+
+    const reconstructedCells = originalCells.map((originalCell, cellIndex) => {
+        const cellContent = originalCell.trim();
+        const translatedCellText = cellIndex < translatedCells.length ? translatedCells[cellIndex] : '';
+        const cellInfo = cellIndex < cellSegments.length ? cellSegments[cellIndex] : null;
+
+        if (!cellContent || !translatedCellText.trim() || !cellInfo) {
+            return originalCell;
+        }
+
+        const hasTranslatable = cellInfo.segments.some(seg => seg.translatable);
+        if (!hasTranslatable) {
+            return originalCell;
+        }
+
+        // Preserve original cell padding
+        const leadingSpace = originalCell.match(/^(\s*)/)?.[1] || ' ';
+        const trailingSpace = originalCell.match(/(\s*)$/)?.[1] || ' ';
+
+        // Reconstruct cell content by replacing translatable segments
+        const translatedParts = translatedCellText.split('\n');
+        const reconstructedContent = reconstructInlineContent(
+            cellInfo.originalContent,
+            cellInfo.segments,
+            translatedParts
+        );
+
+        return `${leadingSpace}${reconstructedContent}${trailingSpace}`;
     });
 
-    return { cleaned: result, entries };
-}
-
-/**
- * Restore placeholders back to their original inline tokens.
- */
-export function restoreInlinePlaceholders(text: string, entries: PlaceholderEntry[]): string {
-    let result = text;
-    // Restore in reverse order to avoid index shifting issues
-    for (let i = entries.length - 1; i >= 0; i--) {
-        const { placeholder, original } = entries[i];
-        result = result.replace(placeholder, original);
-    }
-    return result;
+    const leadingWhitespace = raw.match(/^(\s*)/)?.[1] || '';
+    return `${leadingWhitespace}|${reconstructedCells.join('|')}|`;
 }
 
 // ── Line-level parsing ───────────────────────────────────────────────────
 
-/** Matches the opening of a fenced code block: ``` or ~~~ with optional language */
-const FENCED_CODE_OPEN_RE = /^(\s*)(```|~~~)(.*)$/;
-
-/** Matches a math block delimiter: $$ */
-const MATH_BLOCK_RE = /^\s*\$\$\s*$/;
-
-/** Matches YAML front matter delimiter */
-const YAML_DELIMITER_RE = /^---\s*$/;
-
-/** Matches a heading line: # ... */
-const HEADING_RE = /^(#{1,6}\s+)(.*?)(\s*)$/;
-
-/** Matches a blockquote line: > ... */
-const BLOCKQUOTE_RE = /^(\s*>\s*)(.*?)(\s*)$/;
-
-/** Matches an unordered list item: - ... or * ... or + ... */
-const UNORDERED_LIST_RE = /^(\s*[-*+]\s+)(.*?)(\s*)$/;
-
-/** Matches an ordered list item: 1. ... */
-const ORDERED_LIST_RE = /^(\s*\d+\.\s+)(.*?)(\s*)$/;
-
-/** Matches a table separator line: |---|---| */
-const TABLE_SEPARATOR_RE = /^\s*\|?\s*:?-+:?\s*(\|\s*:?-+:?\s*)*\|?\s*$/;
-
-/** Matches an HTML block-level tag */
-const HTML_BLOCK_RE = /^\s*<\/?[a-zA-Z][^>]*>\s*$/;
+// Store table cell segments alongside LineMeta for reconstruction
+const tableRowCellSegments = new Map<number, { segments: InlineSegment[]; originalContent: string }[]>();
+// Store inline segments for regular lines
+const lineInlineSegments = new Map<number, InlineSegment[]>();
 
 /**
  * Parse a full markdown document into per-line metadata describing which
@@ -161,6 +417,10 @@ const HTML_BLOCK_RE = /^\s*<\/?[a-zA-Z][^>]*>\s*$/;
 export function parseMarkdownLines(source: string): LineMeta[] {
     const lines = source.split('\n');
     const result: LineMeta[] = [];
+
+    // Clear caches
+    tableRowCellSegments.clear();
+    lineInlineSegments.clear();
 
     let inFencedCode = false;
     let fenceMarker = '';
@@ -175,7 +435,7 @@ export function parseMarkdownLines(source: string): LineMeta[] {
         // ── YAML front matter ──
         if (i === 0 && YAML_DELIMITER_RE.test(raw) && !yamlFrontMatterEnded) {
             inYamlFrontMatter = true;
-            result.push({ lineIndex: i, translatable: false, raw, textToTranslate: raw, prefix: '', suffix: '' });
+            result.push(makeNonTranslatable(i, raw));
             continue;
         }
         if (inYamlFrontMatter) {
@@ -183,7 +443,7 @@ export function parseMarkdownLines(source: string): LineMeta[] {
                 inYamlFrontMatter = false;
                 yamlFrontMatterEnded = true;
             }
-            result.push({ lineIndex: i, translatable: false, raw, textToTranslate: raw, prefix: '', suffix: '' });
+            result.push(makeNonTranslatable(i, raw));
             continue;
         }
 
@@ -193,37 +453,35 @@ export function parseMarkdownLines(source: string): LineMeta[] {
             if (fenceMatch) {
                 inFencedCode = true;
                 fenceMarker = fenceMatch[2];
-                result.push({ lineIndex: i, translatable: false, raw, textToTranslate: raw, prefix: '', suffix: '' });
+                result.push(makeNonTranslatable(i, raw));
                 continue;
             }
         } else {
-            // Check for closing fence
             const closingRe = new RegExp(`^\\s*${escapeRegExp(fenceMarker)}\\s*$`);
             if (closingRe.test(raw)) {
                 inFencedCode = false;
                 fenceMarker = '';
             }
-            result.push({ lineIndex: i, translatable: false, raw, textToTranslate: raw, prefix: '', suffix: '' });
+            result.push(makeNonTranslatable(i, raw));
             continue;
         }
 
         // ── Math blocks ──
         if (!inMathBlock && MATH_BLOCK_RE.test(raw)) {
             inMathBlock = true;
-            result.push({ lineIndex: i, translatable: false, raw, textToTranslate: raw, prefix: '', suffix: '' });
+            result.push(makeNonTranslatable(i, raw));
             continue;
         }
         if (inMathBlock) {
             if (MATH_BLOCK_RE.test(raw)) {
                 inMathBlock = false;
             }
-            result.push({ lineIndex: i, translatable: false, raw, textToTranslate: raw, prefix: '', suffix: '' });
+            result.push(makeNonTranslatable(i, raw));
             continue;
         }
 
         // ── HTML block-level tags ──
         if (HTML_BLOCK_RE.test(raw)) {
-            // Detect multi-line HTML blocks: <tag ...> without closing on same line
             const openTagMatch = raw.match(/^\s*<([a-zA-Z][a-zA-Z0-9]*)\b[^>]*(?<!\/)>\s*$/);
             if (openTagMatch && !raw.includes(`</${openTagMatch[1]}`)) {
                 inHtmlBlock = true;
@@ -232,152 +490,119 @@ export function parseMarkdownLines(source: string): LineMeta[] {
             if (closeTagMatch) {
                 inHtmlBlock = false;
             }
-            result.push({ lineIndex: i, translatable: false, raw, textToTranslate: raw, prefix: '', suffix: '' });
+            result.push(makeNonTranslatable(i, raw));
             continue;
         }
         if (inHtmlBlock) {
-            // Check if this line closes the HTML block
             if (/<\/[a-zA-Z][a-zA-Z0-9]*>\s*$/.test(raw)) {
                 inHtmlBlock = false;
             }
-            result.push({ lineIndex: i, translatable: false, raw, textToTranslate: raw, prefix: '', suffix: '' });
+            result.push(makeNonTranslatable(i, raw));
             continue;
         }
 
         // ── Table separator lines ──
         if (TABLE_SEPARATOR_RE.test(raw)) {
-            result.push({ lineIndex: i, translatable: false, raw, textToTranslate: raw, prefix: '', suffix: '' });
+            result.push(makeNonTranslatable(i, raw));
             continue;
         }
 
         // ── Empty / whitespace-only lines ──
         if (raw.trim() === '') {
-            result.push({ lineIndex: i, translatable: false, raw, textToTranslate: raw, prefix: '', suffix: '' });
+            result.push(makeNonTranslatable(i, raw));
             continue;
         }
 
         // ── Table data rows ──
         if (isTableRow(raw)) {
-            const tableMeta = parseTableRow(raw, i);
-            result.push(tableMeta);
+            const tableResult = parseTableRow(raw, i);
+            tableRowCellSegments.set(i, tableResult.cellSegments);
+            result.push({
+                lineIndex: tableResult.lineIndex,
+                translatable: tableResult.translatable,
+                raw: tableResult.raw,
+                textToTranslate: tableResult.textToTranslate,
+                prefix: tableResult.prefix,
+                suffix: tableResult.suffix,
+            });
             continue;
         }
 
-        // ── Heading ──
+        // ── Extract prefix and content for structured lines ──
+        let prefix = '';
+        let content = raw;
+        let suffix = '';
+
         const headingMatch = raw.match(HEADING_RE);
         if (headingMatch) {
-            const prefix = headingMatch[1];
-            const content = headingMatch[2];
-            const suffix = headingMatch[3];
-            const { textToTranslate, adjustedPrefix, adjustedSuffix } = processTranslatableContent(content, prefix, suffix);
-            result.push({ lineIndex: i, translatable: true, raw, textToTranslate, prefix: adjustedPrefix, suffix: adjustedSuffix });
-            continue;
-        }
-
-        // ── Blockquote ──
-        const blockquoteMatch = raw.match(BLOCKQUOTE_RE);
-        if (blockquoteMatch) {
-            const prefix = blockquoteMatch[1];
-            const content = blockquoteMatch[2];
-            const suffix = blockquoteMatch[3];
+            prefix = headingMatch[1];
+            content = headingMatch[2];
+            suffix = headingMatch[3];
+        } else if (BLOCKQUOTE_RE.test(raw)) {
+            const bqMatch = raw.match(BLOCKQUOTE_RE)!;
+            prefix = bqMatch[1];
+            content = bqMatch[2];
+            suffix = bqMatch[3];
             if (content.trim() === '') {
-                result.push({ lineIndex: i, translatable: false, raw, textToTranslate: raw, prefix: '', suffix: '' });
-            } else {
-                const { textToTranslate, adjustedPrefix, adjustedSuffix } = processTranslatableContent(content, prefix, suffix);
-                result.push({ lineIndex: i, translatable: true, raw, textToTranslate, prefix: adjustedPrefix, suffix: adjustedSuffix });
+                result.push(makeNonTranslatable(i, raw));
+                continue;
             }
+        } else if (UNORDERED_LIST_RE.test(raw)) {
+            const ulMatch = raw.match(UNORDERED_LIST_RE)!;
+            prefix = ulMatch[1];
+            content = ulMatch[2];
+            suffix = ulMatch[3];
+        } else if (ORDERED_LIST_RE.test(raw)) {
+            const olMatch = raw.match(ORDERED_LIST_RE)!;
+            prefix = olMatch[1];
+            content = olMatch[2];
+            suffix = olMatch[3];
+        } else {
+            const trailingMatch = raw.match(/^(.*?)(\s*)$/);
+            content = trailingMatch ? trailingMatch[1] : raw;
+            suffix = trailingMatch ? trailingMatch[2] : '';
+        }
+
+        // Handle bold initial letter BEFORE marked lexer parsing
+        // so that marked sees "This is..." instead of "**T**his is..."
+        const { stripped: strippedContent, letter: boldLetter } = stripBoldInitial(content);
+        const contentForParsing = boldLetter !== null ? strippedContent : content;
+
+        // Use marked inline lexer to extract translatable text
+        const { textToTranslate, segments, hasTranslatable } = extractInlineTranslatableText(contentForParsing);
+
+        if (!hasTranslatable) {
+            result.push(makeNonTranslatable(i, raw));
             continue;
         }
 
-        // ── Unordered list item ──
-        const unorderedMatch = raw.match(UNORDERED_LIST_RE);
-        if (unorderedMatch) {
-            const prefix = unorderedMatch[1];
-            const content = unorderedMatch[2];
-            const suffix = unorderedMatch[3];
-            const { textToTranslate, adjustedPrefix, adjustedSuffix } = processTranslatableContent(content, prefix, suffix);
-            result.push({ lineIndex: i, translatable: true, raw, textToTranslate, prefix: adjustedPrefix, suffix: adjustedSuffix });
-            continue;
-        }
+        // Store segments for reconstruction
+        lineInlineSegments.set(i, segments);
 
-        // ── Ordered list item ──
-        const orderedMatch = raw.match(ORDERED_LIST_RE);
-        if (orderedMatch) {
-            const prefix = orderedMatch[1];
-            const content = orderedMatch[2];
-            const suffix = orderedMatch[3];
-            const { textToTranslate, adjustedPrefix, adjustedSuffix } = processTranslatableContent(content, prefix, suffix);
-            result.push({ lineIndex: i, translatable: true, raw, textToTranslate, prefix: adjustedPrefix, suffix: adjustedSuffix });
-            continue;
-        }
+        const finalPrefix = boldLetter !== null ? prefix + '\x00BOLD_INITIAL\x00' : prefix;
 
-        // ── Plain paragraph text ──
-        const trailingMatch = raw.match(/^(.*?)(\s*)$/);
-        const content = trailingMatch ? trailingMatch[1] : raw;
-        const trailingSuffix = trailingMatch ? trailingMatch[2] : '';
-        const { textToTranslate, adjustedPrefix, adjustedSuffix } = processTranslatableContent(content, '', trailingSuffix);
-        result.push({ lineIndex: i, translatable: true, raw, textToTranslate, prefix: adjustedPrefix, suffix: adjustedSuffix });
+        result.push({
+            lineIndex: i,
+            translatable: true,
+            raw,
+            textToTranslate,
+            prefix: finalPrefix,
+            suffix,
+        });
     }
 
     return result;
 }
 
 /**
- * Process translatable content: handle bold initial letters and inline placeholders.
+ * Extract all translatable texts from parsed line metadata.
  */
-function processTranslatableContent(content: string, prefix: string, suffix: string): {
-    textToTranslate: string;
-    adjustedPrefix: string;
-    adjustedSuffix: string;
-} {
-    const { stripped, letter } = stripBoldInitial(content);
-    if (letter !== null) {
-        return {
-            textToTranslate: stripped,
-            adjustedPrefix: prefix + `\x00BOLD_INITIAL\x00`,
-            adjustedSuffix: suffix,
-        };
-    }
-    return {
-        textToTranslate: content,
-        adjustedPrefix: prefix,
-        adjustedSuffix: suffix,
-    };
-}
-
-/** Check if a line looks like a table data row */
-function isTableRow(line: string): boolean {
-    const trimmed = line.trim();
-    return trimmed.startsWith('|') && trimmed.endsWith('|') && !TABLE_SEPARATOR_RE.test(line);
-}
-
-/** Parse a table row into translatable cells */
-function parseTableRow(raw: string, lineIndex: number): LineMeta {
-    // Table rows have translatable cell content
-    // We extract cell texts, join with \n for translation, then reconstruct
-    const trimmed = raw.trim();
-    const cells = trimmed.split('|').slice(1, -1); // Remove leading/trailing empty from split
-    const cellTexts = cells.map(cell => cell.trim());
-    const hasTranslatable = cellTexts.some(text => text.length > 0);
-
-    if (!hasTranslatable) {
-        return { lineIndex, translatable: false, raw, textToTranslate: raw, prefix: '', suffix: '' };
-    }
-
-    return {
-        lineIndex,
-        translatable: true,
-        raw,
-        textToTranslate: cellTexts.join('\n'),
-        prefix: '\x00TABLE_ROW\x00',
-        suffix: '',
-    };
+export function extractTranslatableTexts(lineMetas: LineMeta[]): string[] {
+    return lineMetas.filter(meta => meta.translatable).map(meta => meta.textToTranslate);
 }
 
 /**
- * Given the parsed line metadata and an array of translated texts (one per
- * translatable line, in order), reconstruct the full translated document
- * preserving the original line count and formatting.
+ * Reconstruct the full translated document from line metadata and translated texts.
  */
 export function reconstructDocument(lineMetas: LineMeta[], translatedTexts: string[]): string {
     let translatedIndex = 0;
@@ -397,19 +622,23 @@ export function reconstructDocument(lineMetas: LineMeta[], translatedTexts: stri
 
         // Handle table rows
         if (meta.prefix === '\x00TABLE_ROW\x00') {
-            const translatedCells = translated.split('\n');
-            const originalTrimmed = meta.raw.trim();
-            const originalCells = originalTrimmed.split('|').slice(1, -1);
-
-            const reconstructedCells = originalCells.map((originalCell, cellIndex) => {
-                const originalPadding = originalCell.match(/^(\s*)/)?.[1] || ' ';
-                const originalTrailing = originalCell.match(/(\s*)$/)?.[1] || ' ';
-                const translatedCell = cellIndex < translatedCells.length ? translatedCells[cellIndex] : originalCell.trim();
-                return `${originalPadding}${translatedCell}${originalTrailing}`;
-            });
-
-            const leadingWhitespace = meta.raw.match(/^(\s*)/)?.[1] || '';
-            outputLines.push(`${leadingWhitespace}|${reconstructedCells.join('|')}|`);
+            const cellSegs = tableRowCellSegments.get(meta.lineIndex);
+            if (cellSegs) {
+                outputLines.push(reconstructTableRow(meta.raw, translated, cellSegs));
+            } else {
+                // Fallback: simple cell replacement
+                const translatedCells = translated.split('\n');
+                const trimmed = meta.raw.trim();
+                const originalCells = trimmed.split('|').slice(1, -1);
+                const reconstructedCells = originalCells.map((originalCell, cellIndex) => {
+                    const originalPadding = originalCell.match(/^(\s*)/)?.[1] || ' ';
+                    const originalTrailing = originalCell.match(/(\s*)$/)?.[1] || ' ';
+                    const translatedCell = cellIndex < translatedCells.length ? translatedCells[cellIndex] : originalCell.trim();
+                    return `${originalPadding}${translatedCell}${originalTrailing}`;
+                });
+                const leadingWhitespace = meta.raw.match(/^(\s*)/)?.[1] || '';
+                outputLines.push(`${leadingWhitespace}|${reconstructedCells.join('|')}|`);
+            }
             continue;
         }
 
@@ -418,22 +647,45 @@ export function reconstructDocument(lineMetas: LineMeta[], translatedTexts: stri
         let finalTranslated = translated;
         if (prefix.includes('\x00BOLD_INITIAL\x00')) {
             prefix = prefix.replace('\x00BOLD_INITIAL\x00', '');
-            finalTranslated = restoreBoldInitial(translated, 'x'); // non-null triggers restore
+            finalTranslated = restoreBoldInitial(translated, 'x');
         }
 
-        outputLines.push(`${prefix}${finalTranslated}${meta.suffix}`);
+        // Handle regular lines with inline segments
+        const segments = lineInlineSegments.get(meta.lineIndex);
+        if (segments) {
+            const translatedParts = finalTranslated.split('\n');
+
+            // For bold initial lines, the segments were parsed from the stripped
+            // content (without **X**), so we must reconstruct from stripped content
+            // and the result already has bold initial restored via restoreBoldInitial
+            const isBoldInitial = meta.prefix.includes('\x00BOLD_INITIAL\x00') ||
+                (prefix !== meta.prefix); // prefix was already cleaned
+            if (isBoldInitial) {
+                // Segments are based on stripped content; reconstruct from stripped
+                const rawWithoutOrigPrefix = meta.raw.slice(
+                    meta.prefix.replace('\x00BOLD_INITIAL\x00', '').length
+                );
+                const strippedRaw = stripBoldInitial(rawWithoutOrigPrefix).stripped;
+                const contentEnd = meta.suffix ? strippedRaw.length - meta.suffix.length : strippedRaw.length;
+                const strippedContent = strippedRaw.slice(0, contentEnd);
+
+                const reconstructedContent = reconstructInlineContent(strippedContent, segments, translatedParts);
+                outputLines.push(`${prefix}${reconstructedContent}${meta.suffix}`);
+            } else {
+                // Extract the content portion (between prefix and suffix)
+                const rawWithoutPrefix = meta.raw.startsWith(prefix) ? meta.raw.slice(prefix.length) : meta.raw;
+                const contentEnd = meta.suffix ? rawWithoutPrefix.length - meta.suffix.length : rawWithoutPrefix.length;
+                const originalContent = rawWithoutPrefix.slice(0, contentEnd);
+
+                const reconstructedContent = reconstructInlineContent(originalContent, segments, translatedParts);
+                outputLines.push(`${prefix}${reconstructedContent}${meta.suffix}`);
+            }
+        } else {
+            outputLines.push(`${prefix}${finalTranslated}${meta.suffix}`);
+        }
     }
 
     return outputLines.join('\n');
-}
-
-/**
- * Extract all translatable texts from parsed line metadata.
- * These texts should be joined with `\n` and sent to the translation service
- * as a single batch (the service preserves line count).
- */
-export function extractTranslatableTexts(lineMetas: LineMeta[]): string[] {
-    return lineMetas.filter(meta => meta.translatable).map(meta => meta.textToTranslate);
 }
 
 /**
@@ -455,34 +707,32 @@ export async function translateMarkdownDocument(
         return source;
     }
 
-    // Handle inline placeholders before sending to translation
-    const placeholderMaps: PlaceholderEntry[][] = [];
-    const textsForTranslation = translatableTexts.map(text => {
-        const { cleaned, entries } = replaceInlinePlaceholders(text);
-        placeholderMaps.push(entries);
-        return cleaned;
-    });
+    // Each translatable text may contain \n (e.g. table rows with multiple cells).
+    // Record how many lines each entry occupies so we can correctly slice the
+    // translated result back into per-entry chunks.
+    const lineCounts = translatableTexts.map(text => text.split('\n').length);
+    const totalLines = lineCounts.reduce((sum, count) => sum + count, 0);
 
-    const joinedText = textsForTranslation.join('\n');
+    const joinedText = translatableTexts.join('\n');
     const translatedJoined = await translateFn(joinedText);
-    let translatedLines = translatedJoined.split('\n');
+    let allTranslatedLines = translatedJoined.split('\n');
 
-    // Ensure we have the same number of lines
-    while (translatedLines.length < textsForTranslation.length) {
-        translatedLines.push('');
+    // Pad or trim to match expected total line count
+    while (allTranslatedLines.length < totalLines) {
+        allTranslatedLines.push('');
     }
-    if (translatedLines.length > textsForTranslation.length) {
-        translatedLines = translatedLines.slice(0, textsForTranslation.length);
+    if (allTranslatedLines.length > totalLines) {
+        allTranslatedLines = allTranslatedLines.slice(0, totalLines);
     }
 
-    // Restore inline placeholders
-    const restoredTranslations = translatedLines.map((line, index) => {
-        return restoreInlinePlaceholders(line, placeholderMaps[index] || []);
-    });
+    // Slice translated lines back into per-entry chunks, re-joining with \n
+    const translatedTexts: string[] = [];
+    let offset = 0;
+    for (const count of lineCounts) {
+        const chunk = allTranslatedLines.slice(offset, offset + count);
+        translatedTexts.push(chunk.join('\n'));
+        offset += count;
+    }
 
-    return reconstructDocument(lineMetas, restoredTranslations);
-}
-
-function escapeRegExp(str: string): string {
-    return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    return reconstructDocument(lineMetas, translatedTexts);
 }

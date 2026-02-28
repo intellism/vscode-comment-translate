@@ -647,3 +647,313 @@ describe("parseMarkdownLines with fixture files", () => {
         expect(result.split("\n").length).toBe(source.split("\n").length);
     });
 });
+
+// ── Inline code preservation in lists and tables ─────────────────────────
+
+describe("translateMarkdownDocument with inline code in lists and tables", () => {
+    const STREAMING_MODES_SOURCE = `## Preview streaming modes
+
+Canonical key: \`channels.<channel>.streaming\`
+
+Modes:
+
+- \`off\`: disable preview streaming.
+- \`partial\`: single preview that is replaced with latest text.
+- \`block\`: preview updates in chunked/appended steps.
+- \`progress\`: progress/status preview during generation, final answer at completion.
+
+### Channel mapping
+
+| Channel  | \`off\` | \`partial\` | \`block\` | \`progress\`        |
+| -------- | ----- | --------- | ------- | ----------------- |
+| Telegram | ✅    | ✅        | ✅      | maps to \`partial\` |
+| Discord  | ✅    | ✅        | ✅      | maps to \`partial\` |
+| Slack    | ✅    | ✅        | ✅      | ✅                |
+
+Slack-only:
+
+- \`channels.slack.nativeStreaming\` toggles Slack native streaming API calls when \`streaming=partial\` (default: \`true\`).
+
+Legacy key migration:
+
+- Telegram: \`streamMode\` + boolean \`streaming\` auto-migrate to \`streaming\` enum.
+- Discord: \`streamMode\` + boolean \`streaming\` auto-migrate to \`streaming\` enum.
+- Slack: \`streamMode\` auto-migrates to \`streaming\` enum; boolean \`streaming\` auto-migrates to \`nativeStreaming\`.
+
+### Runtime behavior
+
+Telegram:
+
+- Uses Bot API \`sendMessage\` + \`editMessageText\`.
+- Preview streaming is skipped when Telegram block streaming is explicitly enabled (to avoid double-streaming).
+- \`/reasoning stream\` can write reasoning to preview.
+
+Discord:
+
+- Uses send + edit preview messages.
+- \`block\` mode uses draft chunking (\`draftChunk\`).
+- Preview streaming is skipped when Discord block streaming is explicitly enabled.
+
+Slack:
+
+- \`partial\` can use Slack native streaming (\`chat.startStream\`/\`append\`/\`stop\`) when available.
+- \`block\` uses append-style draft previews.
+- \`progress\` uses status preview text, then final answer.`;
+
+    it("should preserve line count", async () => {
+        const mockTranslate = jest.fn().mockImplementation(async (text: string) => {
+            return text.split("\n").map((line) => `[ZH]${line}`).join("\n");
+        });
+
+        const result = await translateMarkdownDocument(STREAMING_MODES_SOURCE, mockTranslate);
+        expect(result.split("\n").length).toBe(STREAMING_MODES_SOURCE.split("\n").length);
+    });
+
+    it("should preserve inline code in list items", async () => {
+        const mockTranslate = jest.fn().mockImplementation(async (text: string) => {
+            return text.split("\n").map((line) => `[ZH]${line}`).join("\n");
+        });
+
+        const result = await translateMarkdownDocument(STREAMING_MODES_SOURCE, mockTranslate);
+        const lines = result.split("\n");
+
+        // "- `off`: disable preview streaming." should keep `off` intact
+        const offLine = lines.find((line) => line.includes("`off`"));
+        expect(offLine).toBeDefined();
+        expect(offLine).toContain("`off`");
+        expect(offLine).toMatch(/^- /);
+
+        // "- `partial`: ..." should keep `partial` intact
+        const partialLine = lines.find((line) => line.startsWith("- ") && line.includes("`partial`"));
+        expect(partialLine).toBeDefined();
+        expect(partialLine).toContain("`partial`");
+
+        // "- `block`: ..." should keep `block` intact
+        const blockLine = lines.find((line) => line.startsWith("- ") && line.includes("`block`"));
+        expect(blockLine).toBeDefined();
+        expect(blockLine).toContain("`block`");
+
+        // "- `progress`: ..." should keep `progress` intact
+        const progressLine = lines.find((line) => line.startsWith("- ") && line.includes("`progress`"));
+        expect(progressLine).toBeDefined();
+        expect(progressLine).toContain("`progress`");
+    });
+
+    it("should preserve table structure and inline code in table cells", async () => {
+        const mockTranslate = jest.fn().mockImplementation(async (text: string) => {
+            return text.split("\n").map((line) => `[ZH]${line}`).join("\n");
+        });
+
+        const result = await translateMarkdownDocument(STREAMING_MODES_SOURCE, mockTranslate);
+        const lines = result.split("\n");
+
+        // Table separator should be preserved exactly
+        const separatorLine = lines.find((line) => /^\| -/.test(line));
+        expect(separatorLine).toBeDefined();
+
+        // Table header should preserve inline code
+        const headerLine = lines.find((line) => line.includes("`off`") && line.includes("`partial`") && line.includes("|"));
+        expect(headerLine).toBeDefined();
+        expect(headerLine).toContain("`off`");
+        expect(headerLine).toContain("`partial`");
+        expect(headerLine).toContain("`block`");
+        expect(headerLine).toContain("`progress`");
+
+        // Table data rows should preserve structure
+        const telegramRow = lines.find((line) => line.includes("✅") && line.includes("|") && line.includes("`partial`"));
+        expect(telegramRow).toBeDefined();
+        // Should still be a valid table row (starts and ends with |)
+        expect(telegramRow!.trim()).toMatch(/^\|.*\|$/);
+    });
+
+    it("should preserve inline code in complex list items", async () => {
+        const mockTranslate = jest.fn().mockImplementation(async (text: string) => {
+            return text.split("\n").map((line) => `[ZH]${line}`).join("\n");
+        });
+
+        const result = await translateMarkdownDocument(STREAMING_MODES_SOURCE, mockTranslate);
+        const lines = result.split("\n");
+
+        // "- `channels.slack.nativeStreaming` toggles..." should keep inline code
+        const nativeStreamingLine = lines.find((line) => line.includes("`channels.slack.nativeStreaming`"));
+        expect(nativeStreamingLine).toBeDefined();
+        expect(nativeStreamingLine).toContain("`channels.slack.nativeStreaming`");
+        expect(nativeStreamingLine).toContain("`streaming=partial`");
+        expect(nativeStreamingLine).toContain("`true`");
+
+        // "- Uses Bot API `sendMessage` + `editMessageText`." should keep inline code
+        const botApiLine = lines.find((line) => line.includes("`sendMessage`"));
+        expect(botApiLine).toBeDefined();
+        expect(botApiLine).toContain("`sendMessage`");
+        expect(botApiLine).toContain("`editMessageText`");
+
+        // "- `block` mode uses draft chunking (`draftChunk`)."
+        const draftChunkLine = lines.find((line) => line.includes("`draftChunk`"));
+        expect(draftChunkLine).toBeDefined();
+        expect(draftChunkLine).toContain("`block`");
+        expect(draftChunkLine).toContain("`draftChunk`");
+    });
+
+    it("should preserve Canonical key inline code", async () => {
+        const mockTranslate = jest.fn().mockImplementation(async (text: string) => {
+            return text.split("\n").map((line) => `[ZH]${line}`).join("\n");
+        });
+
+        const result = await translateMarkdownDocument(STREAMING_MODES_SOURCE, mockTranslate);
+        const lines = result.split("\n");
+
+        // "Canonical key: `channels.<channel>.streaming`" should keep inline code
+        const canonicalLine = lines.find((line) => line.includes("`channels.<channel>.streaming`"));
+        expect(canonicalLine).toBeDefined();
+        expect(canonicalLine).toContain("`channels.<channel>.streaming`");
+    });
+
+    it("should translate text portions while keeping inline code", async () => {
+        // Simulate a real translation that translates text but not code
+        const mockTranslate = jest.fn().mockImplementation(async (text: string) => {
+            return text.split("\n").map((line) => {
+                // Simple mock: replace known English words
+                return line
+                    .replace("disable preview streaming.", "禁用预览流。")
+                    .replace("Preview streaming modes", "预览流模式")
+                    .replace("Channel mapping", "频道映射")
+                    .replace("Runtime behavior", "运行时行为")
+                    .replace("Modes:", "模式：")
+                    .replace("Slack-only:", "仅Slack：")
+                    .replace("Telegram:", "Telegram：")
+                    .replace("Discord:", "Discord：")
+                    .replace("Slack:", "Slack：");
+            }).join("\n");
+        });
+
+        const result = await translateMarkdownDocument(STREAMING_MODES_SOURCE, mockTranslate);
+        const lines = result.split("\n");
+
+        // Heading should be translated
+        expect(lines[0]).toBe("## 预览流模式");
+
+        // List item with inline code: text translated, code preserved
+        const offLine = lines.find((line) => line.includes("`off`") && line.includes("禁用预览流"));
+        expect(offLine).toBeDefined();
+        expect(offLine).toMatch(/^- /);
+        expect(offLine).toContain("`off`");
+    });
+});
+
+// ── Table cell translation and post-table alignment ──────────────────────
+
+describe("translateMarkdownDocument with table cells and post-table content", () => {
+    const TABLE_WITH_CONTENT_SOURCE = `### C. Comparison with Prior Art
+
+Table comparing existing methods:
+
+| Method | Year | Approach | Limitation |
+|--------|------|----------|------------|
+| Method A [1] | 2020 | Description | Issue |
+| Method B [2] | 2021 | Description | Issue |
+| Method C [3] | 2023 | Description | Issue |
+
+## III. METHODOLOGY
+
+### A. Problem Formulation`;
+
+    it("should preserve line count with table and post-table content", async () => {
+        const mockTranslate = jest.fn().mockImplementation(async (text: string) => {
+            return text.split("\n").map((line) => `[ZH]${line}`).join("\n");
+        });
+
+        const result = await translateMarkdownDocument(TABLE_WITH_CONTENT_SOURCE, mockTranslate);
+        expect(result.split("\n").length).toBe(TABLE_WITH_CONTENT_SOURCE.split("\n").length);
+    });
+
+    it("should translate all table cells correctly", async () => {
+        const mockTranslate = jest.fn().mockImplementation(async (text: string) => {
+            return text.split("\n").map((line) => {
+                return line
+                    .replace("Method", "方法")
+                    .replace("Year", "年份")
+                    .replace("Approach", "方法论")
+                    .replace("Limitation", "局限性")
+                    .replace("Description", "描述")
+                    .replace("Issue", "问题");
+            }).join("\n");
+        });
+
+        const result = await translateMarkdownDocument(TABLE_WITH_CONTENT_SOURCE, mockTranslate);
+        const lines = result.split("\n");
+
+        // Table header row: all cells should be translated
+        const headerLine = lines[4];
+        expect(headerLine).toContain("方法");
+        expect(headerLine).toContain("年份");
+        expect(headerLine).toContain("方法论");
+        expect(headerLine).toContain("局限性");
+        // Should still be a valid table row
+        expect(headerLine.trim()).toMatch(/^\|.*\|$/);
+
+        // Table separator should be preserved exactly
+        expect(lines[5]).toBe("|--------|------|----------|------------|");
+
+        // Data rows should have all cells translated
+        const dataRow1 = lines[6];
+        expect(dataRow1).toContain("方法 A [1]");
+        expect(dataRow1).toContain("2020");
+        expect(dataRow1).toContain("描述");
+        expect(dataRow1).toContain("问题");
+        expect(dataRow1.trim()).toMatch(/^\|.*\|$/);
+    });
+
+    it("should NOT misalign content after table rows", async () => {
+        const mockTranslate = jest.fn().mockImplementation(async (text: string) => {
+            return text.split("\n").map((line) => {
+                return line
+                    .replace("C. Comparison with Prior Art", "C. 与现有技术的比较")
+                    .replace("Table comparing existing methods:", "比较现有方法的表格：")
+                    .replace("III. METHODOLOGY", "III. 方法论")
+                    .replace("A. Problem Formulation", "A. 问题表述");
+            }).join("\n");
+        });
+
+        const result = await translateMarkdownDocument(TABLE_WITH_CONTENT_SOURCE, mockTranslate);
+        const lines = result.split("\n");
+
+        // Post-table headings should be correctly aligned, NOT shifted
+        // Line 10 should be "## III. 方法论" (not table cell content)
+        expect(lines[10]).toBe("## III. 方法论");
+        // Line 12 should be "### A. 问题表述" (not table cell content)
+        expect(lines[12]).toBe("### A. 问题表述");
+
+        // Heading at line 0 should be translated
+        expect(lines[0]).toBe("### C. 与现有技术的比较");
+
+        // Paragraph at line 2 should be translated
+        expect(lines[2]).toBe("比较现有方法的表格：");
+    });
+
+    it("should handle table with mixed translatable and non-translatable cells", async () => {
+        const source = `| Name | Code | Value |
+|------|------|-------|
+| Alpha | \`A\` | 100 |
+| Beta | \`B\` | 200 |
+
+Next section here.`;
+
+        const mockTranslate = jest.fn().mockImplementation(async (text: string) => {
+            return text.split("\n").map((line) => `[ZH]${line}`).join("\n");
+        });
+
+        const result = await translateMarkdownDocument(source, mockTranslate);
+        const lines = result.split("\n");
+
+        // Line count preserved
+        expect(lines.length).toBe(source.split("\n").length);
+
+        // Inline code in table cells preserved
+        const alphaRow = lines[2];
+        expect(alphaRow).toContain("`A`");
+        expect(alphaRow.trim()).toMatch(/^\|.*\|$/);
+
+        // Post-table content correctly aligned
+        expect(lines[5]).toBe("[ZH]Next section here.");
+    });
+});
