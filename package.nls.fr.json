@@ -26,5 +26,6 @@
     "commentTranslate.configuration.variableHover": "Variable de translation Hover",
     "commentTranslate.configuration.selectTargetLanguageWhenReplacing": "Sélectionnez TargetLanguage lors du remplacement",
     "commentTranslate.configuration.maxTranslationLength": "Longueur maximale de la traduction",
-    "commentTranslate.configuration.MultilineMerge": "Commentaire Fusion multiligne"
+    "commentTranslate.configuration.MultilineMerge": "Commentaire Fusion multiligne",
+    "commentTranslate.command.openMarkdownTranslatePreview": "Open Markdown Translate Preview"
 }

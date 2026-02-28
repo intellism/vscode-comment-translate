@@ -142,6 +142,12 @@
                 "command": "commentTranslate.translateTerminalForCopilotChat",
                 "title": "%commentTranslate.command.translateForCopilotChat%",
                 "category": "Comment Translate"
+            },
+            {
+                "command": "commentTranslate.openMarkdownTranslatePreview",
+                "title": "%commentTranslate.command.openMarkdownTranslatePreview%",
+                "icon": "$(open-preview)",
+                "category": "Comment Translate"
             }
         ],
         "keybindings": [
@@ -194,6 +200,10 @@
         "menus": {
             "commandPalette": [
                 {
+                    "command": "commentTranslate.openMarkdownTranslatePreview",
+                    "when": "resourceLangId == markdown"
+                },
+                {
                     "command": "commentTranslate.openDocumentBrowseMode",
                     "when": "false"
                 },
@@ -211,6 +221,11 @@
                 }
             ],
             "editor/title": [
+                {
+                    "command": "commentTranslate.openMarkdownTranslatePreview",
+                    "when": "resourceLangId == markdown",
+                    "group": "navigation"
+                },
                 {
                     "command": "commentTranslate.openDocumentBrowseMode",
                     "when": "!commentTranslate.ultimatelyBrowseEnable && config.commentTranslate.hover.enabled && resourceLangId in commentTranslate.canLanguages",

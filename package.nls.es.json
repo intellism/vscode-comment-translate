@@ -26,5 +26,6 @@
     "commentTranslate.configuration.variableHover": "Variable de traducción flotante",
     "commentTranslate.configuration.selectTargetLanguageWhenReplacing": "Seleccione TargetLanguage al reemplazar",
     "commentTranslate.configuration.maxTranslationLength": "Longitud máxima de traducción",
-    "commentTranslate.configuration.MultilineMerge": "Comentario Combinación multilínea"
+    "commentTranslate.configuration.MultilineMerge": "Comentario Combinación multilínea",
+    "commentTranslate.command.openMarkdownTranslatePreview": "Open Markdown Translate Preview"
 }

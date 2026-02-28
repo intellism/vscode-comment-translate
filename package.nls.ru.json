@@ -25,5 +25,6 @@
     "commentTranslate.configuration.variableHover": "Переменная приведения наведение курсора",
     "commentTranslate.configuration.selectTargetLanguageWhenReplacing": "Выберите TargetLanguage при замене",
     "commentTranslate.configuration.maxTranslationLength": "Максимальная длина перевода",
-    "commentTranslate.configuration.MultilineMerge": "Комментарий Многострочное слияние"
+    "commentTranslate.configuration.MultilineMerge": "Комментарий Многострочное слияние",
+    "commentTranslate.command.openMarkdownTranslatePreview": "Open Markdown Translate Preview"
 }

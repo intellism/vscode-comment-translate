@@ -25,5 +25,6 @@
     "commentTranslate.configuration.variableHover": "Variable für die Hover-Übersetzung",
     "commentTranslate.configuration.selectTargetLanguageWhenReplacing": "TargetLanguage beim Ersetzen auswählen",
     "commentTranslate.configuration.maxTranslationLength": "Maximale Übersetzungslänge",
-    "commentTranslate.configuration.MultilineMerge": "Kommentar Mehrzeilige Zusammenführung"
+    "commentTranslate.configuration.MultilineMerge": "Kommentar Mehrzeilige Zusammenführung",
+    "commentTranslate.command.openMarkdownTranslatePreview": "Open Markdown Translate Preview"
 }
