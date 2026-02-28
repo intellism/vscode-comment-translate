@@ -253,7 +253,9 @@ More text`;
         const source = `**Multiple** words in bold`;
         const metas = parseMarkdownLines(source);
         expect(metas[0].translatable).toBe(true);
-        expect(metas[0].textToTranslate).toBe("**Multiple** words in bold");
+        // strong inner text "Multiple" and surrounding text " words in bold"
+        // are separate translatable segments joined by \n
+        expect(metas[0].textToTranslate).toBe("Multiple\n words in bold");
         expect(metas[0].prefix).not.toContain("BOLD_INITIAL");
     });
 
@@ -955,5 +957,155 @@ Next section here.`;
 
         // Post-table content correctly aligned
         expect(lines[5]).toBe("[ZH]Next section here.");
+    });
+});
+
+// ── Strong/em marker protection ──────────────────────────────────────────
+
+describe("translateMarkdownDocument with strong/em markers", () => {
+    it("should preserve ** markers when translating bold-only text", async () => {
+        const source = "**Causes:**";
+
+        const mockTranslate = jest.fn().mockImplementation(async (text: string) => {
+            // Translator should only receive "Causes:" without ** markers
+            expect(text).toBe("Causes:");
+            return "原因：";
+        });
+
+        const result = await translateMarkdownDocument(source, mockTranslate);
+        // Should wrap translated text with ** markers, no extra spaces
+        expect(result).toBe("**原因：**");
+    });
+
+    it("should preserve * markers when translating italic-only text", async () => {
+        const source = "*Note:*";
+
+        const mockTranslate = jest.fn().mockImplementation(async (text: string) => {
+            expect(text).toBe("Note:");
+            return "注意：";
+        });
+
+        const result = await translateMarkdownDocument(source, mockTranslate);
+        expect(result).toBe("*注意：*");
+    });
+
+    it("should handle bold text mixed with plain text", async () => {
+        const source = "This is **important** information.";
+
+        const mockTranslate = jest.fn().mockImplementation(async (text: string) => {
+            return text.split("\n").map((line) => `[ZH]${line}`).join("\n");
+        });
+
+        const result = await translateMarkdownDocument(source, mockTranslate);
+        // ** markers should be preserved tightly around the translated bold text
+        // (no space inserted between ** and the translated content)
+        expect(result).toContain("**[ZH]important**");
+        // The surrounding text should also be translated
+        expect(result).toContain("[ZH]This is ");
+        expect(result).toContain("[ZH] information.");
+    });
+
+    it("should handle bold text in headings", async () => {
+        const source = "## **Warning:** Do not proceed";
+
+        const mockTranslate = jest.fn().mockImplementation(async (text: string) => {
+            return text.split("\n").map((line) => `[ZH]${line}`).join("\n");
+        });
+
+        const result = await translateMarkdownDocument(source, mockTranslate);
+        expect(result).toMatch(/^## /);
+        expect(result).toContain("**");
+    });
+
+    it("should handle bold text in list items", async () => {
+        const source = `- **Step 1:** Do this
+- **Step 2:** Do that`;
+
+        const mockTranslate = jest.fn().mockImplementation(async (text: string) => {
+            return text.split("\n").map((line) => `[ZH]${line}`).join("\n");
+        });
+
+        const result = await translateMarkdownDocument(source, mockTranslate);
+        const lines = result.split("\n");
+        expect(lines[0]).toMatch(/^- \*\*/);
+        expect(lines[1]).toMatch(/^- \*\*/);
+        // No space after **
+        expect(lines[0]).not.toContain("** ");
+        expect(lines[1]).not.toContain("** ");
+    });
+});
+
+// ── Link protection ─────────────────────────────────────────────────────
+
+describe("translateMarkdownDocument with links", () => {
+    it("should not translate link URLs (prevents half-width to full-width corruption)", async () => {
+        const source = "Tracks engagement from the [hf-skills](https://huggingface.co/hf-skills) organization for the hackathon leaderboard.";
+
+        const mockTranslate = jest.fn().mockImplementation(async (text: string) => {
+            // Simulate a translator that would corrupt URLs if they were sent
+            return text
+                .replace("Tracks engagement from the", "追踪来自")
+                .replace("organization for the hackathon leaderboard.", "组织的参与度。");
+        });
+
+        const result = await translateMarkdownDocument(source, mockTranslate);
+
+        // The link should be preserved exactly as-is (not sent to translator)
+        expect(result).toContain("[hf-skills](https://huggingface.co/hf-skills)");
+        // URL should NOT have full-width characters
+        expect(result).not.toContain("https：//");
+        expect(result).not.toContain("（https");
+    });
+
+    it("should preserve multiple links in the same line", async () => {
+        const source = "See [docs](https://example.com/docs) and [API](https://example.com/api) for details.";
+
+        const mockTranslate = jest.fn().mockImplementation(async (text: string) => {
+            return text
+                .replace("See", "查看")
+                .replace("and", "和")
+                .replace("for details.", "了解详情。");
+        });
+
+        const result = await translateMarkdownDocument(source, mockTranslate);
+
+        expect(result).toContain("[docs](https://example.com/docs)");
+        expect(result).toContain("[API](https://example.com/api)");
+        expect(result).not.toContain("https：//");
+    });
+
+    it("should preserve links in list items", async () => {
+        const source = `- Visit [GitHub](https://github.com) for code
+- Check [Docs](https://docs.example.com) for help`;
+
+        const mockTranslate = jest.fn().mockImplementation(async (text: string) => {
+            return text.split("\n").map((line) => `[ZH]${line}`).join("\n");
+        });
+
+        const result = await translateMarkdownDocument(source, mockTranslate);
+        const lines = result.split("\n");
+
+        expect(lines[0]).toContain("[GitHub](https://github.com)");
+        expect(lines[1]).toContain("[Docs](https://docs.example.com)");
+        expect(lines[0]).toMatch(/^- /);
+        expect(lines[1]).toMatch(/^- /);
+    });
+
+    it("should preserve links in headings and blockquotes", async () => {
+        const source = `## See [Guide](https://example.com/guide)
+
+> Reference [RFC 7231](https://tools.ietf.org/html/rfc7231) for details.`;
+
+        const mockTranslate = jest.fn().mockImplementation(async (text: string) => {
+            return text.split("\n").map((line) => `[ZH]${line}`).join("\n");
+        });
+
+        const result = await translateMarkdownDocument(source, mockTranslate);
+        const lines = result.split("\n");
+
+        expect(lines[0]).toContain("[Guide](https://example.com/guide)");
+        expect(lines[0]).toMatch(/^## /);
+        expect(lines[2]).toContain("[RFC 7231](https://tools.ietf.org/html/rfc7231)");
+        expect(lines[2]).toMatch(/^> /);
     });
 });

@@ -200,25 +200,29 @@ function parseInlineSegments(content: string): InlineSegment[] {
                     segments.push({ raw: token.raw, translatable: false });
                     break;
                 case 'link': {
-                    // For links, we need to handle sub-tokens (the link text)
-                    const linkToken = token as marked.Tokens.Link;
-                    if (linkToken.tokens && linkToken.tokens.length > 0) {
-                        // Process sub-tokens for translatable text
-                        walkInlineTokens(linkToken.tokens);
-                    } else {
-                        segments.push({ raw: token.raw, translatable: false });
-                    }
+                    // Treat the entire link as non-translatable to prevent URLs
+                    // from being sent to the translation service (which can corrupt
+                    // them, e.g. half-width "://" → full-width "：//").
+                    segments.push({ raw: token.raw, translatable: false });
                     break;
                 }
                 case 'strong':
                 case 'em': {
-                    // Treat the entire strong/em as a single translatable segment
-                    // so that "**Multiple** words" doesn't get split into separate segments
+                    // Split strong/em into marker (non-translatable) + inner text
+                    // (translatable) + marker (non-translatable). This prevents
+                    // the markdown markers (**/**) from being sent to the
+                    // translation service, which can corrupt them by inserting
+                    // spaces (e.g. "**Causes:**" → "** 原因：**").
                     const formattedToken = token as marked.Tokens.Strong | marked.Tokens.Em;
+                    const marker = token.type === 'strong' ? '**' : '*';
                     const hasTextContent = formattedToken.tokens &&
                         formattedToken.tokens.some((t: marked.Token) => t.type === 'text' && t.raw.trim());
                     if (hasTextContent) {
-                        segments.push({ raw: token.raw, translatable: true });
+                        // Extract inner text (strip the markers)
+                        const innerText = token.raw.slice(marker.length, token.raw.length - marker.length);
+                        segments.push({ raw: marker, translatable: false });
+                        segments.push({ raw: innerText, translatable: true });
+                        segments.push({ raw: marker, translatable: false });
                     } else {
                         segments.push({ raw: token.raw, translatable: false });
                     }
