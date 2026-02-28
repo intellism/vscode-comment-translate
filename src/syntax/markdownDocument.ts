@@ -873,23 +873,30 @@ function buildProgressiveSnapshot(
  * with a snapshot of the document where translated lines show translations and
  * pending lines show the original text with a loading indicator.
  *
- * @param source       The raw markdown source text
- * @param translateFn  Translation function (same contract as translateMarkdownDocument)
- * @param onProgress   Called after each batch with the current document snapshot
- * @param batchSize    Number of translatable-text entries per batch (default 5)
- * @returns The fully translated document
+ * When `previousResults` is provided (a map from source text to translated
+ * text from a prior translation run), lines whose source text has not changed
+ * are immediately populated with the previous translation, avoiding redundant
+ * API calls and eliminating loading-indicator flicker for unchanged content.
+ *
+ * @param source           The raw markdown source text
+ * @param translateFn      Translation function (same contract as translateMarkdownDocument)
+ * @param onProgress       Called after each batch with the current document snapshot
+ * @param batchSize        Number of translatable-text entries per batch (default 5)
+ * @param previousResults  Optional map of sourceText → translatedText from a prior run
+ * @returns The fully translated document and a results map for future reuse
  */
 export async function translateMarkdownDocumentProgressive(
     source: string,
     translateFn: (text: string) => Promise<string>,
     onProgress: (snapshot: string) => void,
     batchSize: number = 5,
-): Promise<string> {
+    previousResults?: Map<string, string>,
+): Promise<{ translated: string; resultsMap: Map<string, string> }> {
     const lineMetas = parseMarkdownLines(source);
     const translatableTexts = extractTranslatableTexts(lineMetas);
 
     if (translatableTexts.length === 0) {
-        return source;
+        return { translated: source, resultsMap: new Map() };
     }
 
     // Each translatable text may span multiple lines (table rows with cells).
@@ -898,11 +905,41 @@ export async function translateMarkdownDocumentProgressive(
     // Track per-entry translation results; null = not yet translated
     const translatedTexts: (string | null)[] = new Array(translatableTexts.length).fill(null);
 
-    // Translate in batches
-    for (let batchStart = 0; batchStart < translatableTexts.length; batchStart += batchSize) {
-        const batchEnd = Math.min(batchStart + batchSize, translatableTexts.length);
-        const batchTexts = translatableTexts.slice(batchStart, batchEnd);
-        const batchLineCounts = lineCounts.slice(batchStart, batchEnd);
+    // Pre-populate from previousResults: unchanged lines skip translation entirely
+    const indicesToTranslate: number[] = [];
+    for (let i = 0; i < translatableTexts.length; i++) {
+        const previousTranslation = previousResults?.get(translatableTexts[i]);
+        if (previousTranslation !== undefined) {
+            translatedTexts[i] = previousTranslation;
+        } else {
+            indicesToTranslate.push(i);
+        }
+    }
+
+    // If all lines are already translated (no changes), emit final snapshot and return
+    if (indicesToTranslate.length === 0) {
+        const finalSnapshot = buildProgressiveSnapshot(lineMetas, translatedTexts);
+        onProgress(finalSnapshot);
+        const finalTexts = translatedTexts as string[];
+        const resultsMap = buildResultsMap(translatableTexts, finalTexts);
+        return { translated: reconstructDocument(lineMetas, finalTexts), resultsMap };
+    }
+
+    // If some lines were pre-populated from previousResults, emit an initial
+    // snapshot so the preview immediately shows those translations (only the
+    // changed lines display loading indicators). Skip this when there are no
+    // pre-populated results to avoid a redundant fire that could interfere
+    // with the initial loading snapshot already set by the caller.
+    const hasPrePopulated = translatedTexts.some(t => t !== null);
+    if (hasPrePopulated) {
+        onProgress(buildProgressiveSnapshot(lineMetas, translatedTexts));
+    }
+
+    // Translate only the changed entries in batches
+    for (let batchOffset = 0; batchOffset < indicesToTranslate.length; batchOffset += batchSize) {
+        const batchIndices = indicesToTranslate.slice(batchOffset, batchOffset + batchSize);
+        const batchTexts = batchIndices.map(i => translatableTexts[i]);
+        const batchLineCounts = batchIndices.map(i => lineCounts[i]);
         const batchTotalLines = batchLineCounts.reduce((sum, count) => sum + count, 0);
 
         const joinedBatch = batchTexts.join('\n');
@@ -919,19 +956,34 @@ export async function translateMarkdownDocumentProgressive(
 
         // Distribute translated lines back to per-entry chunks
         let offset = 0;
-        for (let i = batchStart; i < batchEnd; i++) {
-            const count = lineCounts[i];
+        for (let j = 0; j < batchIndices.length; j++) {
+            const entryIndex = batchIndices[j];
+            const count = lineCounts[entryIndex];
             const chunk = allTranslatedLines.slice(offset, offset + count);
-            translatedTexts[i] = chunk.join('\n');
+            translatedTexts[entryIndex] = chunk.join('\n');
             offset += count;
         }
 
-        // Emit progress snapshot after each batch (including the last one,
-        // so the caller can update the preview before the final result)
+        // Emit progress snapshot after each batch
         onProgress(buildProgressiveSnapshot(lineMetas, translatedTexts));
     }
 
     // All entries translated – build final document using the standard path
     const finalTexts = translatedTexts as string[];
-    return reconstructDocument(lineMetas, finalTexts);
+    const resultsMap = buildResultsMap(translatableTexts, finalTexts);
+    return { translated: reconstructDocument(lineMetas, finalTexts), resultsMap };
+}
+
+/**
+ * Build a sourceText → translatedText map from parallel arrays.
+ * Used to carry translation results forward for diff-based reuse.
+ */
+function buildResultsMap(sourceTexts: string[], translatedTexts: string[]): Map<string, string> {
+    const map = new Map<string, string>();
+    for (let i = 0; i < sourceTexts.length; i++) {
+        if (translatedTexts[i] !== undefined) {
+            map.set(sourceTexts[i], translatedTexts[i]);
+        }
+    }
+    return map;
 }

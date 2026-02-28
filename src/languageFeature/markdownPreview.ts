@@ -16,6 +16,9 @@ export const TRANSLATED_MARKDOWN_SCHEME = "translated-markdown";
 /** Number of translatable entries to translate per batch */
 const TRANSLATION_BATCH_SIZE = 5;
 
+/** Debounce delay (ms) before re-translating after a source document change */
+const CHANGE_DEBOUNCE_MS = 500;
+
 /**
  * Provides translated markdown content as a virtual document.
  *
@@ -23,6 +26,11 @@ const TRANSLATION_BATCH_SIZE = 5;
  * progress, untranslated lines show the original source text with a loading
  * indicator. Each completed batch triggers a content-change event so the
  * preview updates incrementally.
+ *
+ * When the source document changes, only lines whose translatable text
+ * actually changed are re-translated; unchanged lines reuse the previous
+ * translation result, eliminating loading-indicator flicker for unmodified
+ * content.
  */
 class TranslatedMarkdownProvider implements TextDocumentContentProvider {
     private onDidChangeEmitter = new EventEmitter<Uri>();
@@ -33,6 +41,15 @@ class TranslatedMarkdownProvider implements TextDocumentContentProvider {
 
     /** Active translation generation per URI (used to cancel stale translations) */
     private activeTranslations = new Map<string, number>();
+
+    /**
+     * Previous translation results per URI: sourceText → translatedText.
+     * Used to skip re-translation of unchanged lines when the document is edited.
+     */
+    private previousResults = new Map<string, Map<string, string>>();
+
+    /** Pending debounce timers per URI key */
+    private debounceTimers = new Map<string, ReturnType<typeof setTimeout>>();
 
     /**
      * Fire a change event so VS Code re-fetches the translated content.
@@ -55,7 +72,13 @@ class TranslatedMarkdownProvider implements TextDocumentContentProvider {
         // No cache – read the source and build an initial loading snapshot
         // immediately so the preview panel is never blank.
         const sourceUri = toSourceUri(uri);
-        const sourceDocument = await workspace.openTextDocument(sourceUri);
+        let sourceDocument;
+        try {
+            sourceDocument = await workspace.openTextDocument(sourceUri);
+        } catch (error) {
+            console.error('[CommentTranslate] Failed to open source document:', sourceUri.toString(), error);
+            return `<!-- Failed to open source: ${sourceUri.toString()} -->`;
+        }
         const sourceText = sourceDocument.getText();
 
         if (!sourceText.trim()) {
@@ -78,6 +101,7 @@ class TranslatedMarkdownProvider implements TextDocumentContentProvider {
     /**
      * Start a progressive translation in the background.
      * Updates contentCache and fires change events as batches complete.
+     * Passes previousResults so unchanged lines are reused without re-translation.
      */
     private startProgressiveTranslation(uri: Uri, sourceText: string): void {
         const uriKey = uri.toString();
@@ -85,6 +109,8 @@ class TranslatedMarkdownProvider implements TextDocumentContentProvider {
         // Assign a unique generation id so we can detect stale translations
         const generationId = Date.now();
         this.activeTranslations.set(uriKey, generationId);
+
+        const prevResults = this.previousResults.get(uriKey);
 
         translateMarkdownDocumentProgressive(
             sourceText,
@@ -98,13 +124,16 @@ class TranslatedMarkdownProvider implements TextDocumentContentProvider {
                 this.onDidChangeEmitter.fire(uri);
             },
             TRANSLATION_BATCH_SIZE,
-        ).then((translated) => {
+            prevResults,
+        ).then(({ translated, resultsMap }) => {
             // Only update if this is still the active translation
             if (this.activeTranslations.get(uriKey) === generationId) {
                 this.contentCache.set(uriKey, translated);
+                this.previousResults.set(uriKey, resultsMap);
                 this.onDidChangeEmitter.fire(uri);
             }
         }).catch((error) => {
+            console.error('[CommentTranslate] Translation failed:', error);
             if (this.activeTranslations.get(uriKey) === generationId) {
                 const errorMessage = error instanceof Error ? error.message : String(error);
                 const fallback = `<!-- Translation error: ${errorMessage} -->\n${sourceText}`;
@@ -115,12 +144,64 @@ class TranslatedMarkdownProvider implements TextDocumentContentProvider {
     }
 
     /**
+     * Schedule a debounced re-translation for the given URI.
+     *
+     * Instead of immediately clearing the cache and triggering a full
+     * loading-snapshot rebuild on every keystroke, this method:
+     * 1. Cancels any pending debounce timer for this URI
+     * 2. Bumps the generation to cancel any in-flight translation
+     * 3. Keeps the existing contentCache so the preview continues to show
+     *    the previous translation (no flicker)
+     * 4. After CHANGE_DEBOUNCE_MS of inactivity, starts a new progressive
+     *    translation that reuses previous results for unchanged lines
+     */
+    scheduleRetranslation(uri: Uri): void {
+        const uriKey = uri.toString();
+
+        // Cancel any pending debounce
+        const existingTimer = this.debounceTimers.get(uriKey);
+        if (existingTimer !== undefined) {
+            clearTimeout(existingTimer);
+        }
+
+        // Bump generation to cancel any in-flight translation immediately
+        this.activeTranslations.set(uriKey, Date.now());
+
+        // Schedule the actual re-translation after debounce delay
+        const timer = setTimeout(async () => {
+            this.debounceTimers.delete(uriKey);
+
+            const sourceUri = toSourceUri(uri);
+            try {
+                const sourceDocument = await workspace.openTextDocument(sourceUri);
+                const sourceText = sourceDocument.getText();
+
+                if (!sourceText.trim()) {
+                    this.contentCache.set(uriKey, sourceText);
+                    this.onDidChangeEmitter.fire(uri);
+                    return;
+                }
+
+                // Start progressive translation; the old cache remains visible
+                // until the first batch completes, so there is no flicker
+                this.startProgressiveTranslation(uri, sourceText);
+            } catch {
+                // Source document may have been closed; ignore
+            }
+        }, CHANGE_DEBOUNCE_MS);
+
+        this.debounceTimers.set(uriKey, timer);
+    }
+
+    /**
      * Invalidate the cache for a URI so the next provideTextDocumentContent
      * call triggers a fresh progressive translation.
+     * Also clears previousResults so all lines are re-translated from scratch.
      */
     invalidate(uri: Uri): void {
         const uriKey = uri.toString();
         this.contentCache.delete(uriKey);
+        this.previousResults.delete(uriKey);
         // Bump generation to cancel any in-flight translation
         this.activeTranslations.set(uriKey, Date.now());
     }
@@ -129,6 +210,11 @@ class TranslatedMarkdownProvider implements TextDocumentContentProvider {
         this.onDidChangeEmitter.dispose();
         this.contentCache.clear();
         this.activeTranslations.clear();
+        this.previousResults.clear();
+        for (const timer of this.debounceTimers.values()) {
+            clearTimeout(timer);
+        }
+        this.debounceTimers.clear();
     }
 }
 
@@ -205,13 +291,25 @@ export function registerMarkdownPreview(context: ExtensionContext): void {
         ),
     );
 
-    // Re-translate when the source markdown document changes
+    // On activation, refresh any translated-markdown documents that VS Code
+    // restored from a previous session. Without this, the preview would be
+    // stuck showing stale loading-indicator HTML because the provider's
+    // in-memory caches are empty after a restart.
+    for (const doc of workspace.textDocuments) {
+        if (doc.uri.scheme === TRANSLATED_MARKDOWN_SCHEME) {
+            provider.invalidate(doc.uri);
+            provider.fireChange(doc.uri);
+        }
+    }
+
+    // Re-translate when the source markdown document changes (debounced).
+    // Uses scheduleRetranslation which keeps the old preview visible during
+    // the debounce window and reuses previous translations for unchanged lines.
     context.subscriptions.push(
         workspace.onDidChangeTextDocument((event) => {
             if (event.document.languageId === "markdown" && event.document.uri.scheme === "file") {
                 const translatedUri = toTranslatedUri(event.document.uri);
-                provider.invalidate(translatedUri);
-                provider.fireChange(translatedUri);
+                provider.scheduleRetranslation(translatedUri);
             }
         })
     );
