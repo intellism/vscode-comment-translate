@@ -131,6 +131,16 @@ class TranslatedMarkdownProvider implements TextDocumentContentProvider {
                 this.contentCache.set(uriKey, translated);
                 this.previousResults.set(uriKey, resultsMap);
                 this.onDidChangeEmitter.fire(uri);
+
+                // Fire again after a short delay to handle the case where the
+                // markdown preview webview has not fully initialized yet (e.g.
+                // after VS Code restarts and restores a preview tab). The first
+                // fire may be ignored if the webview is still loading.
+                setTimeout(() => {
+                    if (this.activeTranslations.get(uriKey) === generationId) {
+                        this.onDidChangeEmitter.fire(uri);
+                    }
+                }, 500);
             }
         }).catch((error) => {
             console.error('[CommentTranslate] Translation failed:', error);
@@ -292,15 +302,18 @@ export function registerMarkdownPreview(context: ExtensionContext): void {
     );
 
     // On activation, refresh any translated-markdown documents that VS Code
-    // restored from a previous session. Without this, the preview would be
-    // stuck showing stale loading-indicator HTML because the provider's
-    // in-memory caches are empty after a restart.
-    for (const doc of workspace.textDocuments) {
-        if (doc.uri.scheme === TRANSLATED_MARKDOWN_SCHEME) {
-            provider.invalidate(doc.uri);
-            provider.fireChange(doc.uri);
+    // restored from a previous session. We delay the refresh to give the
+    // markdown preview webview time to fully initialize; firing too early
+    // causes the change event to be ignored and the preview stays stuck on
+    // stale loading-indicator HTML.
+    setTimeout(() => {
+        for (const doc of workspace.textDocuments) {
+            if (doc.uri.scheme === TRANSLATED_MARKDOWN_SCHEME) {
+                provider.invalidate(doc.uri);
+                provider.fireChange(doc.uri);
+            }
         }
-    }
+    }, 2000);
 
     // Re-translate when the source markdown document changes (debounced).
     // Uses scheduleRetranslation which keeps the old preview visible during
