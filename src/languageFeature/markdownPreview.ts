@@ -66,6 +66,20 @@ class TranslatedMarkdownProvider implements TextDocumentContentProvider {
         // translation), return it immediately.
         const cached = this.contentCache.get(uriKey);
         if (cached !== undefined) {
+            // If a translation is still actively in progress, schedule a
+            // single delayed fire so that a newly created webview (e.g. after
+            // dragging the preview to another column) receives subsequent
+            // updates. We only fire once here; the ongoing translation's
+            // onProgress callback will continue to fire change events as
+            // batches complete.
+            const currentGeneration = this.activeTranslations.get(uriKey);
+            if (currentGeneration !== undefined) {
+                setTimeout(() => {
+                    if (this.activeTranslations.get(uriKey) === currentGeneration) {
+                        this.onDidChangeEmitter.fire(uri);
+                    }
+                }, 500);
+            }
             return cached;
         }
 
@@ -130,6 +144,10 @@ class TranslatedMarkdownProvider implements TextDocumentContentProvider {
             if (this.activeTranslations.get(uriKey) === generationId) {
                 this.contentCache.set(uriKey, translated);
                 this.previousResults.set(uriKey, resultsMap);
+                // Mark translation as complete so provideTextDocumentContent
+                // no longer schedules delayed fires (which would cause an
+                // infinite loop: fire → provide → fire → provide → …).
+                this.activeTranslations.delete(uriKey);
                 this.onDidChangeEmitter.fire(uri);
 
                 // Fire again after a short delay to handle the case where the
@@ -137,7 +155,8 @@ class TranslatedMarkdownProvider implements TextDocumentContentProvider {
                 // after VS Code restarts and restores a preview tab). The first
                 // fire may be ignored if the webview is still loading.
                 setTimeout(() => {
-                    if (this.activeTranslations.get(uriKey) === generationId) {
+                    // Only fire if no new translation has started for this URI
+                    if (!this.activeTranslations.has(uriKey)) {
                         this.onDidChangeEmitter.fire(uri);
                     }
                 }, 500);
@@ -148,6 +167,7 @@ class TranslatedMarkdownProvider implements TextDocumentContentProvider {
                 const errorMessage = error instanceof Error ? error.message : String(error);
                 const fallback = `<!-- Translation error: ${errorMessage} -->\n${sourceText}`;
                 this.contentCache.set(uriKey, fallback);
+                this.activeTranslations.delete(uriKey);
                 this.onDidChangeEmitter.fire(uri);
             }
         });
@@ -250,14 +270,9 @@ function toSourceUri(translatedUri: Uri): Uri {
  * Open the translated markdown preview for the currently active markdown file.
  * Uses VS Code's built-in markdown preview to render the translated virtual document.
  *
- * The built-in `markdown.showPreviewToSide` follows the *active editor* and
- * reuses an existing preview panel, ignoring the URI argument. To work around
- * this we use `markdown.showPreview` which respects the URI argument and opens
- * a dedicated preview tab for the given URI.
- *
- * If a side preview already exists showing the source file, we first close it
- * by focusing the side column and closing the active editor there, then open
- * the translated preview fresh.
+ * Uses `markdown.showLockedPreviewToSide` to open a locked preview in a side
+ * column. A locked preview does not follow the active editor, which prevents
+ * it from being hijacked when the user switches files.
  */
 async function openTranslatedMarkdownPreview(): Promise<void> {
     const activeEditor = window.activeTextEditor;
@@ -278,10 +293,11 @@ async function openTranslatedMarkdownPreview(): Promise<void> {
     // read its content. This does NOT open a visible editor tab.
     await workspace.openTextDocument(translatedUri);
 
-    // Use markdown.showPreview (not showPreviewToSide) with the translated
-    // URI. This command respects the URI argument and creates a dedicated
-    // preview tab for it, independent of the active editor.
-    await commands.executeCommand("markdown.showPreview", translatedUri);
+    // Use markdown.showLockedPreviewToSide to open a locked translated
+    // preview in a side column. A locked preview does not follow the
+    // active editor, which prevents it from being hijacked when the user
+    // switches files.
+    await commands.executeCommand("markdown.showLockedPreviewToSide", translatedUri);
 }
 
 /**

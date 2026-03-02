@@ -200,10 +200,26 @@ function parseInlineSegments(content: string): InlineSegment[] {
                     segments.push({ raw: token.raw, translatable: false });
                     break;
                 case 'link': {
-                    // Treat the entire link as non-translatable to prevent URLs
-                    // from being sent to the translation service (which can corrupt
-                    // them, e.g. half-width "://" → full-width "：//").
-                    segments.push({ raw: token.raw, translatable: false });
+                    // Translate the link's display text while preserving the URL.
+                    // Split into: "[" (non-translatable) + display text (translatable)
+                    // + "](url)" (non-translatable).
+                    const linkToken = token as marked.Tokens.Link;
+                    const linkText = linkToken.text;
+                    const linkHref = linkToken.href;
+                    const linkTitle = linkToken.title;
+
+                    if (linkText && linkText.trim()) {
+                        // Build the URL suffix: ](href "title") or ](href)
+                        const titlePart = linkTitle ? ` "${linkTitle}"` : '';
+                        const urlSuffix = `](${linkHref}${titlePart})`;
+
+                        segments.push({ raw: '[', translatable: false });
+                        segments.push({ raw: linkText, translatable: true });
+                        segments.push({ raw: urlSuffix, translatable: false });
+                    } else {
+                        // Empty or whitespace-only link text – keep as-is
+                        segments.push({ raw: token.raw, translatable: false });
+                    }
                     break;
                 }
                 case 'strong':

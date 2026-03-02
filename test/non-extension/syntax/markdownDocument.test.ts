@@ -1085,8 +1085,8 @@ describe("translateMarkdownDocument with links", () => {
         const result = await translateMarkdownDocument(source, mockTranslate);
         const lines = result.split("\n");
 
-        expect(lines[0]).toContain("[GitHub](https://github.com)");
-        expect(lines[1]).toContain("[Docs](https://docs.example.com)");
+        expect(lines[0]).toContain("[[ZH]GitHub](https://github.com)");
+        expect(lines[1]).toContain("[[ZH]Docs](https://docs.example.com)");
         expect(lines[0]).toMatch(/^- /);
         expect(lines[1]).toMatch(/^- /);
     });
@@ -1103,9 +1103,9 @@ describe("translateMarkdownDocument with links", () => {
         const result = await translateMarkdownDocument(source, mockTranslate);
         const lines = result.split("\n");
 
-        expect(lines[0]).toContain("[Guide](https://example.com/guide)");
+        expect(lines[0]).toContain("[[ZH]Guide](https://example.com/guide)");
         expect(lines[0]).toMatch(/^## /);
-        expect(lines[2]).toContain("[RFC 7231](https://tools.ietf.org/html/rfc7231)");
+        expect(lines[2]).toContain("[[ZH]RFC 7231](https://tools.ietf.org/html/rfc7231)");
         expect(lines[2]).toMatch(/^> /);
     });
 });
