@@ -43,6 +43,72 @@ describe("Marked", () => {
 });
 
 
+describe("HTML visibility in markdown", () => {
+
+    beforeEach(() => {
+        jest.clearAllMocks();
+        translateManager.opts.to = 'zh-CN';
+    });
+
+    afterEach(() => {
+        translateManager.opts.to = 'en';
+    });
+
+    test("should translate markdown with invisible HTML comment", async () => {
+        const input = `All other classes in this module are considered implementation details.  \n(Also note that HelpFormatter and RawDescriptionHelpFormatter are only  \nconsidered public as object names -- the API of the formatter objects is  \nstill considered an implementation detail.)\n<!--moduleHash:-1594644963-->`;
+
+        (translateManager.translate as jest.Mock).mockResolvedValueOnce(
+            "本模块中的所有其他类都被视为实现细节。\n（还要注意，HelpFormatter 和 RawDescriptionHelpFormatter 仅\n被视为公共对象名称——格式化程序对象的 API\n仍被视为实现细节。）"
+        );
+
+        const result = await getMarkdownTextValue(input);
+
+        expect(result.hasTranslated).toBe(true);
+        expect(translateManager.translate).toHaveBeenCalled();
+    });
+
+    test("should skip translation when HTML has visible content", async () => {
+        const input = `Some text\n<div>visible content</div>`;
+
+        const result = await getMarkdownTextValue(input);
+
+        expect(result.hasTranslated).toBe(false);
+        expect(result.result).toBe(input);
+        expect(translateManager.translate).not.toHaveBeenCalled();
+    });
+
+    test("should translate markdown with only HTML comment tags like <!-- -->", async () => {
+        const input = `Hello world\n<!-- this is a comment -->`;
+
+        (translateManager.translate as jest.Mock).mockResolvedValueOnce("你好世界");
+
+        const result = await getMarkdownTextValue(input);
+
+        expect(result.hasTranslated).toBe(true);
+        expect(translateManager.translate).toHaveBeenCalled();
+    });
+
+    test("should skip translation for self-closing HTML tags with attributes", async () => {
+        const input = `Some text\n<img src="test.png" alt="test image"/>`;
+
+        const result = await getMarkdownTextValue(input);
+
+        expect(result.hasTranslated).toBe(false);
+        expect(result.result).toBe(input);
+    });
+
+    test("should translate markdown with non-visible HTML tags like <br>, <hr>, <meta>", async () => {
+        const input = `Hello world\n<br>\n<hr>`;
+
+        (translateManager.translate as jest.Mock).mockResolvedValueOnce("你好世界");
+
+        const result = await getMarkdownTextValue(input);
+
+        expect(result.hasTranslated).toBe(true);
+        expect(translateManager.translate).toHaveBeenCalled();
+    });
+});
+
 describe("Marked", () => {
     type TokenWithRange = marked.Token & {
         range: {

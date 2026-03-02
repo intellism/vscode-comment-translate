@@ -18,7 +18,8 @@ export function isComment(scopes: string[]) {
     //评论的token标记
     const arr = [
         /^punctuation\.definition\.comment/,
-        /^comment\..*/
+        /^comment\..*/,
+        /^string\.quoted\.docstring\.multi/,
     ];
 
     return scopes.some(scope => {

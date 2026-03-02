@@ -71,6 +71,37 @@ renderer.paragraph = function (text) {
     return text + "\n\n";
 };
 
+/**
+ * Determines whether an HTML string contains visible content.
+ * Returns false for HTML comments, self-closing non-visual tags (br, hr, meta, link, etc.),
+ * and empty/whitespace-only content.
+ * Returns true for tags with visible text or visual elements (img, video, etc.).
+ */
+export function hasVisibleHtmlContent(html: string): boolean {
+    const trimmed = html.trim();
+
+    // HTML comments like <!-- ... --> are not visible
+    if (/^<!--[\s\S]*?-->$/.test(trimmed)) {
+        return false;
+    }
+
+    // Non-visual self-closing or void tags (no visible rendering)
+    const nonVisualVoidTags = /^<\s*\/?\s*(br|hr|meta|link|wbr|col|base|area|source|track|param|input)(\s[^>]*)?\s*\/?\s*>$/i;
+    if (nonVisualVoidTags.test(trimmed)) {
+        return false;
+    }
+
+    // Visual self-closing tags like <img>, <video>, <embed>, <iframe>, <object> are visible
+    const visualSelfClosingTags = /^<\s*(img|video|audio|embed|iframe|object|canvas|svg|picture)(\s[^>]*)?\s*\/?\s*>$/i;
+    if (visualSelfClosingTags.test(trimmed)) {
+        return true;
+    }
+
+    // For paired tags, strip all HTML tags and check if there's visible text remaining
+    const textContent = trimmed.replace(/<[^>]*>/g, "").trim();
+    return textContent.length > 0;
+}
+
 export async function getMarkdownTextValue(markStr: string) {
     let textArr: string[] = [];
     let translatedTask: Promise<string>;
@@ -88,8 +119,9 @@ export async function getMarkdownTextValue(markStr: string) {
     marked.parse(markStr, {
         walkTokens: (token) => {
 
-            // Part of the three-party plug-ins use html format to return, unable to accurately translate the content, directly skip.
-            if (token.type === "html") {
+            // Skip translation only when HTML contains visible content (e.g. <div>text</div>, <img>).
+            // Invisible HTML like comments (<!-- -->) or non-visual tags (<br>, <hr>, <meta>) are preserved as-is.
+            if (token.type === "html" && hasVisibleHtmlContent(token.raw)) {
                 skipTranslate = true;
             }
 
