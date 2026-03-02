@@ -168,22 +168,12 @@ export interface IGrammarExtensions {
     languages: ITMLanguageExtensionPoint[];
 }
 
-import { ctx } from '../extension';
-
 async function doLoadOniguruma(): Promise<IOnigLib> {
-    let wasmPath: string;
-    if (ctx && ctx.extensionPath) {
-        wasmPath = path.join(ctx.extensionPath, 'node_modules', 'vscode-oniguruma', 'release', 'onig.wasm');
-        if (!fs.existsSync(wasmPath)) {
-            const onigurumaPath = require.resolve('vscode-oniguruma');
-            wasmPath = path.join(path.dirname(onigurumaPath), 'onig.wasm');
-        }
-    } else {
-        const onigurumaPath = require.resolve('vscode-oniguruma');
-        wasmPath = path.join(path.dirname(onigurumaPath), 'onig.wasm');
-    }
-
-    const bytes = await fs.promises.readFile(wasmPath);
+    // Use a static require so webpack's file-loader can resolve, copy and
+    // rename the .wasm file into the dist bundle – just like the old onigasm
+    // approach (`require('onigasm/lib/onigasm.wasm').default`).
+    const wasmPath: string = require('vscode-oniguruma/release/onig.wasm').default;
+    const bytes = await fs.promises.readFile(path.join(__dirname, wasmPath));
     await loadWASM(bytes.buffer);
     return {
         createOnigScanner(patterns: string[]) { return new OnigScanner(patterns); },

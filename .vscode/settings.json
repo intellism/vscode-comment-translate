@@ -24,7 +24,7 @@
         "Asar",
         "Kinyarwanda"
     ],
-    "commentTranslate.multiLineMerge": true,
+    "commentTranslate.multiLineMerge": false,
     "commentTranslate.targetLanguage": "zh-CN",
     "commentTranslate.hover.string": true,
     "commentTranslate.hover.enabled": true,
