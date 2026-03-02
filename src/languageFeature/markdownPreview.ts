@@ -9,6 +9,7 @@ import {
 } from "vscode";
 import { buildLoadingSnapshot, translateMarkdownDocumentProgressive } from "../syntax/markdownDocument";
 import { cachedTranslate } from "../translate/manager";
+import { TranslatedMarkdownFileSystemProvider, TranslatedContentProvider, FireChangeCallback } from "./translatedMarkdownFs";
 
 /** Custom URI scheme for translated markdown virtual documents */
 export const TRANSLATED_MARKDOWN_SCHEME = "translated-markdown";
@@ -257,20 +258,15 @@ class TranslatedMarkdownProvider implements TextDocumentContentProvider {
 
 /**
  * Convert a source file URI to the translated-markdown virtual document URI.
- * The original URI is encoded into the path and query.
+ * The original URI is encoded into the query parameter.
  *
- * The virtual document path uses the same directory as the source file but
- * prefixes the filename with "[Translated] " so the markdown preview tab
- * title clearly distinguishes the translation from the original.
+ * The virtual document path mirrors the source file path exactly so that
+ * VS Code's markdown preview can synchronise scrolling between the source
+ * editor and the translated preview (it matches documents by fsPath).
  */
 export function toTranslatedUri(sourceUri: Uri): Uri {
-    const sourcePath = sourceUri.path;
-    const lastSlash = sourcePath.lastIndexOf('/');
-    const directory = sourcePath.substring(0, lastSlash + 1);
-    const filename = sourcePath.substring(lastSlash + 1);
-    const translatedPath = `${directory}[Translated] ${filename}`;
     return Uri.parse(
-        `${TRANSLATED_MARKDOWN_SCHEME}://preview${translatedPath}?${encodeURIComponent(sourceUri.toString())}`
+        `${TRANSLATED_MARKDOWN_SCHEME}://preview${sourceUri.path}?${encodeURIComponent(sourceUri.toString())}`
     );
 }
 
@@ -325,8 +321,26 @@ async function openTranslatedMarkdownPreview(): Promise<void> {
  */
 export function registerMarkdownPreview(context: ExtensionContext): void {
     const provider = new TranslatedMarkdownProvider();
+    const fsProvider = new TranslatedMarkdownFileSystemProvider();
+
+    // Connect the FileSystemProvider to the translation provider so that
+    // readFile for the translated document returns translated content
+    // (or triggers translation) instead of raw source file content.
+    const contentCallback: TranslatedContentProvider = async (uri) => {
+        return provider.provideTextDocumentContent(uri);
+    };
+    fsProvider.setContentProvider(contentCallback);
+
+    // Allow the FileSystemProvider to fire change events on the
+    // TextDocumentContentProvider so the preview refreshes when
+    // switching back to a previously hidden preview tab.
+    const fireChangeCallback: FireChangeCallback = (uri) => {
+        provider.fireChange(uri);
+    };
+    fsProvider.setFireChangeCallback(fireChangeCallback);
 
     context.subscriptions.push(
+        workspace.registerFileSystemProvider(TRANSLATED_MARKDOWN_SCHEME, fsProvider, { isReadonly: true }),
         workspace.registerTextDocumentContentProvider(TRANSLATED_MARKDOWN_SCHEME, provider),
         commands.registerCommand(
             "commentTranslate.openMarkdownTranslatePreview",
