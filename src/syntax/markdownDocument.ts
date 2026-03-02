@@ -203,12 +203,23 @@ function parseInlineSegments(content: string): InlineSegment[] {
                     // Translate the link's display text while preserving the URL.
                     // Split into: "[" (non-translatable) + display text (translatable)
                     // + "](url)" (non-translatable).
+                    //
+                    // Special case: if the link text contains an image
+                    // (e.g. [![alt](img-url)](link-url)), the entire link is
+                    // kept as-is because translating the image syntax would
+                    // corrupt it.
                     const linkToken = token as marked.Tokens.Link;
                     const linkText = linkToken.text;
                     const linkHref = linkToken.href;
                     const linkTitle = linkToken.title;
 
-                    if (linkText && linkText.trim()) {
+                    // Detect nested image inside link text: [![...](...)
+                    const hasNestedImage = /!\[.*?\]\(.*?\)/.test(linkText);
+
+                    if (hasNestedImage) {
+                        // Image-in-link – keep entire raw token untranslated
+                        segments.push({ raw: token.raw, translatable: false });
+                    } else if (linkText && linkText.trim()) {
                         // Build the URL suffix: ](href "title") or ](href)
                         const titlePart = linkTitle ? ` "${linkTitle}"` : '';
                         const urlSuffix = `](${linkHref}${titlePart})`;

@@ -1091,6 +1091,39 @@ describe("translateMarkdownDocument with links", () => {
         expect(lines[1]).toMatch(/^- /);
     });
 
+    it("should not translate image-in-link (nested image inside link text)", async () => {
+        const source = `[![Feature Requests](https://img.shields.io/github/issues/microsoft/vscode/feature-request.svg)](https://github.com/microsoft/vscode/issues?q=is%3Aopen+is%3Aissue+label%3Afeature-request+sort%3Areactions-%2B1-desc)`;
+
+        const mockTranslate = jest.fn().mockImplementation(async (text: string) => {
+            return text.split("\n").map((line) => `[ZH]${line}`).join("\n");
+        });
+
+        const result = await translateMarkdownDocument(source, mockTranslate);
+
+        // The entire image-in-link should be preserved as-is, not translated
+        expect(result).toContain("[![Feature Requests](https://img.shields.io/github/issues/microsoft/vscode/feature-request.svg)]");
+        expect(result).toContain("(https://github.com/microsoft/vscode/issues?q=is%3Aopen+is%3Aissue+label%3Afeature-request+sort%3Areactions-%2B1-desc)");
+        // Should NOT have corrupted URLs with full-width characters
+        expect(result).not.toContain("！[");
+        expect(result).not.toContain("（https");
+        expect(result).not.toContain("https：//");
+    });
+
+    it("should not translate image-in-link mixed with regular text", async () => {
+        const source = `Click [![Build Status](https://ci.example.com/badge.svg)](https://ci.example.com) for details.`;
+
+        const mockTranslate = jest.fn().mockImplementation(async (text: string) => {
+            return text.split("\n").map((line) => `[ZH]${line}`).join("\n");
+        });
+
+        const result = await translateMarkdownDocument(source, mockTranslate);
+
+        // The image-in-link should be preserved
+        expect(result).toContain("[![Build Status](https://ci.example.com/badge.svg)](https://ci.example.com)");
+        // Surrounding text should be translated
+        expect(result).toContain("[ZH]");
+    });
+
     it("should preserve links in headings and blockquotes", async () => {
         const source = `## See [Guide](https://example.com/guide)
 

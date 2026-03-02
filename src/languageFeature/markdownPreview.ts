@@ -13,6 +13,13 @@ import { cachedTranslate } from "../translate/manager";
 /** Custom URI scheme for translated markdown virtual documents */
 export const TRANSLATED_MARKDOWN_SCHEME = "translated-markdown";
 
+/** Language IDs that are treated as markdown for translation preview */
+const MARKDOWN_LANGUAGE_IDS = ['markdown', 'prompt', 'instructions', 'chatagent', 'skill'];
+
+function isMarkdownLanguageId(languageId: string): boolean {
+    return MARKDOWN_LANGUAGE_IDS.includes(languageId);
+}
+
 /** Number of translatable entries to translate per batch */
 const TRANSLATION_BATCH_SIZE = 5;
 
@@ -251,10 +258,19 @@ class TranslatedMarkdownProvider implements TextDocumentContentProvider {
 /**
  * Convert a source file URI to the translated-markdown virtual document URI.
  * The original URI is encoded into the path and query.
+ *
+ * The virtual document path uses the same directory as the source file but
+ * prefixes the filename with "[Translated] " so the markdown preview tab
+ * title clearly distinguishes the translation from the original.
  */
 export function toTranslatedUri(sourceUri: Uri): Uri {
+    const sourcePath = sourceUri.path;
+    const lastSlash = sourcePath.lastIndexOf('/');
+    const directory = sourcePath.substring(0, lastSlash + 1);
+    const filename = sourcePath.substring(lastSlash + 1);
+    const translatedPath = `${directory}[Translated] ${filename}`;
     return Uri.parse(
-        `${TRANSLATED_MARKDOWN_SCHEME}://preview${sourceUri.path}?${encodeURIComponent(sourceUri.toString())}`
+        `${TRANSLATED_MARKDOWN_SCHEME}://preview${translatedPath}?${encodeURIComponent(sourceUri.toString())}`
     );
 }
 
@@ -265,6 +281,7 @@ function toSourceUri(translatedUri: Uri): Uri {
     const sourceUriString = decodeURIComponent(translatedUri.query);
     return Uri.parse(sourceUriString);
 }
+
 
 /**
  * Open the translated markdown preview for the currently active markdown file.
@@ -282,7 +299,7 @@ async function openTranslatedMarkdownPreview(): Promise<void> {
     }
 
     const sourceUri = activeEditor.document.uri;
-    if (activeEditor.document.languageId !== "markdown") {
+    if (!isMarkdownLanguageId(activeEditor.document.languageId)) {
         window.showWarningMessage("The active file is not a markdown document.");
         return;
     }
@@ -336,7 +353,7 @@ export function registerMarkdownPreview(context: ExtensionContext): void {
     // the debounce window and reuses previous translations for unchanged lines.
     context.subscriptions.push(
         workspace.onDidChangeTextDocument((event) => {
-            if (event.document.languageId === "markdown" && event.document.uri.scheme === "file") {
+            if (isMarkdownLanguageId(event.document.languageId) && event.document.uri.scheme === "file") {
                 const translatedUri = toTranslatedUri(event.document.uri);
                 provider.scheduleRetranslation(translatedUri);
             }

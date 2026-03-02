@@ -201,7 +201,7 @@
             "commandPalette": [
                 {
                     "command": "commentTranslate.openMarkdownTranslatePreview",
-                    "when": "resourceLangId == markdown"
+                    "when": "resourceLangId == markdown || resourceLangId == prompt || resourceLangId == instructions || resourceLangId == chatagent || resourceLangId == skill"
                 },
                 {
                     "command": "commentTranslate.openDocumentBrowseMode",
@@ -223,7 +223,7 @@
             "editor/title": [
                 {
                     "command": "commentTranslate.openMarkdownTranslatePreview",
-                    "when": "resourceLangId == markdown",
+                    "when": "resourceLangId == markdown || resourceLangId == prompt || resourceLangId == instructions || resourceLangId == chatagent || resourceLangId == skill",
                     "group": "navigation"
                 },
                 {
