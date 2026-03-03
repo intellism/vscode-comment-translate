@@ -25,7 +25,7 @@ The extension identifies multilingual content like comments and strings in the s
 The extension can translate source code content and quickly replace it in the document. For instance, translate a description and use it as a variable name; in multilingual development scenarios, translate a string and replace it in the document.
 
 **Translate Variable Naming**: Translate the current description into English and provide various variable names to choose from, then replace the original description.
-![naming](<./doc/image/full naming.gif>)
+![naming](<./doc/image/full_naming.gif>)
 
 **Hover Replacement**: The hover box provides the ability to replace text with the translation result, which replaces the original content.
 ![hover](./doc/image/hover_image.png)
