@@ -12,25 +12,27 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
      * 核心单词
      * 例句
    * 生词本
- * 添加更多翻译源,for API版本的
-   * google for api
-   * bing for api
-   * baidu for api
-   * deepl for api
-   * yadex for api
- 
-
 ### Change
 * i18n 支持更多语言。 代码内支持
-* 沉浸式浏览渲染调度优化：滚动/编辑场景采用更平滑的刷新策略，降低闪烁与无效刷新
-* Markdown 段落切分与前缀识别增强（标题、引用、列表、任务列表、表格分隔线）
-* editor title 菜单显示条件与 browse 实际状态对齐
+
+
+## [3.1.0] 2026-3-4
+### Add
+* 沉浸式: 支持Markdown
+* 支持Markdown翻译
+* 新增互译开关配置
+* Terminal右键支持翻译到github copilot chat
+
+### Change
+* Concise模式改为可翻译2个字符可以Hover翻译。不再支持Ctrl or Command按下才翻译
+* 优化isCode判断逻辑，减少误判
 
 ### Fixed
+* 修复Python等语言内容有Html标签时，翻译结果不显示问题。 #266 #281 #260
 * 修复 Markdown 文档浏览翻译链路在部分语法场景下中断的问题（`invalid pattern in look-behind`）
 * 修复 `toggleDocumentBrowseMode` 在 Markdown 场景下偶发不生效问题
 * 修复 browse 与 hover 状态耦合导致的开关行为不一致
-
+  
 ### Refactor
 * 重构 Markdown browse 主路径，优先走文档段落扫描；TextMate scope fallback 失败时自动降级，保证主功能可用
 * 调整注释翻译策略，忽略无效 token 参数并清理部分冗余状态字段

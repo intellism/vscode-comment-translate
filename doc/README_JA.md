@@ -13,6 +13,10 @@
 
 ## 機能
 
+### Markdown 翻訳プレビュー
+プラグインはMarkdown形式の翻訳プレビューをサポートしており、Markdownファイル内で素早く翻訳してプレビューできます。
+![Markdown](./image/markdown.png)
+
 ### コードリーディング
 プラグインはTextMateを使用してソースコード内のコメント、文字列などの多言語コンテンツを識別し、迅速に翻訳してHoverで表示し、開発への干渉を最小限に抑えます。
 
@@ -25,7 +29,7 @@
 プラグインはソースコード内の内容を翻訳するだけでなく、翻訳された内容をドキュメントに迅速に置換することもサポートします。例えば、説明を翻訳して変数名として使用する場合や、多言語開発シナリオで文字列を翻訳してドキュメントに置換する場合などです。
 
 **変数命名の翻訳**：現在の説明を英語に翻訳し、さまざまな変数名を提供します。選択すると元の説明が置換されます。
-![naming](<./image/full naming.gif>)
+![naming](<./image/full_naming.gif>)
 
 **Hover置換**: ホバー表示された翻訳ボックスで置換機能を提供し、選択すると翻訳結果が元の内容に置換されます。
 ![hover](./image/hover_image.png)
@@ -71,6 +75,8 @@
 * `commentTranslate.source`: 翻訳サービスソースの設定。コマンドを通じて設定することをお勧めします。 プラグイン拡張翻訳サービスソースをサポートします。 [例](https://github.com/intellism/deepl-translate)
 * `commentTranslate.maxTranslationLength`: 最大翻訳長の設定。過長文字列の翻訳による過剰な料金を回避します。
 * `commentTranslate.browse.enabled`: プロジェクト没入ブラウズ翻訳機能のオン/オフ
+* `commentTranslate.markdown.scopeFallback`: Markdown fenced code 検出後の TextMate scope フォールバックマッチングのオン/オフ
+* `commentTranslate.googleTranslate.mirror`: 国内サービスにアクセスできない問題を解決します。 [ドキュメント](https://hcfy.app/blog/2022/09/28/ggg#%E6%96%B9%E6%A1%88-c%E4%BD%BF%E7%94%A8%E9%95%9C%E5%83%8F%E5%9C%B0%E5%9D%80%E6%9C%80%E7%AE%80%E5%8D%95)
 
 ## サポート
 

@@ -13,6 +13,10 @@ Many excellent projects have extensive comments to help users quickly understand
 
 ## Features
 
+### Markdown Translation Preview
+The extension supports Markdown format translation preview, allowing you to quickly translate and preview content in Markdown files.
+![Markdown](./doc/image/markdown.png)
+
 ### Code Reading
 The extension identifies multilingual content like comments and strings in the source code using TextMate, translates them quickly, and displays them via Hover, minimizing disruption to development.
 
@@ -72,7 +76,7 @@ Third-party translation services can be found by searching for `@tag:translateSo
 * `commentTranslate.maxTranslationLength`: Maximum translation length configuration to avoid excessive charges for long character translations
 * `commentTranslate.browse.enabled`: Enable/disable project immersive browsing translation function
 * `commentTranslate.markdown.scopeFallback`: Enable/disable TextMate scope fallback after Markdown fenced-code detection
-
+* `commentTranslate.googleTranslate.mirror`: Resolves the issue of domestic services being inaccessible. [Documentation](https://hcfy.app/blog/2022/09/28/ggg#%E6%96%B9%E6%A1%88-c%E4%BD%BF%E7%94%A8%E9%95%9C%E5%83%8F%E5%9C%B0%E5%9D%80%E6%9C%80%E7%AE%80%E5%8D%95)
 
 ## Support Us
 

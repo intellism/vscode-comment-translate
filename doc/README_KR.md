@@ -13,6 +13,10 @@
 
 ## 기능
 
+### Markdown 번역 미리보기
+플러그인은 Markdown 형식의 번역 미리보기를 지원하며, Markdown 파일에서 빠르게 번역하고 미리볼 수 있습니다.
+![Markdown](./image/markdown.png)
+
 ### 코드 읽기
 플러그인은 TextMate를 통해 소스 코드의 주석, 문자열 등의 다국어 내용을 인식하고 빠르게 번역하여 Hover로 표시하여 개발에 대한 방해를 최소화합니다.
 
@@ -25,7 +29,7 @@
 플러그인은 소스 코드의 내용을 번역할 뿐만 아니라 번역된 내용을 문서에 빠르게 교체할 수 있습니다. 예를 들어, 설명을 번역하여 변수 이름으로 사용하거나 다국어 개발 시나리오에서 문자열을 번역하여 문서에 교체할 수 있습니다.
 
 **변수 이름 번역**: 현재 설명을 영어로 번역한 후 다양한 변수 이름을 제공하며, 선택하면 원래 설명을 교체합니다.
-![naming](<./image/full naming.gif>)
+![naming](<./image/full_naming.gif>)
 
 **Hover 교체**: Hover 번역 상자에서 교체 기능을 제공하며, 선택하면 번역 결과가 원문 내용을 교체합니다.
 ![hover](./image/hover_image.png)
@@ -71,6 +75,8 @@
 * `commentTranslate.source`: 번역 서비스 소스 설정. 명령을 통해 설정 완료를 권장합니다. 플러그인 확장 번역 서비스 소스를 지원합니다. [예시](https://github.com/intellism/deepl-translate)
 * `commentTranslate.maxTranslationLength`: 최대 번역 길이 설정. 너무 긴 문자 번역으로 인한 과도한 요금 문제를 피하기 위해 설정합니다.
 * `commentTranslate.browse.enabled`: 프로젝트 몰입형 브라우징 번역 기능 켜기/끄기
+* `commentTranslate.markdown.scopeFallback`: Markdown fenced code 감지 후 TextMate scope 폴백 매칭 켜기/끄기
+* `commentTranslate.googleTranslate.mirror`: 국내 서비스 접근 불가 문제를 해결합니다. [문서](https://hcfy.app/blog/2022/09/28/ggg#%E6%96%B9%E6%A1%88-c%E4%BD%BF%E7%94%A8%E9%95%9C%E5%83%8F%E5%9C%B0%E5%9D%80%E6%9C%80%E7%AE%80%E5%8D%95)
 
 ## 지원하기
 
