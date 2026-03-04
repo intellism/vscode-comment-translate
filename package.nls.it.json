@@ -26,5 +26,6 @@
     "commentTranslate.configuration.selectTargetLanguageWhenReplacing": "Selezionare TargetLanguage durante la sostituzione",
     "commentTranslate.configuration.maxTranslationLength": "Lunghezza massima della traduzione",
     "commentTranslate.configuration.MultilineMerge": "Unione di commenti su più righe",
+    "commentTranslate.configuration.mutualTranslate": "Abilita la traduzione reciproca. Quando attivata, se la lingua rilevata del testo di input corrisponde alla lingua di destinazione, la direzione della traduzione verrà invertita automaticamente.",
     "commentTranslate.command.openMarkdownTranslatePreview": "Open Markdown Translate Preview"
 }

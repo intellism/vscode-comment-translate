@@ -26,5 +26,6 @@
     "commentTranslate.configuration.selectTargetLanguageWhenReplacing": "대체할 때 대상 언어 선택하기",
     "commentTranslate.configuration.maxTranslationLength": "최대 번역 길이",
     "commentTranslate.configuration.MultilineMerge": "여러 줄 병합 주석 달기",
+    "commentTranslate.configuration.mutualTranslate": "상호 번역 활성화. 활성화하면 입력 텍스트의 감지된 언어가 대상 언어와 일치할 경우 번역 방향이 자동으로 전환됩니다.",
     "commentTranslate.command.openMarkdownTranslatePreview": "Open Markdown Translate Preview"
 }

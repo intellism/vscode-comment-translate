@@ -122,8 +122,15 @@ class ConciseDecorationManager {
                 editor.document,
                 "comment",
                 editor.visibleRanges[0]
-            );
-            return blocks || [];
+            ) || [];
+
+            const textBlocks = await comment.getAllComment(
+                editor.document,
+                "text",
+                editor.visibleRanges[0]
+            ) || [];
+
+            return blocks?.concat(textBlocks);
         } catch (e) {
             return [];
         }

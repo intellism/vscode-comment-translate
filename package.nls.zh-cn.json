@@ -30,5 +30,6 @@
     "commentTranslate.configuration.selectTargetLanguageWhenReplacing": "替换时选择目标语言",
     "commentTranslate.configuration.maxTranslationLength": "最大翻译长度",
     "commentTranslate.configuration.MultilineMerge": "多行注释合并",
+    "commentTranslate.configuration.mutualTranslate": "启用互译。开启后，当检测到输入文本的语言与目标语言相同时，将自动互换翻译方向。",
     "commentTranslate.command.openMarkdownTranslatePreview": "打开 Markdown 翻译预览"
 }

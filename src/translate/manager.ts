@@ -119,7 +119,10 @@ export function initTranslate(context: ExtensionContext) {
 
 
 /**
- * Automatic translation, which automatically detects languages based on source code
+ * Automatic translation, which automatically detects languages based on source code.
+ * When `commentTranslate.mutualTranslate` is enabled and the detected language matches
+ * the target language, the translation direction is swapped automatically (mutual translate).
+ * When disabled, the text is always translated to the configured target language.
  * @param text Text to be translated
  * @param opts Select target and source languages for translation
  * @returns Translated text
@@ -128,12 +131,16 @@ export async function autoMutualTranslate(text: string, opts?: ITranslateOptions
     let targetLanguage = opts?.to || translateManager.opts.to || 'auto';
     let sourceLanguage = opts?.from || translateManager.opts.from || 'en';
 
-    let detectedLanguage = await detectLanguage(text);
-    if (targetLanguage.indexOf(detectedLanguage) === 0) {
-        targetLanguage = sourceLanguage;
-        // In the case of automatic detection, the target language for translation cannot be auto
-        if (targetLanguage === 'auto') targetLanguage = 'en';
+    const isMutualTranslateEnabled = getConfig<boolean>('mutualTranslate', false);
+    if (isMutualTranslateEnabled) {
+        let detectedLanguage = await detectLanguage(text);
+        if (targetLanguage.indexOf(detectedLanguage) === 0) {
+            targetLanguage = sourceLanguage;
+            // In the case of automatic detection, the target language for translation cannot be auto
+            if (targetLanguage === 'auto') targetLanguage = 'en';
+        }
     }
+
     return cachedTranslate(text, { from: opts?.from, to: targetLanguage });
 }
 

@@ -35,15 +35,17 @@ async function commentProvideHover(
     const concise = getConfig<boolean>("hover.concise");
     const nearShow = getConfig<boolean>("hover.nearShow");
 
-    if (concise) {
-        return null;
-    }
+
 
     let block: ICommentBlock | null = selectionContains(uri, position);
     let res: { md: MarkdownString, header: MarkdownString } | undefined;
     let range: Range | undefined;
 
     if (!block) {
+        if (concise) {
+            return null;
+        }
+
         if (canLanguages.includes(document.languageId)) {
             try {
                 let comment = await createComment();

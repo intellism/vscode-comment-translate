@@ -30,5 +30,6 @@
     "commentTranslate.configuration.selectTargetLanguageWhenReplacing": "Select TargetLanguage when replacing",
     "commentTranslate.configuration.maxTranslationLength": "Max translation length",
     "commentTranslate.configuration.MultilineMerge": "Comment Multi-line merge",
+    "commentTranslate.configuration.mutualTranslate": "Enable mutual translate. When enabled, if the detected language of the input text matches the target language, the translation direction will be swapped automatically.",
     "commentTranslate.command.openMarkdownTranslatePreview": "Open Markdown Translate Preview"
 }

@@ -23,6 +23,7 @@
     "commentTranslate.configuration.variableHover": "翻訳変数",
     "commentTranslate.configuration.selectTargetLanguageWhenReplacing": "置換時にターゲット言語を選択",
     "commentTranslate.configuration.MultilineMerge": "コメント複数行マージ",
+    "commentTranslate.configuration.mutualTranslate": "相互翻訳を有効にする。有効にすると、入力テキストの検出言語がターゲット言語と一致した場合、翻訳方向が自動的に切り替わります。",
     "commentTranslate.configuration.browseEnabled": "コメント閲覧翻訳を有効にする",
     "commentTranslate.configuration.browseMode": "コメント閲覧モード",
     "commentTranslate.configuration.maxTranslationLength": "最大翻訳長",

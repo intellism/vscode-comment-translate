@@ -27,5 +27,6 @@
     "commentTranslate.configuration.selectTargetLanguageWhenReplacing": "Seleccione TargetLanguage al reemplazar",
     "commentTranslate.configuration.maxTranslationLength": "Longitud máxima de traducción",
     "commentTranslate.configuration.MultilineMerge": "Comentario Combinación multilínea",
+    "commentTranslate.configuration.mutualTranslate": "Habilitar traducción mutua. Cuando está activado, si el idioma detectado del texto de entrada coincide con el idioma de destino, la dirección de traducción se intercambiará automáticamente.",
     "commentTranslate.command.openMarkdownTranslatePreview": "Open Markdown Translate Preview"
 }

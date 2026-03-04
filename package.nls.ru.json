@@ -26,5 +26,6 @@
     "commentTranslate.configuration.selectTargetLanguageWhenReplacing": "Выберите TargetLanguage при замене",
     "commentTranslate.configuration.maxTranslationLength": "Максимальная длина перевода",
     "commentTranslate.configuration.MultilineMerge": "Комментарий Многострочное слияние",
+    "commentTranslate.configuration.mutualTranslate": "Включить взаимный перевод. При включении, если определённый язык входного текста совпадает с целевым языком, направление перевода будет автоматически изменено на противоположное.",
     "commentTranslate.command.openMarkdownTranslatePreview": "Open Markdown Translate Preview"
 }
