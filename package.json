@@ -31,6 +31,8 @@
         "hover",
         "google translate",
         "GitHub Copilot Chat Participant",
+        "AI translate",
+        "OpenAI",
         "翻译",
         "注释",
         "翻訳"
@@ -147,6 +149,16 @@
                 "command": "commentTranslate.openMarkdownTranslatePreview",
                 "title": "%commentTranslate.command.openMarkdownTranslatePreview%",
                 "icon": "$(symbol-null)",
+                "category": "Comment Translate"
+            },
+            {
+                "command": "commentTranslate.setAiApiKey",
+                "title": "Set AI API Key",
+                "category": "Comment Translate"
+            },
+            {
+                "command": "commentTranslate.testAiTranslate",
+                "title": "Test AI Translate",
                 "category": "Comment Translate"
             }
         ],
@@ -901,6 +913,85 @@
                     "commentTranslate.googleTranslate.mirror": {
                         "type": "string",
                         "markdownDescription": "Determine the requested server mirror address,more read [mirror docs](https://hcfy.app/blog/2022/09/28/ggg#%E6%96%B9%E6%A1%88-c%E4%BD%BF%E7%94%A8%E9%95%9C%E5%83%8F%E5%9C%B0%E5%9D%80%E6%9C%80%E7%AE%80%E5%8D%95)."
+                    }
+                }
+            },
+            {
+                "title": "AI Translate Configuration",
+                "type": "Object",
+                "order": 13,
+                "properties": {
+                    "commentTranslate.ai.preset": {
+                        "type": "string",
+                        "enum": [
+                            "openai",
+                            "deepseek",
+                            "ollama",
+                            "custom"
+                        ],
+                        "enumDescriptions": [
+                            "OpenAI (api.openai.com)",
+                            "DeepSeek (api.deepseek.com, default model deepseek-v4-flash)",
+                            "Ollama local server",
+                            "Use baseUrl as configured"
+                        ],
+                        "default": "custom",
+                        "order": 1,
+                        "markdownDescription": "Quick preset for common OpenAI-compatible providers. Non-custom presets override baseUrl at request time (the stored baseUrl setting is left unchanged)."
+                    },
+                    "commentTranslate.ai.baseUrl": {
+                        "type": "string",
+                        "default": "https://api.openai.com/v1",
+                        "markdownDescription": "OpenAI-compatible API base URL (e.g. https://api.openai.com/v1, https://api.deepseek.com, http://127.0.0.1:11434/v1 for Ollama)."
+                    },
+                    "commentTranslate.ai.apiKey": {
+                        "type": "string",
+                        "default": "",
+                        "markdownDescription": "API key (fallback). Prefer command **Comment Translate: Set AI API Key** which stores the key in SecretStorage. Do not commit keys to workspace settings."
+                    },
+                    "commentTranslate.ai.model": {
+                        "type": "string",
+                        "default": "gpt-4o-mini",
+                        "description": "Model name (e.g. gpt-4o-mini, deepseek-v4-flash, deepseek-v4-pro, qwen2.5)."
+                    },
+                    "commentTranslate.ai.style": {
+                        "type": "string",
+                        "enum": [
+                            "natural",
+                            "literal",
+                            "concise"
+                        ],
+                        "enumDescriptions": [
+                            "Fluent reading-oriented translation (default)",
+                            "Closer to original wording",
+                            "Shorter for hover panels"
+                        ],
+                        "default": "natural",
+                        "description": "Translation style for AI Translate."
+                    },
+                    "commentTranslate.ai.temperature": {
+                        "type": "number",
+                        "default": 0.2,
+                        "minimum": 0,
+                        "maximum": 2,
+                        "description": "Sampling temperature. Lower values produce more stable translations."
+                    },
+                    "commentTranslate.ai.maxTokens": {
+                        "type": "number",
+                        "default": 4096,
+                        "minimum": 64,
+                        "description": "Maximum tokens in the model response."
+                    },
+                    "commentTranslate.ai.timeout": {
+                        "type": "number",
+                        "default": 30000,
+                        "minimum": 1000,
+                        "description": "Request timeout in milliseconds."
+                    },
+                    "commentTranslate.ai.systemPrompt": {
+                        "type": "string",
+                        "default": "",
+                        "markdownDescription": "Optional custom system prompt. Leave empty to use the built-in natural reading prompt for code comments."
                     }
                 }
             }

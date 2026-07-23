@@ -1,21 +1,31 @@
 
 
 
-export function getHoverTranslatePrompt(to: string, text: string) {
-    let systemPrompt = `You are a professional translation engine in the IT field, do not translate noun phrases and programming domain terms, only return the translation result.`;
-    let userPrompt = `Please translate the following text to ${to}.
-${text}`;
+import { getAiTranslateMessages } from '../translate/aiPrompt';
+import { getConfig } from '../configuration';
 
+export function getHoverTranslatePrompt(to: string, text: string) {
+    const style = getConfig<string>('ai.style', 'natural');
+    const systemPromptOverride = getConfig<string>('ai.systemPrompt', '');
+    const { systemPrompt, userPrompt } = getAiTranslateMessages(text, 'auto', to, {
+        style,
+        systemPromptOverride,
+    });
     return { systemPrompt, userPrompt };
 }
 
 export function getTranslatePrompt(to: string, text: string) {
-    let systemPrompt = `You are a professional translation engine in the IT field, do not translate noun phrases and programming domain terms, only return the translation result.`;
-    let userPrompt = `Please translate the following text to ${to}. If the text is already ${to}, translate to english.
-${text}
-`;
-
-    return { systemPrompt, userPrompt };
+    const style = getConfig<string>('ai.style', 'natural');
+    const systemPromptOverride = getConfig<string>('ai.systemPrompt', '');
+    const { systemPrompt, userPrompt } = getAiTranslateMessages(text, 'auto', to, {
+        style,
+        systemPromptOverride,
+    });
+    // Preserve Copilot Chat mutual-translate behavior when input is already the target language.
+    return {
+        systemPrompt,
+        userPrompt: `${userPrompt}\n\nIf the text is already ${to}, translate to English instead.`,
+    };
 }
 
 
