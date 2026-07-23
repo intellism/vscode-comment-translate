@@ -931,7 +931,7 @@
                         ],
                         "enumDescriptions": [
                             "OpenAI (api.openai.com)",
-                            "DeepSeek",
+                            "DeepSeek (api.deepseek.com, default model deepseek-v4-flash)",
                             "Ollama local server",
                             "Use baseUrl as configured"
                         ],
@@ -942,7 +942,7 @@
                     "commentTranslate.ai.baseUrl": {
                         "type": "string",
                         "default": "https://api.openai.com/v1",
-                        "markdownDescription": "OpenAI-compatible API base URL (e.g. https://api.openai.com/v1, https://api.deepseek.com/v1, http://127.0.0.1:11434/v1 for Ollama)."
+                        "markdownDescription": "OpenAI-compatible API base URL (e.g. https://api.openai.com/v1, https://api.deepseek.com, http://127.0.0.1:11434/v1 for Ollama)."
                     },
                     "commentTranslate.ai.apiKey": {
                         "type": "string",
@@ -952,7 +952,7 @@
                     "commentTranslate.ai.model": {
                         "type": "string",
                         "default": "gpt-4o-mini",
-                        "description": "Model name (e.g. gpt-4o-mini, deepseek-chat, qwen2.5)."
+                        "description": "Model name (e.g. gpt-4o-mini, deepseek-v4-flash, deepseek-v4-pro, qwen2.5)."
                     },
                     "commentTranslate.ai.style": {
                         "type": "string",

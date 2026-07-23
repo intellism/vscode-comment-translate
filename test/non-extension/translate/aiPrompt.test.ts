@@ -36,7 +36,7 @@ describe('aiPrompt', () => {
 
 describe('aiPresets', () => {
     test('resolveAiBaseUrl uses preset url unless custom', () => {
-        expect(resolveAiBaseUrl('deepseek', 'https://ignored')).toBe('https://api.deepseek.com/v1');
+        expect(resolveAiBaseUrl('deepseek', 'https://ignored')).toBe('https://api.deepseek.com');
         expect(resolveAiBaseUrl('custom', 'https://my.proxy/v1')).toBe('https://my.proxy/v1');
         expect(resolveAiBaseUrl('ollama', '')).toBe('http://127.0.0.1:11434/v1');
     });

@@ -17,8 +17,9 @@ export const AI_PRESETS: Record<Exclude<AiPresetId, 'custom'>, AiPreset> = {
     deepseek: {
         id: 'deepseek',
         title: 'DeepSeek',
-        baseUrl: 'https://api.deepseek.com/v1',
-        defaultModel: 'deepseek-chat',
+        // Official OpenAI-compatible root; /v1 is appended by normalizeAiBaseUrl.
+        baseUrl: 'https://api.deepseek.com',
+        defaultModel: 'deepseek-v4-flash',
     },
     ollama: {
         id: 'ollama',

@@ -17,6 +17,10 @@ describe('aiUrl', () => {
         expect(normalizeAiBaseUrl('192.168.1.10:11434/v1')).toBe('http://192.168.1.10:11434/v1');
     });
 
+    test('normalizeAiBaseUrl accepts DeepSeek official root URL', () => {
+        expect(normalizeAiBaseUrl('https://api.deepseek.com')).toBe('https://api.deepseek.com/v1');
+    });
+
     test('normalizeAiBaseUrl rejects empty', () => {
         expect(() => normalizeAiBaseUrl('')).toThrow(/baseUrl is empty/);
         expect(() => normalizeAiBaseUrl('   ')).toThrow(/baseUrl is empty/);

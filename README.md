@@ -74,11 +74,11 @@ Example (DeepSeek):
 {
   "commentTranslate.source": "AI",
   "commentTranslate.ai.preset": "deepseek",
-  "commentTranslate.ai.model": "deepseek-chat",
+  "commentTranslate.ai.model": "deepseek-v4-flash",
   "commentTranslate.ai.style": "natural"
 }
 ```
-(Use **Set AI API Key** for the secret; avoid committing keys in workspace settings.)
+(Use **Set AI API Key** for the secret; avoid committing keys in workspace settings. Models: `deepseek-v4-flash` / `deepseek-v4-pro`; `deepseek-chat` is deprecated.)
 Third-party translation services can be found by searching for `@tag:translateSource` in the plugin market. Users can choose the desired translation service through the plugin configuration or expand it by customizing the translation service. [More Links](https://github.com/intellism/vscode-comment-translate/wiki/Translation-Service)
 
 ## Common Configurations

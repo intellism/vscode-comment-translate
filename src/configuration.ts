@@ -1,5 +1,5 @@
 
-import { workspace, window, QuickPickItem, ThemeIcon, commands, MarkdownString, Disposable } from 'vscode';
+import { workspace, window, QuickPickItem, ThemeIcon, commands, MarkdownString, Disposable, ConfigurationTarget } from 'vscode';
 import { translateExtensionProvider } from './translate/manager';
 import { LANGS } from './lang';
 
@@ -119,6 +119,18 @@ export async function showTargetLanguageStatusBarItem(userLanguage: string) {
 const PREFIXCONFIG = 'commentTranslate';
 export function getConfiguration() {
     return workspace.getConfiguration(PREFIXCONFIG);
+}
+
+/**
+ * Prefer workspace settings when a folder is open; otherwise write User settings
+ * so commands like Change Translate Source work without a workspace.
+ */
+export async function updateConfig(key: string, value: unknown): Promise<void> {
+    const configuration = getConfiguration();
+    const target = (workspace.workspaceFolders?.length ?? 0) > 0
+        ? ConfigurationTarget.Workspace
+        : ConfigurationTarget.Global;
+    await configuration.update(key, value, target);
 }
 
 
