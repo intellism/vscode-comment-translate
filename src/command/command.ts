@@ -3,6 +3,7 @@ import { changeTargetLanguage, changeTranslateSource, openOutputPannel, toggleBr
 import { quickTranslationCommand, selectAllComment, selectAllText, translateAllComment, translateAllText, translateTerminalForCopilotChatCommand } from "./file";
 import { nameVariableCommand, replaceRange, replaceSelections } from "./replaceSelections";
 import { addSelection, clipboard, selectLastHover } from "./select";
+import { setAiApiKeyCommand, testAiTranslateCommand } from "./aiTranslate";
 
 export function registerCommands(context: ExtensionContext) {
     context.subscriptions.push(
@@ -27,5 +28,7 @@ export function registerCommands(context: ExtensionContext) {
         commands.registerCommand('commentTranslate.translateForCopilotChat', quickTranslationCommand), // add context
         commands.registerCommand('commentTranslate.translateTerminalForCopilotChat', translateTerminalForCopilotChatCommand),
         commands.registerCommand('commentTranslate.nameVariable', nameVariableCommand), // add keyboard
+        commands.registerCommand('commentTranslate.setAiApiKey', setAiApiKeyCommand),
+        commands.registerCommand('commentTranslate.testAiTranslate', testAiTranslateCommand),
     );
 }

@@ -7,7 +7,7 @@ This extension helps developers translate comments, strings, code hints, error m
 ## Introduction
 [【中文文档】](./doc/README_ZH.md) [【日本語の文書】](./doc/README_JA.md) [【한국어】](./doc/README_KR.md)
 
-Many excellent projects have extensive comments to help users quickly understand the code's intent. If users are not familiar with the language of the comments, it can be challenging to understand. This extension provides multiple translation scenarios to help developers comprehend and write multilingual code more easily. It supports common translation services like Google, Bing, AliCloud, and DeepL, and allows developers to add custom translation services.
+Many excellent projects have extensive comments to help users quickly understand the code's intent. If users are not familiar with the language of the comments, it can be challenging to understand. This extension provides multiple translation scenarios to help developers comprehend and write multilingual code more easily. It supports common translation services like Google, Bing, AliCloud, DeepL, and OpenAI-compatible AI APIs, and allows developers to add custom translation services.
 
 ![Introduction](./doc/image/Introduction.gif)
 
@@ -62,7 +62,23 @@ The extension supports the following translation services:
   - **Note**: Requires a network connection, some users may need a proxy. If encountering network issues, it is recommended to use Bing.
 - **Bing Translate**: Built-in, free version.
 - **AliCloud Translate**: Built-in, requires configuration of accessKeyId & accessKeySecret.
+- **AI Translate (OpenAI Compatible)**: Built-in. Use any OpenAI-compatible API (OpenAI, DeepSeek, Ollama, etc.) for more natural comment translations.
+  1. Set `commentTranslate.ai.preset` (e.g. `deepseek`) or configure `baseUrl` manually.
+  2. Run **Comment Translate: Set AI API Key** (SecretStorage) or set `commentTranslate.ai.apiKey`.
+  3. Set `commentTranslate.ai.model`, optionally `commentTranslate.ai.style` (`natural` / `literal` / `concise`).
+  4. Switch translation source to **AI Translate (OpenAI Compatible)**.
+  5. Optionally run **Comment Translate: Test AI Translate** to verify.
 
+Example (DeepSeek):
+```json
+{
+  "commentTranslate.source": "AI",
+  "commentTranslate.ai.preset": "deepseek",
+  "commentTranslate.ai.model": "deepseek-chat",
+  "commentTranslate.ai.style": "natural"
+}
+```
+(Use **Set AI API Key** for the secret; avoid committing keys in workspace settings.)
 Third-party translation services can be found by searching for `@tag:translateSource` in the plugin market. Users can choose the desired translation service through the plugin configuration or expand it by customizing the translation service. [More Links](https://github.com/intellism/vscode-comment-translate/wiki/Translation-Service)
 
 ## Common Configurations

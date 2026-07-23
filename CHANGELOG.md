@@ -4,6 +4,9 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ## [Unreleased]
 ### Add
+ * Built-in **AI Translate (OpenAI Compatible)**: configure `commentTranslate.ai.*` and switch source to `AI` for more natural comment translations.
+ * AI Translate: presets (`openai` / `deepseek` / `ollama`), styles (`natural` / `literal` / `concise`), SecretStorage API key command, and Test AI Translate command.
+ * Copilot translate / Chat translate prompts now share the same natural-reading AI prompt styles.
  * 独立Pannel
    * 翻译历史
    * 多翻译源对比
