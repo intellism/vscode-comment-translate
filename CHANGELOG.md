@@ -4,6 +4,7 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ## [Unreleased]
 ### Add
+ * 新增 AWS Bedrock (Claude) 翻译源 — Add built-in AWS Bedrock translate source (explicit access keys or AWS credential chain; region/model/profile configurable)
  * 独立Pannel
    * 翻译历史
    * 多翻译源对比

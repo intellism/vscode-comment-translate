@@ -903,6 +903,35 @@
                         "markdownDescription": "Determine the requested server mirror address,more read [mirror docs](https://hcfy.app/blog/2022/09/28/ggg#%E6%96%B9%E6%A1%88-c%E4%BD%BF%E7%94%A8%E9%95%9C%E5%83%8F%E5%9C%B0%E5%9D%80%E6%9C%80%E7%AE%80%E5%8D%95)."
                     }
                 }
+            },
+            {
+                "title": "Bedrock Translate Configuration",
+                "type": "Object",
+                "order": 13,
+                "properties": {
+                    "commentTranslate.bedrockTranslate.region": {
+                        "type": "string",
+                        "default": "us-east-1",
+                        "description": "AWS region for Bedrock requests. e.g. us-east-1, us-west-2, eu-central-1"
+                    },
+                    "commentTranslate.bedrockTranslate.model": {
+                        "type": "string",
+                        "default": "anthropic.claude-haiku-4-5",
+                        "markdownDescription": "Bedrock model ID or inference profile ID. Claude model IDs use the `anthropic.` prefix, e.g. `anthropic.claude-haiku-4-5` (fastest/cheapest, default), `anthropic.claude-sonnet-5`, `anthropic.claude-opus-4-8`. Cross-region inference profile IDs or ARNs are also accepted."
+                    },
+                    "commentTranslate.bedrockTranslate.accessKeyId": {
+                        "type": "string",
+                        "markdownDescription": "Optional AWS Access Key ID. If both Access Key ID and Secret Access Key are set, they take precedence over the AWS credential chain. **Note:** settings are stored in plaintext and may be synced by Settings Sync — prefer a dedicated IAM user limited to `bedrock:InvokeModel`, or leave empty and use the AWS credential chain instead."
+                    },
+                    "commentTranslate.bedrockTranslate.secretAccessKey": {
+                        "type": "string",
+                        "markdownDescription": "Optional AWS Secret Access Key. Used together with Access Key ID. See the security note on Access Key ID."
+                    },
+                    "commentTranslate.bedrockTranslate.profile": {
+                        "type": "string",
+                        "markdownDescription": "Optional AWS named profile for the AWS credential chain. Ignored when explicit access keys are set. Leave empty to use the default chain (environment variables, default profile, SSO)."
+                    }
+                }
             }
         ],
         "translates": [
@@ -924,6 +953,7 @@
     },
     "dependencies": {
         "@alicloud/pop-core": "^1.7.10",
+        "@anthropic-ai/bedrock-sdk": "^0.32.0",
         "bing-translate-api": "^2.9.1",
         "change-case": "^5.4.4",
         "cld3-asm": "^4.0.0",
