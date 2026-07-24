@@ -62,6 +62,18 @@
   - **注**：对网络有要求，部分用户需要代理。如遇网络问题，建议使用Bing
 - **Bing 翻译**: 内置，免费版。
 - **AliCloud 翻译**: 内置，需要配置accessKeyId & accessKeySecret
+- **AWS Bedrock 翻译**: 内置，通过 AWS Bedrock 调用 Claude 模型。凭证解析顺序：显式 `bedrockTranslate.accessKeyId`/`secretAccessKey` 设置 → `bedrockTranslate.profile`（命名 profile）→ 默认 AWS 凭证链（环境变量 / `~/.aws` / SSO）。region 和模型均可配置（默认 `us-east-1` / `anthropic.claude-haiku-4-5`）
+  - **IAM 权限提醒**：所用 IAM 身份需要 **`bedrock-mantle:CreateInference`** 权限（注意这与传统的 `bedrock:InvokeModel` 是不同的 action，已有的 Bedrock invoke 策略并不覆盖它）。如果 "Comment Translate" 输出通道出现 403 `permission_error`，就是缺这条策略。最小内联策略示例：
+    ```json
+    {
+        "Version": "2012-10-17",
+        "Statement": [{
+            "Effect": "Allow",
+            "Action": "bedrock-mantle:CreateInference",
+            "Resource": "arn:aws:bedrock-mantle:*:<你的账号ID>:project/*"
+        }]
+    }
+    ```
   
 第三方提供的翻译服务可以在插件市场搜索`@tag:translateSource`找到。用户可以通过插件配置选择需要使用的翻译服务，或者自定义扩展翻译服务。 [更多链接](https://github.com/intellism/vscode-comment-translate/wiki/%E7%BF%BB%E8%AF%91%E6%9C%8D%E5%8A%A1)
 

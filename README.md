@@ -62,6 +62,18 @@ The extension supports the following translation services:
   - **Note**: Requires a network connection, some users may need a proxy. If encountering network issues, it is recommended to use Bing.
 - **Bing Translate**: Built-in, free version.
 - **AliCloud Translate**: Built-in, requires configuration of accessKeyId & accessKeySecret.
+- **AWS Bedrock Translate**: Built-in, uses Claude models via AWS Bedrock. Credentials resolve in order: explicit `bedrockTranslate.accessKeyId`/`secretAccessKey` settings → `bedrockTranslate.profile` (named profile) → default AWS credential chain (env vars / `~/.aws` / SSO). Region and model are configurable (default `us-east-1` / `anthropic.claude-haiku-4-5`).
+  - **IAM Note**: the IAM identity needs the **`bedrock-mantle:CreateInference`** permission (this is a different action from the classic `bedrock:InvokeModel` — an existing Bedrock invoke policy does NOT cover it). A 403 `permission_error` in the "Comment Translate" output channel means this policy is missing. Minimal inline policy example:
+    ```json
+    {
+        "Version": "2012-10-17",
+        "Statement": [{
+            "Effect": "Allow",
+            "Action": "bedrock-mantle:CreateInference",
+            "Resource": "arn:aws:bedrock-mantle:*:<your-account-id>:project/*"
+        }]
+    }
+    ```
 
 Third-party translation services can be found by searching for `@tag:translateSource` in the plugin market. Users can choose the desired translation service through the plugin configuration or expand it by customizing the translation service. [More Links](https://github.com/intellism/vscode-comment-translate/wiki/Translation-Service)
 

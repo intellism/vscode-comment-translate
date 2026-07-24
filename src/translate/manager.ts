@@ -7,6 +7,7 @@ import { BingTranslate } from "./BingTranslate";
 import { detectLanguage } from "../lang";
 import { CopilotTranslate } from "./CopilotTranslate";
 import { TranSmartTranslate } from "./TranSmartTranslate";
+import { BedrockTranslate } from "./BedrockTranslate";
 
 
 export let translateManager: TranslateManager;
@@ -110,6 +111,11 @@ export function initTranslate(context: ExtensionContext) {
         title: 'Tencent TranSmart translate',
         ctor: TranSmartTranslate,
         translate: 'TranSmart'
+    },
+    {
+        title: 'AWS Bedrock translate',
+        ctor: BedrockTranslate,
+        translate: 'Bedrock'
     }];
     translateExtensionProvider = new TranslateExtensionProvider(translateManager, buildInTranslate);
     translateExtensionProvider.init(getConfig<string>('source', ''));
