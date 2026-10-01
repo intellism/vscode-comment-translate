@@ -15,6 +15,10 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 ### Change
 * i18n 支持更多语言。 代码内支持
 
+### Fixed
+* 修复 Google 翻译请求返回 `429 (Too Many Requests)`：`client` 默认值由 `gtx` 改为 `at`
+* 新增配置 `commentTranslate.googleTranslate.client`，`client` 被封时可自行更换
+
 
 ## [3.1.0] 2026-3-4
 ### Add

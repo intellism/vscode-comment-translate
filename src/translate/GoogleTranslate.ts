@@ -20,13 +20,14 @@ export class GoogleTranslate extends BaseTranslate {
     async _translate(content: string, { from = 'auto', to = 'auto' }: ITranslateOptions): Promise<string> {
         let tld = getConfig<string>('googleTranslate.tld', 'com');
         let mirror = getConfig<string>('googleTranslate.mirror', '');
+        let client = getConfig<string>('googleTranslate.client', 'at') || 'at';
         let token = await GoogleToken.get(content, { tld, mirror });
         let url = 'https://translate.google.' + tld + '/translate_a/single';
         if (mirror !== "") {
             url = mirror + '/translate_a/single';
         }
         let data: any = {
-            client: 'gtx',
+            client,
             sl: from,
             tl: to,
             hl: to,
