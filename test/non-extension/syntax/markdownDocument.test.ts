@@ -159,6 +159,16 @@ More text`;
         expect(metas[7].translatable).toBe(true); // "More text"
     });
 
+    it("should mark fenced code blocks as non-translatable with CRLF line endings", () => {
+        const source = "Some text\r\n\r\n```js\r\nconst x = 1;\r\n```\r\n\r\nMore text";
+        const metas = parseMarkdownLines(source);
+        expect(metas[0].translatable).toBe(true); // "Some text"
+        expect(metas[2].translatable).toBe(false); // ```js
+        expect(metas[3].translatable).toBe(false); // const x = 1;
+        expect(metas[4].translatable).toBe(false); // ```
+        expect(metas[6].translatable).toBe(true); // "More text"
+    });
+
     it("should mark math blocks as non-translatable", () => {
         const source = `Text before
 
