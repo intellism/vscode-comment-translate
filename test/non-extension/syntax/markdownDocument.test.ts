@@ -1262,6 +1262,9 @@ describe("translateMarkdownDocument keeps non-translatable inline parts intact",
             ["email autolink before an HTML href", '<a@b.com> <a href="vscode:x">:</a>', '<a@b.com> <a href="vscode:x"><:></a>'],
             ["autolink with '&' before an HTML href", '<https://a.com?x=1&y=2> <a href="vscode:x">:</a>', '<https://a.com?x=1&y=2> <a href="vscode:x"><:></a>'],
             ["bare URL with '&' before an HTML href", 'Docs https://a.com?x=1&y=2 <a href="vscode:x">:</a>', '<Docs >https://a.com?x=1&y=2 <a href="vscode:x"><:></a>'],
+            ["link whose text has an escaped bracket", "[a\\]b](http://x) <a href=\"v:x\">:</a>", "[a\\]b](http://x) <a href=\"v:x\"><:></a>"],
+            ["escaped-bracket link whose text reappears in the title", "[a\\]b](http://x \"a]b\") tail: y", "[a\\]b](http://x \"a]b\")< tail: y>"],
+            ["escaped-bracket link whose text reappears in the URL", "[a\\]b](a]b) tail: y", "[a\\]b](a]b)< tail: y>"],
             ["underscore em before a code span", "_a_ `b c` c", "_<a>_ `b c`< c>"],
         ])("keeps URLs and translates text after %s", async (_name, source, expected) => {
             expect(await translateMarkdownDocument(source, wrap)).toBe(expected);

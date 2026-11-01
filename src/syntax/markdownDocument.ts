@@ -221,15 +221,16 @@ function parseInlineSegments(content: string): InlineSegment[] {
                     } else if (linkText && linkText.trim() && token.raw.startsWith('[')) {
                         // Split into `[`, the text, and `](href 'title')`, all verbatim
                         // slices of the source so reconstructInlineContent can locate them.
-                        // If the text is not found in token.raw (marked unescapes escaped
-                        // brackets such as `\]`), keep the whole link untranslated.
-                        const textStart = token.raw.indexOf(linkText);
-                        if (textStart === -1) {
-                            segments.push({ raw: token.raw, translatable: false });
-                        } else {
-                            segments.push({ raw: token.raw.slice(0, textStart), translatable: false });
+                        // Verbatim link text sits right after `[` and before `]`. When marked
+                        // has unescaped it (escaped brackets such as `\]`), it is not there;
+                        // keep the whole link untranslated instead of matching the same text
+                        // inside the title or the URL.
+                        if (token.raw.startsWith(linkText + ']', 1)) {
+                            segments.push({ raw: '[', translatable: false });
                             segments.push({ raw: linkText, translatable: true });
-                            segments.push({ raw: token.raw.slice(textStart + linkText.length), translatable: false });
+                            segments.push({ raw: token.raw.slice(1 + linkText.length), translatable: false });
+                        } else {
+                            segments.push({ raw: token.raw, translatable: false });
                         }
                     } else {
                         // Empty or whitespace-only link text, autolinks (<url>) and bare/www
