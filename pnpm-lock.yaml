@@ -12,8 +12,8 @@ importers:
         specifier: ^1.7.10
         version: 1.8.0
       bing-translate-api:
-        specifier: ^2.9.1
-        version: 2.10.0
+        specifier: ^4.3.0
+        version: 4.3.0
       change-case:
         specifier: ^5.4.4
         version: 5.4.4
@@ -748,8 +748,8 @@ packages:
   bignumber.js@9.3.1:
     resolution: {integrity: sha512-Ko0uX15oIUS7wJ3Rb30Fs6SkVbLmPBAKdlm7q9+ak9bbIeFf0MwuBsQV6z7+X768/cHsfg+WlysDWJcmthjsjQ==}
 
-  bing-translate-api@2.10.0:
-    resolution: {integrity: sha512-jAxLMMftjB9KizG/IqUz+pyfB6n4Q8zu7LVgbAULeHbBvOy+Enwxm+f2uNrKTeiO4tKhNqi13Kjk29DOc+q/zw==}
+  bing-translate-api@4.3.0:
+    resolution: {integrity: sha512-fxtRWrxilAgwZ6MABrCMPQgpog4uwpC830FGYFVyRxMPoPK3HsDBBxoI414c8vMVhWiNPcum1rkCtKveSQ9KgQ==}
 
   brace-expansion@1.1.12:
     resolution: {integrity: sha512-9T9UjW3r0UW5c1Q7GTwllptXwhvYmEzFhzMfZ9H7FQWt+uZePjZPjBP/W1ZEyZ1twGWom5/56TF4lPcqjnDHcg==}
@@ -3163,7 +3163,7 @@ snapshots:
 
   bignumber.js@9.3.1: {}
 
-  bing-translate-api@2.10.0:
+  bing-translate-api@4.3.0:
     dependencies:
       got: 11.8.6
 

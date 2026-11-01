@@ -3,7 +3,10 @@ import {
     ITranslateOptions,
     encodeMarkdownUriComponent,
 } from "comment-translate-manager";
+import { withTimeout } from "../util/timeout";
 const { translate } = require("bing-translate-api");
+
+const REQUEST_TIMEOUT_MS = 10000;
 
 //免费API https://github.com/Selection-Translator/translation.js/tree/master/src
 export class BingTranslate extends BaseTranslate {
@@ -12,10 +15,14 @@ export class BingTranslate extends BaseTranslate {
         content: string,
         { from = "auto", to = "auto" }: ITranslateOptions
     ): Promise<string> {
-        let res = await translate(
-            content,
-            this._langMap(from),
-            this._langMap(to)
+        // bing-translate-api 4.x sets no request timeout and caches a rejected
+        // global-config promise in module state (node_modules/bing-translate-api/src/index.js),
+        // so after one config fetch failure every Bing call fails until the extension host
+        // restarts. The timeout only bounds the wait; it cannot reset that state.
+        let res = await withTimeout<{ translation: string }>(
+            translate(content, this._langMap(from), this._langMap(to)),
+            REQUEST_TIMEOUT_MS,
+            "Bing request"
         );
         // console.log(res);
         return res.translation;
