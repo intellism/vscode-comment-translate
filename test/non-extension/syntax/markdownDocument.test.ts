@@ -960,6 +960,38 @@ Next section here.`;
     });
 });
 
+// ── Table rows: each cell gets back exactly its own pieces ───────────────
+
+describe("table rows with several text pieces in a cell", () => {
+    // Wraps every translated line in <...> so each piece is visible in the output.
+    const wrap = async (text: string): Promise<string> =>
+        text.split("\n").map((line) => `<${line}>`).join("\n");
+    const header = "| A | B | C |\n|---|---|---|\n";
+
+    it.each([
+        ["code spans, then a plain cell", "| Set `reg` to `1` now | Description |", "| <Set >`reg`< to >`1`< now> | <Description> |"],
+        ["a plain cell, then code spans", "| Name | Set `reg` to `1` now |", "| <Name> | <Set >`reg`< to >`1`< now> |"],
+        ["a link inside a cell", "| See [docs](https://x.com) here | Next |", "| <See >[<docs>](https://x.com)< here> | <Next> |"],
+        ["an empty cell in between", "| Set `reg` now | | Last |", "| <Set >`reg`< now> | | <Last> |"],
+        ["a cell with only a code span", "| `reg` | Value |", "| `reg` | <Value> |"],
+        ["an escaped pipe inside a cell", "| a \\| b | c |", "| <a \\| b> | <c> |"],
+    ])("maps the translation back cell by cell: %s", async (_name, row, expected) => {
+        const result = await translateMarkdownDocument(header + row, wrap);
+        expect(result.split("\n")[2]).toBe(expected);
+    });
+
+    it("sends no line for empty cells or cells without text", async () => {
+        const translate = jest.fn(wrap);
+        await translateMarkdownDocument(header + "| Set `reg` now | | `x` |", translate);
+        expect(translate).toHaveBeenCalledWith("A\nB\nC\nSet \n now");
+    });
+
+    it("keeps a row that ends in an escaped pipe whole", async () => {
+        const source = "| A | B |\n|---|---|\n| a | b \\|";
+        expect(await translateMarkdownDocument(source, async (text) => text)).toBe(source);
+    });
+});
+
 // ── Strong/em marker protection ──────────────────────────────────────────
 
 describe("translateMarkdownDocument with strong/em markers", () => {

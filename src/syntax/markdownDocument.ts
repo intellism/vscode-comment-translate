@@ -135,9 +135,20 @@ function escapeRegExp(str: string): string {
     return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
+// A row ending in an escaped pipe (`\|`) has no closing delimiter; it is treated as a plain line
+// so splitTableCells never drops its last cell.
 function isTableRow(line: string): boolean {
     const trimmed = line.trim();
-    return trimmed.startsWith('|') && trimmed.endsWith('|') && !TABLE_SEPARATOR_RE.test(line);
+    return trimmed.startsWith('|') && /(?<!\\)\|$/.test(trimmed) && !TABLE_SEPARATOR_RE.test(line);
+}
+
+/**
+ * Cells of a trimmed table row with outer pipes. Splits only at pipes that are not escaped
+ * (`\|` is a literal pipe inside a GFM cell), then drops the empty pieces outside the outer pipes.
+ * Like markdown-it, any pipe preceded by a backslash counts as escaped, even after `\\`.
+ */
+function splitTableCells(trimmedRow: string): string[] {
+    return trimmedRow.split(/(?<!\\)\|/).slice(1, -1);
 }
 
 function makeNonTranslatable(lineIndex: number, raw: string): LineMeta {
@@ -340,38 +351,36 @@ function reconstructInlineContent(
 
 // ── Table row handling ───────────────────────────────────────────────────
 
+/** How one table cell was split for translation. */
+interface TableCellSegments {
+    segments: InlineSegment[];
+    /** Cell content without its padding */
+    originalContent: string;
+    /** Lines this cell contributes to the row's request (0 for empty cells and cells without text) */
+    lineCount: number;
+}
+
 /**
- * Parse a table row. Each cell is independently analyzed for translatable text.
- * The translatable texts from all cells are joined with \n for batch translation.
+ * Parse a table row. Each cell is analysed on its own. A cell with text contributes one line
+ * per translatable piece (a cell such as "Set `reg` now" has two), an empty cell or a cell
+ * without text contributes none; all lines of the row are joined with \n for batch translation.
+ * `lineCount` records each cell's share so the translation can be handed back cell by cell.
  */
-function parseTableRow(raw: string, lineIndex: number): LineMeta & { cellSegments: { segments: InlineSegment[]; originalContent: string }[] } {
-    const trimmed = raw.trim();
-    const cells = trimmed.split('|').slice(1, -1);
+function parseTableRow(raw: string, lineIndex: number): LineMeta & { cellSegments: TableCellSegments[] } {
+    const cellSegments: TableCellSegments[] = [];
+    const lines: string[] = [];
 
-    const cellSegments: { segments: InlineSegment[]; originalContent: string }[] = [];
-    const translatableTexts: string[] = [];
-    let hasAnyTranslatable = false;
-
-    for (const cell of cells) {
+    for (const cell of splitTableCells(raw.trim())) {
         const cellContent = cell.trim();
-        if (!cellContent) {
-            cellSegments.push({ segments: [], originalContent: cellContent });
-            translatableTexts.push('');
-            continue;
-        }
-
-        const { textToTranslate, segments, hasTranslatable } = extractInlineTranslatableText(cellContent);
-        cellSegments.push({ segments, originalContent: cellContent });
-
-        if (hasTranslatable) {
-            hasAnyTranslatable = true;
-            translatableTexts.push(textToTranslate);
-        } else {
-            translatableTexts.push('');
-        }
+        const { textToTranslate, segments, hasTranslatable } = cellContent
+            ? extractInlineTranslatableText(cellContent)
+            : { textToTranslate: '', segments: [], hasTranslatable: false };
+        const cellLines = hasTranslatable ? textToTranslate.split('\n') : [];
+        cellSegments.push({ segments, originalContent: cellContent, lineCount: cellLines.length });
+        lines.push(...cellLines);
     }
 
-    if (!hasAnyTranslatable) {
+    if (lines.length === 0) {
         return {
             ...makeNonTranslatable(lineIndex, raw),
             cellSegments,
@@ -382,7 +391,7 @@ function parseTableRow(raw: string, lineIndex: number): LineMeta & { cellSegment
         lineIndex,
         translatable: true,
         raw,
-        textToTranslate: translatableTexts.join('\n'),
+        textToTranslate: lines.join('\n'),
         prefix: '\x00TABLE_ROW\x00',
         suffix: '',
         cellSegments,
@@ -390,28 +399,25 @@ function parseTableRow(raw: string, lineIndex: number): LineMeta & { cellSegment
 }
 
 /**
- * Reconstruct a table row by replacing translatable cell content.
+ * Reconstruct a table row. Each cell takes the next `lineCount` lines of the translation, in
+ * order, and rebuilds its content around the parts that were not translated. A cell whose lines
+ * are all empty keeps its original text.
  */
 function reconstructTableRow(
     raw: string,
     translatedText: string,
-    cellSegments: { segments: InlineSegment[]; originalContent: string }[]
+    cellSegments: TableCellSegments[]
 ): string {
-    const translatedCells = translatedText.split('\n');
-    const trimmed = raw.trim();
-    const originalCells = trimmed.split('|').slice(1, -1);
+    const translatedLines = translatedText.split('\n');
+    let offset = 0;
 
-    const reconstructedCells = originalCells.map((originalCell, cellIndex) => {
-        const cellContent = originalCell.trim();
-        const translatedCellText = cellIndex < translatedCells.length ? translatedCells[cellIndex] : '';
-        const cellInfo = cellIndex < cellSegments.length ? cellSegments[cellIndex] : null;
+    const reconstructedCells = splitTableCells(raw.trim()).map((originalCell, cellIndex) => {
+        const cellInfo = cellSegments[cellIndex];
+        const count = cellInfo?.lineCount ?? 0;
+        const translatedParts = translatedLines.slice(offset, offset + count);
+        offset += count;
 
-        if (!cellContent || !translatedCellText.trim() || !cellInfo) {
-            return originalCell;
-        }
-
-        const hasTranslatable = cellInfo.segments.some(seg => seg.translatable);
-        if (!hasTranslatable) {
+        if (!cellInfo || count === 0 || translatedParts.every(part => !part.trim())) {
             return originalCell;
         }
 
@@ -419,8 +425,6 @@ function reconstructTableRow(
         const leadingSpace = originalCell.match(/^(\s*)/)?.[1] || ' ';
         const trailingSpace = originalCell.match(/(\s*)$/)?.[1] || ' ';
 
-        // Reconstruct cell content by replacing translatable segments
-        const translatedParts = translatedCellText.split('\n');
         const reconstructedContent = reconstructInlineContent(
             cellInfo.originalContent,
             cellInfo.segments,
@@ -437,7 +441,7 @@ function reconstructTableRow(
 // ── Line-level parsing ───────────────────────────────────────────────────
 
 // Store table cell segments alongside LineMeta for reconstruction
-const tableRowCellSegments = new Map<number, { segments: InlineSegment[]; originalContent: string }[]>();
+const tableRowCellSegments = new Map<number, TableCellSegments[]>();
 // Store inline segments for regular lines
 const lineInlineSegments = new Map<number, InlineSegment[]>();
 
@@ -658,25 +662,11 @@ export function reconstructDocument(lineMetas: LineMeta[], translatedTexts: stri
             continue;
         }
 
-        // Handle table rows
+        // Handle table rows (without its cell layout a row cannot be mapped back; keep it as is,
+        // like buildProgressiveSnapshot does)
         if (meta.prefix === '\x00TABLE_ROW\x00') {
             const cellSegs = tableRowCellSegments.get(meta.lineIndex);
-            if (cellSegs) {
-                outputLines.push(reconstructTableRow(meta.raw, translated, cellSegs));
-            } else {
-                // Fallback: simple cell replacement
-                const translatedCells = translated.split('\n');
-                const trimmed = meta.raw.trim();
-                const originalCells = trimmed.split('|').slice(1, -1);
-                const reconstructedCells = originalCells.map((originalCell, cellIndex) => {
-                    const originalPadding = originalCell.match(/^(\s*)/)?.[1] || ' ';
-                    const originalTrailing = originalCell.match(/(\s*)$/)?.[1] || ' ';
-                    const translatedCell = cellIndex < translatedCells.length ? translatedCells[cellIndex] : originalCell.trim();
-                    return `${originalPadding}${translatedCell}${originalTrailing}`;
-                });
-                const leadingWhitespace = meta.raw.match(/^(\s*)/)?.[1] || '';
-                outputLines.push(`${leadingWhitespace}|${reconstructedCells.join('|')}|`);
-            }
+            outputLines.push(cellSegs ? reconstructTableRow(meta.raw, translated, cellSegs) : meta.raw);
             continue;
         }
 
