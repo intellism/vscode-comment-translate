@@ -92,7 +92,9 @@ export function restoreInlinePlaceholders(text: string, entries: PlaceholderEntr
     let result = text;
     for (let i = entries.length - 1; i >= 0; i--) {
         const { placeholder, original } = entries[i];
-        result = result.replace(placeholder, original);
+        // Function replacer: a string replacement would expand `$&`, `$'`, `$$`
+        // sequences that occur inside the original text.
+        result = result.replace(placeholder, () => original);
     }
     return result;
 }
@@ -200,9 +202,8 @@ function parseInlineSegments(content: string): InlineSegment[] {
                     segments.push({ raw: token.raw, translatable: false });
                     break;
                 case 'link': {
-                    // Translate the link's display text while preserving the URL.
-                    // Split into: "[" (non-translatable) + display text (translatable)
-                    // + "](url)" (non-translatable).
+                    // Translate the display text of a `[text](url)` link while
+                    // preserving the URL.
                     //
                     // Special case: if the link text contains an image
                     // (e.g. [![alt](img-url)](link-url)), the entire link is
@@ -210,8 +211,6 @@ function parseInlineSegments(content: string): InlineSegment[] {
                     // corrupt it.
                     const linkToken = token as marked.Tokens.Link;
                     const linkText = linkToken.text;
-                    const linkHref = linkToken.href;
-                    const linkTitle = linkToken.title;
 
                     // Detect nested image inside link text: [![...](...)
                     const hasNestedImage = /!\[.*?\]\(.*?\)/.test(linkText);
@@ -219,16 +218,22 @@ function parseInlineSegments(content: string): InlineSegment[] {
                     if (hasNestedImage) {
                         // Image-in-link – keep entire raw token untranslated
                         segments.push({ raw: token.raw, translatable: false });
-                    } else if (linkText && linkText.trim()) {
-                        // Build the URL suffix: ](href "title") or ](href)
-                        const titlePart = linkTitle ? ` "${linkTitle}"` : '';
-                        const urlSuffix = `](${linkHref}${titlePart})`;
-
-                        segments.push({ raw: '[', translatable: false });
-                        segments.push({ raw: linkText, translatable: true });
-                        segments.push({ raw: urlSuffix, translatable: false });
+                    } else if (linkText && linkText.trim() && token.raw.startsWith('[')) {
+                        // Split into `[`, the text, and `](href 'title')`, all verbatim
+                        // slices of the source so reconstructInlineContent can locate them.
+                        // If the text is not found in token.raw (marked unescapes escaped
+                        // brackets such as `\]`), keep the whole link untranslated.
+                        const textStart = token.raw.indexOf(linkText);
+                        if (textStart === -1) {
+                            segments.push({ raw: token.raw, translatable: false });
+                        } else {
+                            segments.push({ raw: token.raw.slice(0, textStart), translatable: false });
+                            segments.push({ raw: linkText, translatable: true });
+                            segments.push({ raw: token.raw.slice(textStart + linkText.length), translatable: false });
+                        }
                     } else {
-                        // Empty or whitespace-only link text – keep as-is
+                        // Empty or whitespace-only link text, autolinks (<url>) and bare/www
+                        // URLs (raw does not start with `[`) – keep as-is, untranslated
                         segments.push({ raw: token.raw, translatable: false });
                     }
                     break;
@@ -247,9 +252,10 @@ function parseInlineSegments(content: string): InlineSegment[] {
                     if (hasTextContent) {
                         // Extract inner text (strip the markers)
                         const innerText = token.raw.slice(marker.length, token.raw.length - marker.length);
-                        segments.push({ raw: marker, translatable: false });
+                        // Take the markers verbatim from the source (`_` or `*`).
+                        segments.push({ raw: token.raw.slice(0, marker.length), translatable: false });
                         segments.push({ raw: innerText, translatable: true });
-                        segments.push({ raw: marker, translatable: false });
+                        segments.push({ raw: token.raw.slice(token.raw.length - marker.length), translatable: false });
                     } else {
                         segments.push({ raw: token.raw, translatable: false });
                     }
@@ -317,6 +323,22 @@ function extractInlineTranslatableText(content: string): {
 /**
  * Reconstruct inline content by replacing translatable segments with
  * translated text parts.
+ *
+ * Segments are in source order, so the content is rebuilt left to right with a
+ * moving cursor: the text before the segment is copied, then the translated
+ * part (or the untouched raw text) is appended. `String.replace` is avoided on
+ * purpose: it hits the first occurrence anywhere in the line (a short segment
+ * such as ":" would match inside a non-translatable href) and it interprets
+ * `$&`, `$'`, `` $` `` and `$$` in the replacement text.
+ *
+ * How a segment is located:
+ * - translatable: first occurrence at or after the cursor (`indexOf`);
+ * - non-translatable: only exactly at the cursor, so it cannot match a later,
+ *   unrelated spot. Each one is a verbatim slice of the source (see
+ *   parseInlineSegments), so it normally sits at the cursor.
+ *
+ * A segment that is not found is left out: its translated part is consumed
+ * and the original text stays as is.
  */
 function reconstructInlineContent(
     originalContent: string,
@@ -324,18 +346,25 @@ function reconstructInlineContent(
     translatedParts: string[]
 ): string {
     let partIndex = 0;
-    let result = originalContent;
+    let cursor = 0;
+    let result = '';
 
     for (const segment of segments) {
-        if (segment.translatable && partIndex < translatedParts.length) {
-            const translatedPart = translatedParts[partIndex];
-            partIndex++;
-            // Replace the first occurrence of this segment's raw text
-            result = result.replace(segment.raw, translatedPart);
+        const hasPart = segment.translatable && partIndex < translatedParts.length;
+        const translatedPart = hasPart ? translatedParts[partIndex++] : segment.raw;
+        // Translatable text is searched forward; non-translatable segments must
+        // sit exactly at the cursor so they cannot match a later, unrelated spot.
+        const start = segment.translatable
+            ? originalContent.indexOf(segment.raw, cursor)
+            : (originalContent.startsWith(segment.raw, cursor) ? cursor : -1);
+        if (start === -1) {
+            continue;
         }
+        result += originalContent.slice(cursor, start) + translatedPart;
+        cursor = start + segment.raw.length;
     }
 
-    return result;
+    return result + originalContent.slice(cursor);
 }
 
 // ── Table row handling ───────────────────────────────────────────────────

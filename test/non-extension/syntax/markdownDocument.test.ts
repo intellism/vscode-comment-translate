@@ -116,6 +116,13 @@ describe("restoreInlinePlaceholders", () => {
         const restored = restoreInlinePlaceholders(cleaned, entries);
         expect(restored).toBe(original);
     });
+
+    it("should restore originals that contain '$' replacement patterns literally", () => {
+        const original = "Use `$&` and `$'` and `$$` here";
+        const { cleaned, entries } = replaceInlinePlaceholders(original);
+        const restored = restoreInlinePlaceholders(cleaned, entries);
+        expect(restored).toBe(original);
+    });
 });
 
 // ── Line parsing ─────────────────────────────────────────────────────────
@@ -1141,4 +1148,124 @@ describe("translateMarkdownDocument with links", () => {
         expect(lines[2]).toContain("[[ZH]RFC 7231](https://tools.ietf.org/html/rfc7231)");
         expect(lines[2]).toMatch(/^> /);
     });
+});
+
+// ── Inline reconstruction: cursor-based, no String.replace ───────────────
+// Regression for upstream issue #309: a short translatable segment (":" or ".")
+// used to replace the FIRST matching character in the line, which could sit
+// inside a non-translatable href; "$&" / "$'" in a translation were also
+// interpreted as replacement patterns.
+
+describe("translateMarkdownDocument keeps non-translatable inline parts intact", () => {
+    // Deterministic fake translator, applied per line: ASCII ":" and "."
+    // become their full-width forms, any other text is upper-cased.
+    const fakeTranslate = async (text: string): Promise<string> =>
+        text
+            .split("\n")
+            .map((line) => (line === ":" ? "\uFF1A" : line === "." ? "\u3002" : line.toUpperCase()))
+            .join("\n");
+
+    it("does not touch the colon inside an HTML href when a lone ':' segment is translated", async () => {
+        const source = 'Click <a href="vscode:mcp/install?x=1">here</a> to install, or use the gallery at [the marketplace](https://code.visualstudio.com/mcp):';
+
+        const result = await translateMarkdownDocument(source, fakeTranslate);
+
+        expect(result).toContain('<a href="vscode:mcp/install?x=1">');
+        expect(result).toContain("](https://code.visualstudio.com/mcp)");
+        expect(result.endsWith("\uFF1A")).toBe(true);
+        expect(result).toContain("CLICK ");
+    });
+
+    it("does not touch the colon inside a Markdown link destination", async () => {
+        const result = await translateMarkdownDocument("[t](http://x):", fakeTranslate);
+
+        expect(result).toBe("[T](http://x)\uFF1A");
+    });
+
+    it("does not touch the dot inside an href when a lone '.' segment is translated", async () => {
+        const source = 'Click <a href="https://cursor.com/en/install-mcp">here</a>.';
+
+        const result = await translateMarkdownDocument(source, fakeTranslate);
+
+        expect(result).toContain('<a href="https://cursor.com/en/install-mcp">');
+        expect(result.endsWith("\u3002")).toBe(true);
+    });
+
+    it("does not touch the colon inside an href in a table cell", async () => {
+        const source = '| Col |\n| --- |\n| <a href="vscode:x">: |';
+
+        const result = await translateMarkdownDocument(source, fakeTranslate);
+
+        expect(result.split("\n")[2]).toBe('| <a href="vscode:x">\uFF1A |');
+    });
+
+    it("does not touch the colon inside a link whose title uses single quotes", async () => {
+        // The link suffix must be taken from the source, not rebuilt as `](href "title")`,
+        // otherwise the cursor never moves past the destination.
+        const result = await translateMarkdownDocument("[t](http://x 'ti'):", fakeTranslate);
+
+        expect(result).toBe("[T](http://x 'ti')\uFF1A");
+    });
+
+    it("keeps '$&', \"$'\", '$`' and '$$' in a translation literal", async () => {
+        const source = "Use `code` for the value here.";
+        const translated = "costs $& and $' and $` and $$ end";
+
+        const result = await translateMarkdownDocument(source, async (text) =>
+            text.split("\n").map(() => translated).join("\n")
+        );
+
+        expect(result).toBe(`${translated}\`code\`${translated}`);
+    });
+
+    it("keeps '$&' literal in list items", async () => {
+        const source = "- Run `npm test` before the release.";
+
+        const result = await translateMarkdownDocument(source, async (text) =>
+            text.split("\n").map(() => "$&").join("\n")
+        );
+
+        expect(result).toBe("- $&`npm test`$&");
+    });
+
+    it("keeps '$&' literal in bold-initial lines", async () => {
+        // "**T**his ..." is stripped to "This ..." before parsing; the translated
+        // first letter is re-wrapped in ** afterwards.
+        const source = "**T**his uses `code` today.";
+
+        const result = await translateMarkdownDocument(source, async (text) =>
+            text.split("\n").map(() => "Tx $&").join("\n")
+        );
+
+        expect(result).toBe("**T**x $&`code`Tx $&");
+    });
+
+    // Regression: every non-translatable segment must be a verbatim slice of the
+    // source (markers, URLs, autolinks, links whose text marked rewrites). Otherwise
+    // reconstructInlineContent cannot locate it, its cursor stays behind, and a later
+    // short segment such as ":" lands inside a URL or an HTML attribute.
+    describe("non-translatable segments stay verbatim", () => {
+        // Wraps every translated piece in <...> so untranslated text stays visible.
+        const wrap = async (text: string): Promise<string> =>
+            text.split("\n").map((line) => `<${line}>`).join("\n");
+
+        it.each([
+            ["underscore em followed by strong", "Use _this_ and **that** please", "<Use >_<this>_< and >**<that>**< please>"],
+            ["strong, underscore em, strong", "**bold** then _it_ then **bold2** end", "**<bold>**< then >_<it>_< then >**<bold2>**< end>"],
+            ["bare URL followed by brackets", "Docs: https://x.com (see [1]) done", "<Docs: >https://x.com< (see [1]) done>"],
+            ["bare URL followed by a real link", "Visit https://a.com and [docs](https://b.com)", "<Visit >https://a.com< and >[<docs>](https://b.com)"],
+            ["repeated identical code span and text", "a `x` a `x` a", "<a >`x`< a >`x`< a>"],
+            ["repeated identical strong", "go **a** and **a** and a", "<go >**<a>**< and >**<a>**< and a>"],
+            ["underscore em before an HTML href", '_a_ <a href="x:y">:</a>:', '_<a>_ <a href="x:y"><:></a><:>'],
+            ["underscore strong before an HTML href", '__a__ <a href="x:y">:</a>:', '__<a>__ <a href="x:y"><:></a><:>'],
+            ["angle-bracket autolink before an HTML href", '<https://a.com> <a href="vscode:x">:</a>', '<https://a.com> <a href="vscode:x"><:></a>'],
+            ["email autolink before an HTML href", '<a@b.com> <a href="vscode:x">:</a>', '<a@b.com> <a href="vscode:x"><:></a>'],
+            ["autolink with '&' before an HTML href", '<https://a.com?x=1&y=2> <a href="vscode:x">:</a>', '<https://a.com?x=1&y=2> <a href="vscode:x"><:></a>'],
+            ["bare URL with '&' before an HTML href", 'Docs https://a.com?x=1&y=2 <a href="vscode:x">:</a>', '<Docs >https://a.com?x=1&y=2 <a href="vscode:x"><:></a>'],
+            ["underscore em before a code span", "_a_ `b c` c", "_<a>_ `b c`< c>"],
+        ])("keeps URLs and translates text after %s", async (_name, source, expected) => {
+            expect(await translateMarkdownDocument(source, wrap)).toBe(expected);
+        });
+    });
+
 });
