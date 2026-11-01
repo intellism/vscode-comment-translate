@@ -924,7 +924,7 @@
     },
     "dependencies": {
         "@alicloud/pop-core": "^1.7.10",
-        "bing-translate-api": "^2.9.1",
+        "bing-translate-api": "^4.3.0",
         "change-case": "^5.4.4",
         "cld3-asm": "^4.0.0",
         "comment-translate-manager": "^0.0.5",

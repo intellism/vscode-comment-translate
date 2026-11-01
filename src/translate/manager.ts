@@ -39,20 +39,30 @@ function buildTranslateCacheKey(text: string, opts?: ITranslateOptions) {
     return `${sourceProvider}|${from}|${to}|${text}`;
 }
 
+/**
+ * Translate with a per-session memo and in-flight request dedupe.
+ * TranslateManager.translate resolves to '' when the source fails (HTTP 401/429,
+ * timeout, ...), so an empty result is returned but never memoized: the next
+ * request for the same text retries instead of replaying the failure.
+ */
 export async function cachedTranslate(text: string, opts?: ITranslateOptions): Promise<string> {
     const key = buildTranslateCacheKey(text, opts);
-    if (sessionTranslateCache.has(key)) {
-        return sessionTranslateCache.get(key) || '';
+    const cached = sessionTranslateCache.get(key);
+    if (cached) {
+        return cached;
     }
 
-    if (pendingTranslateTasks.has(key)) {
-        return pendingTranslateTasks.get(key)!;
+    const pending = pendingTranslateTasks.get(key);
+    if (pending) {
+        return pending;
     }
 
     const task = translateManager.translate(text, opts)
         .then((result) => {
-            sessionTranslateCache.set(key, result);
-            trimSessionCache();
+            if (result) {
+                sessionTranslateCache.set(key, result);
+                trimSessionCache();
+            }
             return result;
         })
         .finally(() => {
