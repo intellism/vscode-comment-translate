@@ -4,7 +4,7 @@ import { env, ExtensionContext } from "vscode";
 import { ITranslateConfig, TranslateExtensionProvider } from "./translateExtension";
 import { GoogleTranslate } from "./GoogleTranslate";
 import { BingTranslate } from "./BingTranslate";
-import { detectLanguage } from "../lang";
+import { detectLanguage, isSameLanguage } from "../lang";
 import { CopilotTranslate } from "./CopilotTranslate";
 import { TranSmartTranslate } from "./TranSmartTranslate";
 
@@ -134,7 +134,7 @@ export async function autoMutualTranslate(text: string, opts?: ITranslateOptions
     const isMutualTranslateEnabled = getConfig<boolean>('mutualTranslate', false);
     if (isMutualTranslateEnabled) {
         let detectedLanguage = await detectLanguage(text);
-        if (targetLanguage.indexOf(detectedLanguage) === 0) {
+        if (isSameLanguage(detectedLanguage, targetLanguage)) {
             targetLanguage = sourceLanguage;
             // In the case of automatic detection, the target language for translation cannot be auto
             if (targetLanguage === 'auto') targetLanguage = 'en';
