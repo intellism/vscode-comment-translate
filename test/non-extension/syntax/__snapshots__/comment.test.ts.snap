@@ -78,7 +78,9 @@ exports[`Comment Documents should be compiled comment correctly:【function comm
   ],
   "humanizeText": "",
   "targets": [
+    "",
     "表示描述{@link TextEditor.options文本编辑器的选项}中的更改的事件。",
+    "",
   ],
   "texts": [
     "",
@@ -101,7 +103,9 @@ exports[`Comment Documents should be compiled comment correctly:【function comm
   ],
   "humanizeText": "",
   "targets": [
+    "",
     "{@link TextEditor.options文本编辑器的选项}的新值。",
+    "",
   ],
   "texts": [
     "",
@@ -280,11 +284,11 @@ exports[`Comment Documents should be compiled comment correctly:【head comment�
   ],
   "humanizeText": "",
   "targets": [
-    "---------------------------------------------------------------------------------------------",
-    "*  版权所有（c）Microsoft Corporation。 All rights reserved.",
-    "*  根据MIT许可证授权。",
-    "*  有关许可证信息，请参见https://github.com/microsoft/vscode/blob/main/LICENSE.txt。",
-    "*--------------------------------------------------------------------------------------------",
+    "",
+    "--------------------------------------------------------------------------------------------- *",
+    "版权所有（c）Microsoft Corporation。 All rights reserved. *",
+    "根据MIT许可证授权。 * 有关许可证信息，请参见https://github.com/microsoft/vscode/blob/main/LICENSE.txt。 *--------------------------------------------------------------------------------------------",
+    "",
   ],
   "texts": [
     "",
@@ -294,11 +298,11 @@ exports[`Comment Documents should be compiled comment correctly:【head comment�
     "",
   ],
   "translateLink": undefined,
-  "translatedText": "---------------------------------------------------------------------------------------------
-*  版权所有（c）Microsoft Corporation。 All rights reserved.
-*  根据MIT许可证授权。
-*  有关许可证信息，请参见https://github.com/microsoft/vscode/blob/main/LICENSE.txt。
-*--------------------------------------------------------------------------------------------",
+  "translatedText": "/*---------------------------------------------------------------------------------------------
+ *  --------------------------------------------------------------------------------------------- *
+ *  版权所有（c）Microsoft Corporation。 All rights reserved. *
+ *  根据MIT许可证授权。 * 有关许可证信息，请参见https://github.com/microsoft/vscode/blob/main/LICENSE.txt。 *--------------------------------------------------------------------------------------------
+ *--------------------------------------------------------------------------------------------*/",
 }
 `;
 
@@ -312,8 +316,10 @@ exports[`Comment Documents should be compiled comment correctly:【head comment�
   ],
   "humanizeText": "",
   "targets": [
+    "",
     "* Visual Studio Code 1.68扩展API的类型定义",
     "* 有关详细信息，请访问https://code.visualstudio.com/api",
+    "",
   ],
   "texts": [
     "",
@@ -485,7 +491,15 @@ exports[`Comment Documents should be compiled comment correctly:【spaceInHead c
   ],
   "humanizeText": "",
   "targets": [
-    "表示描述{@link TextEditor.options文本编辑器的选项}中的更改的事件。",
+    "表示描述",
+    "",
+    "{@link TextEditor.op",
+    "",
+    "",
+    "tions文本",
+    "编辑器的选项",
+    "}中的更改的事件。",
+    "",
   ],
   "texts": [
     "This is the theme of your application",
@@ -499,7 +513,12 @@ exports[`Comment Documents should be compiled comment correctly:【spaceInHead c
     "",
   ],
   "translateLink": undefined,
-  "translatedText": "表示描述{@link TextEditor.options文本编辑器的选项}中的更改的事件。",
+  "translatedText": "// 表示描述
+        //
+        // {@link TextEditor.op
+        // tions文本
+        // 编辑器的选项
+        // }中的更改的事件。",
 }
 `;
 
@@ -518,7 +537,15 @@ exports[`Comment Documents should be compiled comment correctly:【spaceInHead c
   ],
   "humanizeText": "",
   "targets": [
-    "{@link TextEditor.options文本编辑器的选项}的新值。",
+    "{@l",
+    "i",
+    "nk",
+    "TextEd",
+    "itor.o",
+    "ptions",
+    "文本编辑器的",
+    "选项}的新",
+    "值。",
   ],
   "texts": [
     "/ This is the theme of your application",
@@ -532,6 +559,14 @@ exports[`Comment Documents should be compiled comment correctly:【spaceInHead c
     "/ is not restarted.",
   ],
   "translateLink": undefined,
-  "translatedText": "{@link TextEditor.options文本编辑器的选项}的新值。",
+  "translatedText": "//{@l
+        //i
+        //nk
+        //TextEd
+        //itor.o
+        //ptions
+        //文本编辑器的
+        //选项}的新
+        //值。",
 }
 `;
