@@ -27,5 +27,6 @@
     "commentTranslate.configuration.browseEnabled": "コメント閲覧翻訳を有効にする",
     "commentTranslate.configuration.browseMode": "コメント閲覧モード",
     "commentTranslate.configuration.maxTranslationLength": "最大翻訳長",
-    "commentTranslate.command.openMarkdownTranslatePreview": "Open Markdown Translate Preview"
+    "commentTranslate.command.openMarkdownTranslatePreview": "Open Markdown Translate Preview",
+    "commentTranslate.command.clearTranslationCache": "Clear Translation Cache"
 }

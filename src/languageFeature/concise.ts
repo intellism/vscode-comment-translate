@@ -49,6 +49,12 @@ class ConciseDecorationManager {
         context.subscriptions.push(...this.disposables);
     }
 
+    /** Forget cached translations and redraw the active editor. */
+    public clearCache() {
+        this.translationCache.clear();
+        this.update();
+    }
+
     private async update() {
         const concise = getConfig<boolean>("hover.concise");
         const editor = window.activeTextEditor;

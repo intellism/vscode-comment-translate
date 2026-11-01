@@ -419,7 +419,7 @@ class CommentDecorationManager {
         });
     }
 
-    private resetCommentDecoration() {
+    public resetCommentDecoration() {
         if (this.browseTimer) {
             clearTimeout(this.browseTimer);
             this.browseTimer = undefined;
