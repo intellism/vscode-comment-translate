@@ -7,7 +7,7 @@ import { getFixtureFile } from "../mocks";
 jest.mock("../../../src/translate/manager", () => {
     return {
         translateManager: {
-            translate: jest.fn(),
+            translate: jest.fn().mockResolvedValue(''),
             link: jest.fn(),
             opts: {
                 to: 'en'
@@ -106,6 +106,48 @@ describe("HTML visibility in markdown", () => {
 
         expect(result.hasTranslated).toBe(true);
         expect(translateManager.translate).toHaveBeenCalled();
+    });
+});
+
+describe("Lines already in the target language", () => {
+    const indonesian = "Fungsi ini mengirim data ke perangkat melalui antarmuka serial dan menunggu balasan.";
+    const english = "This function reads the configuration from flash memory before the radio starts.";
+
+    beforeEach(() => {
+        jest.clearAllMocks();
+        translateManager.opts.to = 'id';
+    });
+
+    afterEach(() => {
+        translateManager.opts.to = 'en';
+    });
+
+    test("sends only the foreign lines", async () => {
+        const translatedEnglish = "Fungsi ini membaca konfigurasi dari memori flash sebelum radio dimulai.";
+        (translateManager.translate as jest.Mock).mockResolvedValueOnce(translatedEnglish);
+
+        const result = await getMarkdownTextValue(`${indonesian}\n${english}`);
+
+        expect(translateManager.translate).toHaveBeenCalledTimes(1);
+        expect(translateManager.translate).toHaveBeenCalledWith(english);
+        expect(result.hasTranslated).toBe(true);
+        expect(result.result).toBe(`${indonesian}\n${translatedEnglish}`);
+    });
+
+    test("sends nothing when every line is already in the target language", async () => {
+        const result = await getMarkdownTextValue(indonesian);
+
+        expect(translateManager.translate).not.toHaveBeenCalled();
+        expect(result.hasTranslated).toBe(false);
+        expect(result.result).toBe(indonesian);
+    });
+
+    test("keeps sending a link title even when it is in the target language", async () => {
+        (translateManager.translate as jest.Mock).mockResolvedValueOnce("Judul");
+
+        await getMarkdownTextValue(`[x](https://example.com "${indonesian}")`);
+
+        expect(translateManager.translate).toHaveBeenCalledWith([indonesian, "x"].join("\n"));
     });
 });
 

@@ -113,6 +113,27 @@ export const LANGS:[string,string][] = [
     ["zu", "Zulu"],
 ];
 
+// cld3 often reports Indonesian text as Malay; for these targets the alias counts as a match.
+const SAME_LANGUAGE_ALIASES: Record<string, string[]> = {
+    id: ['ms'],
+};
+
+/**
+ * True when text detected as `detected` is already in the `target` language, so it needs no
+ * translation. The same code or a base code followed by '-' ('zh' matches 'zh-CN', 'ha' does not match 'haw'),
+ * plus detector aliases (Malay for Indonesian).
+ * An empty or 'und' (undetermined) detection never matches.
+ */
+export function isSameLanguage(detected: string, target: string): boolean {
+    if (!detected || !target || detected === 'und') {
+        return false;
+    }
+    if (target === detected || target.indexOf(detected + '-') === 0) {
+        return true;
+    }
+    return (SAME_LANGUAGE_ALIASES[target.split('-')[0]] ?? []).includes(detected);
+}
+
 let identifier:LanguageIdentifier;
 export async function detectLanguage(text: string): Promise<string> {
     if(!identifier) {

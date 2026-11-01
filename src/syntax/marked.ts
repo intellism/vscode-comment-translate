@@ -1,6 +1,6 @@
 import { marked, Renderer } from "marked";
 import { unescape } from "querystring";
-import { detectLanguage } from "../lang";
+import { detectLanguage, isSameLanguage } from "../lang";
 import { Position, Range, TextDocument } from "vscode";
 import { translateManager } from "../translate/manager";
 
@@ -104,6 +104,7 @@ export function hasVisibleHtmlContent(html: string): boolean {
 
 export async function getMarkdownTextValue(markStr: string) {
     let textArr: string[] = [];
+    const titleLines = new Set<string>();
     let translatedTask: Promise<string>;
 
     async function translate(text: string) {
@@ -128,7 +129,9 @@ export async function getMarkdownTextValue(markStr: string) {
             if (token.type === "link" && token.title) {
                 let title = unescape(token.title).trim();
                 if (title) {
-                    textArr = textArr.concat(title.split("\n"));
+                    const lines = title.split("\n");
+                    lines.forEach((line) => titleLines.add(line));
+                    textArr = textArr.concat(lines);
                 }
             }
 
@@ -144,6 +147,14 @@ export async function getMarkdownTextValue(markStr: string) {
     if (skipTranslate) {
         return { result: markStr, hasTranslated: false };
     }
+
+    // Text lines already in the target language stay as they are and are left out of the
+    // request, so one foreign line does not send the whole text. Link titles are always sent.
+    const to = translateManager.opts.to || '';
+    const sameLanguage = await Promise.all(
+        textArr.map(async (txt) => isSameLanguage(await detectLanguage(txt), to))
+    );
+    textArr = textArr.filter((txt, index) => !sameLanguage[index] || titleLines.has(txt));
 
     let hasTranslated = false;
 
@@ -174,13 +185,9 @@ export async function getMarkdownTextValue(markStr: string) {
                 token.text = (
                     await Promise.all(
                         arr.map(async (txt) => {
-
-                            // If the original text is in the target language, no more translation will be performed
-                            let detected = await detectLanguage(txt);
-                            if (translateManager.opts.to?.indexOf(detected) === 0) {
+                            if (!textArr.includes(txt)) {
                                 return txt;
                             }
-
                             hasTranslated = true;
                             return translate(txt);
                         })
