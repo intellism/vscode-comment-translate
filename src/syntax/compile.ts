@@ -4,6 +4,7 @@ import { autoMutualTranslate, translateManager } from "../translate/manager";
 import { hasEndMark, isLowerCase, isUpperCase } from "../util/string";
 import { ICommentBlock, ICommentToken, ITranslatedText } from "../interface";
 import { isCode } from './isCode';
+import { normalizeTranslatedLines } from '../translate/lineBreakFallback';
 
 
 
@@ -74,7 +75,7 @@ function getIgnoreRegular(languageId: string) {
 export async function compileBlock(block: ICommentBlock, languageId: string, targetLanguage?: string): Promise<ITranslatedText> {
 
     let translatedText: string;
-    let targets: string[] = [];
+    let targets: string[] = []; // Translation per token, index-aligned with `texts`
     let texts: string[] = [];
     let combined: boolean[] = []; // Marked as merged rows for easy regrouping after translation
     let humanizeText: string = '';
@@ -133,18 +134,16 @@ export async function compileBlock(block: ICommentBlock, languageId: string, tar
             }
             translatedText = await autoMutualTranslate(humanizeText || validText, { to: targetLanguage });
 
+            // One target per token ('' for blank and merged rows). A source may merge or split lines,
+            // so the translation is mapped back onto the token lines instead of being used as-is.
+            targets = normalizeTranslatedLines(texts, translatedText);
+
             // Reassemble the translation results to restore the filtered matches when translated, such as/* //, etc.
-            targets = translatedText.split('\n');
-            if (translatedText && validTexts.length === targets.length) {
+            if (translatedText) {
                 let translated = [];
-                for (let i = 0, j = 0; i < tokens.length; i++) {
+                for (let i = 0; i < tokens.length; i++) {
                     const { text, ignoreStart = 0, ignoreEnd = 0 } = tokens[i];
-                    const translateText = texts[i];
-                    let targetText = '';
-                    if (translateText.length > 0) {
-                        targetText = targets[j];
-                        j += 1;
-                    }
+                    const targetText = targets[i];
                     // Merged rows skipped
                     if (targetText === '' && combined[i]) {
                         continue;

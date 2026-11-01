@@ -11,6 +11,7 @@ import { usePlaceholderCodeLensProvider } from "./codelen";
 import { ICommentBlock, ICommentToken, ITranslatedText } from "../interface";
 import { getTextLength } from "../util/string";
 import { cachedTranslate, translateManager } from "../translate/manager";
+import { normalizeTranslatedLines } from "../translate/lineBreakFallback";
 
 export class CommentDecoration {
     private _loading: boolean = true;
@@ -88,16 +89,7 @@ export class CommentDecoration {
                 ? await cachedTranslate(sourceText, { to: translateManager.opts.to || 'en' })
                 : '';
 
-            const targetLines = translatedText.split('\n');
-            let targets: string[];
-            if (targetLines.length === lines.length) {
-                targets = targetLines;
-            } else if (targetLines.length === 1) {
-                targets = [targetLines[0], ...new Array(Math.max(lines.length - 1, 0)).fill('')];
-            } else {
-                const merged = targetLines.join(' ').trim();
-                targets = [merged, ...new Array(Math.max(lines.length - 1, 0)).fill('')];
-            }
+            const targets = normalizeTranslatedLines(texts, translatedText);
 
             this._block.tokens = fallbackTokens;
 
@@ -131,12 +123,12 @@ export class CommentDecoration {
 
         let { targets, texts, combined, translatedText } = result;
 
-        let targetIndex = 0;
         let tokensLength = tokens.length || 0;
         tokens.forEach((token, i) => {
             let { text, ignoreStart = 0, ignoreEnd = 0 } = token;
             const translateText = texts[i];
-            let targetText = translateText.length > 0 ? targets[targetIndex++] : "";
+            // `targets` is index-aligned with `texts` and `tokens`
+            let targetText = translateText.length > 0 ? targets[i] : "";
             let offset = i === 0 ? range.start.character : 0;
             let originText = text.slice(ignoreStart, text.length - ignoreEnd);
 
@@ -319,17 +311,6 @@ export class MarkdownDecoration extends CommentDecoration {
         return consumed;
     }
 
-    private _normalizeTargets(targetLines: string[], lineCount: number): string[] {
-        if (targetLines.length === lineCount) {
-            return targetLines;
-        }
-        if (targetLines.length === 1) {
-            return [targetLines[0], ...new Array(lineCount - 1).fill('')];
-        }
-        const merged = targetLines.join(' ').trim();
-        return [merged, ...new Array(lineCount - 1).fill('')];
-    }
-
     protected async _compile(): Promise<ITranslatedText | null> {
         let result: ITranslatedText;
 
@@ -352,7 +333,7 @@ export class MarkdownDecoration extends CommentDecoration {
         let translatedText = sourceText.length > 0
             ? await cachedTranslate(sourceText, { to: translateManager.opts.to || 'en' })
             : '';
-        const targets = this._normalizeTargets(translatedText.split('\n'), lines.length);
+        const targets = normalizeTranslatedLines(texts, translatedText);
 
         const reconstructedLines = tokens.map((token, index) => {
             const { text, ignoreStart = 0, ignoreEnd = 0 } = token;

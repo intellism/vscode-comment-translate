@@ -40,7 +40,7 @@ export interface ICommentBlock {
 export interface ITranslatedText {
 	translatedText: string;
 	humanizeText?: string;
-	targets: string[];
+	targets: string[]; // one entry per token, index-aligned with `texts`
 	texts:string[];
 	combined:boolean[];
 	translateLink: string;
