@@ -1,8 +1,21 @@
-import { commands, ExtensionContext } from "vscode";
+import { commands, ExtensionContext, window } from "vscode";
 import { changeTargetLanguage, changeTranslateSource, openOutputPannel, toggleBrowseMode, toggleEnableHover, toggleMultiLineMerge, toggleTempBrowseMode } from "./changeTargetLanguage";
 import { quickTranslationCommand, selectAllComment, selectAllText, translateAllComment, translateAllText, translateTerminalForCopilotChatCommand } from "./file";
 import { nameVariableCommand, replaceRange, replaceSelections } from "./replaceSelections";
 import { addSelection, clipboard, selectLastHover } from "./select";
+import { clearTranslationCache } from "../translate/manager";
+import { commentDecorationManager } from "../languageFeature/decoration";
+import { conciseDecorationManager } from "../languageFeature/concise";
+import { refreshTranslatedMarkdownPreviews } from "../languageFeature/markdownPreview";
+
+async function clearTranslationCacheCommand() {
+    const count = await clearTranslationCache();
+    // Browse mode reuses decorations for unchanged ranges, so rebuild them to drop the old text.
+    commentDecorationManager.resetCommentDecoration();
+    conciseDecorationManager.clearCache();
+    refreshTranslatedMarkdownPreviews();
+    window.showInformationMessage(`Cleared ${count} cached translations.`);
+}
 
 export function registerCommands(context: ExtensionContext) {
     context.subscriptions.push(
@@ -27,5 +40,6 @@ export function registerCommands(context: ExtensionContext) {
         commands.registerCommand('commentTranslate.translateForCopilotChat', quickTranslationCommand), // add context
         commands.registerCommand('commentTranslate.translateTerminalForCopilotChat', translateTerminalForCopilotChatCommand),
         commands.registerCommand('commentTranslate.nameVariable', nameVariableCommand), // add keyboard
+        commands.registerCommand('commentTranslate.clearTranslationCache', clearTranslationCacheCommand),
     );
 }

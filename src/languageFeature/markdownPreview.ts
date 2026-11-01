@@ -244,6 +244,17 @@ class TranslatedMarkdownProvider implements TextDocumentContentProvider {
         this.activeTranslations.set(uriKey, Date.now());
     }
 
+    /**
+     * Drop every cached snapshot and previous result, including those of
+     * previews whose document is closed. Removing the generation ids makes
+     * in-flight translations stale, so they no longer write to the caches.
+     */
+    invalidateAll(): void {
+        this.contentCache.clear();
+        this.previousResults.clear();
+        this.activeTranslations.clear();
+    }
+
     dispose(): void {
         this.onDidChangeEmitter.dispose();
         this.contentCache.clear();
@@ -313,6 +324,26 @@ async function openTranslatedMarkdownPreview(): Promise<void> {
     await commands.executeCommand("markdown.showLockedPreviewToSide", translatedUri);
 }
 
+let activeProvider: TranslatedMarkdownProvider | undefined;
+
+/**
+ * Drop every cached preview snapshot (including those of closed previews) and
+ * re-translate each open translated-markdown document. Reopening a preview alone
+ * does not refresh it, because the provider returns its cached snapshot for the same URI.
+ */
+export function refreshTranslatedMarkdownPreviews(): void {
+    if (!activeProvider) {
+        return;
+    }
+    // Also drops snapshots of previews whose document is already closed.
+    activeProvider.invalidateAll();
+    for (const doc of workspace.textDocuments) {
+        if (doc.uri.scheme === TRANSLATED_MARKDOWN_SCHEME) {
+            activeProvider.fireChange(doc.uri);
+        }
+    }
+}
+
 /**
  * Register the translated markdown preview feature:
  * - TextDocumentContentProvider for the `translated-markdown` scheme
@@ -321,6 +352,7 @@ async function openTranslatedMarkdownPreview(): Promise<void> {
  */
 export function registerMarkdownPreview(context: ExtensionContext): void {
     const provider = new TranslatedMarkdownProvider();
+    activeProvider = provider;
     const fsProvider = new TranslatedMarkdownFileSystemProvider();
 
     // Connect the FileSystemProvider to the translation provider so that
@@ -382,12 +414,7 @@ export function registerMarkdownPreview(context: ExtensionContext): void {
                 event.affectsConfiguration("commentTranslate.source")
             ) {
                 // Invalidate and refresh all open translated markdown documents
-                for (const doc of workspace.textDocuments) {
-                    if (doc.uri.scheme === TRANSLATED_MARKDOWN_SCHEME) {
-                        provider.invalidate(doc.uri);
-                        provider.fireChange(doc.uri);
-                    }
-                }
+                refreshTranslatedMarkdownPreviews();
             }
         })
     );

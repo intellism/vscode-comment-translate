@@ -1,6 +1,6 @@
 import { ITranslateOptions, TranslateManager } from "comment-translate-manager";
 import { getConfig, onConfigChange } from "../configuration";
-import { env, ExtensionContext } from "vscode";
+import { env, ExtensionContext, Memento } from "vscode";
 import { ITranslateConfig, TranslateExtensionProvider } from "./translateExtension";
 import { GoogleTranslate } from "./GoogleTranslate";
 import { BingTranslate } from "./BingTranslate";
@@ -15,6 +15,25 @@ export let translateExtensionProvider: TranslateExtensionProvider
 const sessionTranslateCache = new Map<string, string>();
 const pendingTranslateTasks = new Map<string, Promise<string>>();
 const MAX_SESSION_CACHE_SIZE = 1000;
+
+// TranslateManager persists successful results in workspaceState under
+// `${source}-from[${from}]to[${to}]-${text}`, with no expiry and no API to delete them.
+const PERSISTED_CACHE_KEY = /-from\[[^\]]*\]to\[[^\]]*\]-/;
+let persistedCacheStorage: Memento | undefined;
+
+/**
+ * Drop every cached translation: the in-memory session cache and the results that
+ * TranslateManager persisted in workspaceState. Other workspaceState keys are left alone.
+ * A request already in flight still writes its result after this returns.
+ * @returns Number of persisted entries removed
+ */
+export async function clearTranslationCache(): Promise<number> {
+    sessionTranslateCache.clear();
+    const storage = persistedCacheStorage;
+    const keys = storage?.keys().filter((key) => PERSISTED_CACHE_KEY.test(key)) ?? [];
+    await Promise.all(keys.map((key) => storage?.update(key, undefined)));
+    return keys.length;
+}
 
 function trimSessionCache() {
     if (sessionTranslateCache.size <= MAX_SESSION_CACHE_SIZE) {
@@ -69,6 +88,7 @@ export function initTranslate(context: ExtensionContext) {
     const targetLanguage = getConfig('targetLanguage', userLanguage);
     const sourceLanguage = getConfig('sourceLanguage', 'auto');
     // 最多单次可以翻译10000字符。 内部会分拆请求翻译服务。
+    persistedCacheStorage = context.workspaceState;
     translateManager = new TranslateManager(context.workspaceState, getConfig<number>('maxTranslationLength', 10000), { from: sourceLanguage, to: targetLanguage });
     onConfigChange('maxTranslationLength', (maxLen: number) => {
         translateManager.maxLen = maxLen;

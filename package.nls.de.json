@@ -27,5 +27,6 @@
     "commentTranslate.configuration.maxTranslationLength": "Maximale Übersetzungslänge",
     "commentTranslate.configuration.MultilineMerge": "Kommentar Mehrzeilige Zusammenführung",
     "commentTranslate.configuration.mutualTranslate": "Gegenseitige Übersetzung aktivieren. Wenn aktiviert, wird die Übersetzungsrichtung automatisch umgekehrt, wenn die erkannte Sprache des Eingabetexts mit der Zielsprache übereinstimmt.",
-    "commentTranslate.command.openMarkdownTranslatePreview": "Open Markdown Translate Preview"
+    "commentTranslate.command.openMarkdownTranslatePreview": "Open Markdown Translate Preview",
+    "commentTranslate.command.clearTranslationCache": "Clear Translation Cache"
 }
